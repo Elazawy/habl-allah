@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom'; // 1. استيراد HashRouter هنا
 import './index.css';
 import Hero from './components/Hero';
 import Portals from './components/Portals';
@@ -19,9 +19,11 @@ function HomePage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/quran" element={<QuranPage />} />
-    </Routes>
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/quran" element={<QuranPage />} />
+      </Routes>
+    </HashRouter>
   );
 }
