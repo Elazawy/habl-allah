@@ -5,7 +5,7 @@ import Portals from './components/Portals';
 import About from './components/About';
 import Footer from './components/Footer';
 import QuranPage from './pages/quran/QuranPage';
-
+import ScrollToTop from './components/ScrollToTop';
 function HomePage() {
   return (
     <div dir="rtl" className="min-h-screen bg-white">
@@ -19,10 +19,12 @@ function HomePage() {
 
 export default function App() {
   return (
-    // رجعنا الكود نظيف تماماً بدون HashRouter وبدون basename
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/quran" element={<QuranPage />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/quran" element={<QuranPage />} />
+      </Routes>
+    </>
   );
 }
