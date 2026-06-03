@@ -1,5 +1,16 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --color-q-primary: #1B4D3E;
+  --color-q-secondary: #CFA767;
+  --color-q-bg: #f9faf7;
+  --color-q-surface-low: #f3f4f1;
+  --color-q-surface: #edeeeb;
+  --color-q-on-surface: #191c1b;
+  --color-q-on-surface-variant: #404945;
+  --color-q-outline-variant: #c0c9c3;
+}
 
 * {
   font-family: 'Cairo', sans-serif;
@@ -23,6 +34,17 @@ body {
   background-size: 80px 80px;
   pointer-events: none;
   z-index: 0;
+}
+
+/* ── Gold SVG pattern overlay (Quran page) ── */
+.pattern-overlay-gold {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l2.598 15h5.196L30 7.5 22.206 15h5.196L30 0zm0 60l-2.598-15h-5.196L30 52.5 37.794 45h-5.196L30 60zM0 30l15-2.598v-5.196L7.5 30 15 37.794v-5.196L0 30zm60 0l-15 2.598v5.196L52.5 30 45 22.206v5.196L60 30z' fill='%23CFA767' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* ── Glassmorphism panel ── */
+.glass-panel {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 /* ── Bounce animation for scroll arrow ── */
@@ -60,3 +82,7 @@ body {
 .delay-200 { animation-delay: 0.2s; }
 .delay-300 { animation-delay: 0.3s; }
 .delay-400 { animation-delay: 0.4s; }
+
+/* ── No scrollbar ── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

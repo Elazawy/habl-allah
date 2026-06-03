@@ -64,7 +64,7 @@ export default function Portals() {
 
             {/* CTA */}
             <a
-              href="#"
+              href="/habl-allah/quran"
               id="portal-adults-cta"
               className="relative z-10 group/btn inline-flex items-center justify-center gap-3 bg-amber-400 hover:bg-amber-300 text-emerald-900 font-bold text-base px-8 py-4 rounded-2xl shadow-lg shadow-amber-900/20 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
             >
