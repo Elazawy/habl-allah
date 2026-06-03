@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'; // 1. استيراد HashRouter هنا
+import { Routes, Route } from 'react-router-dom';
 import './index.css';
 import Hero from './components/Hero';
 import Portals from './components/Portals';
@@ -19,11 +19,10 @@ function HomePage() {
 
 export default function App() {
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/quran" element={<QuranPage />} />
-      </Routes>
-    </HashRouter>
+    // رجعنا الكود نظيف تماماً بدون HashRouter وبدون basename
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/quran" element={<QuranPage />} />
+    </Routes>
   );
 }
