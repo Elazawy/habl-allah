@@ -1,4 +1,5 @@
 import { BookOpen, Award, Users, CheckCircle2, ArrowLeft, Smile, Star, BookMarked } from 'lucide-react';
+import { Link } from 'react-router-dom'; // 1️⃣ ضفنا الاستيراد ده هنا
 
 function FeatureItem({ text, dark = false }) {
   return (
@@ -62,15 +63,15 @@ export default function Portals() {
               </ul>
             </div>
 
-            {/* CTA */}
-            <a
-              href="/habl-allah/quran"
+            {/* 2️⃣ حوّلنا الـ <a> إلى <Link> وعدّلنا الـ href لتكون to */}
+            <Link
+              to="/quran"
               id="portal-adults-cta"
               className="relative z-10 group/btn inline-flex items-center justify-center gap-3 bg-amber-400 hover:bg-amber-300 text-emerald-900 font-bold text-base px-8 py-4 rounded-2xl shadow-lg shadow-amber-900/20 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
             >
               ابدأ رحلتك التعليمية
               <ArrowLeft size={18} className="group-hover/btn:-translate-x-1 transition-transform duration-300" />
-            </a>
+            </Link>
           </div>
 
           {/* ── Card 2: Kids ── */}
