@@ -10,29 +10,29 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: '#f3f4f1' }}>
+    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-xl mx-auto text-center">
         <span
           className="inline-block text-xs font-bold tracking-widest uppercase mb-4 px-4 py-1.5 rounded-full"
-          style={{ backgroundColor: 'rgba(207,167,103,0.12)', color: '#CFA767' }}
+          style={{ backgroundColor: 'rgba(207,167,103,0.12)', color: 'var(--t-secondary)' }}
         >
           النشرة البريدية
         </span>
 
-        <h2 className="text-4xl font-black mb-4" style={{ color: '#1B4D3E' }}>
+        <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
           كن أول من يعرف
         </h2>
-        <p className="text-base leading-relaxed mb-10" style={{ color: '#404945' }}>
+        <p className="text-base leading-relaxed mb-10" style={{ color: 'var(--t-text-muted)' }}>
           اشترك ليصلك جديد الدورات والمسابقات القرآنية
         </p>
 
         {submitted ? (
           <div
             className="rounded-2xl p-8 text-center"
-            style={{ backgroundColor: 'rgba(27,77,62,0.08)' }}
+            style={{ backgroundColor: 'var(--t-newsletter-success)' }}
           >
-            <Send size={32} className="mx-auto mb-3" style={{ color: '#1B4D3E' }} />
-            <p className="text-xl font-black" style={{ color: '#1B4D3E' }}>
+            <Send size={32} className="mx-auto mb-3" style={{ color: 'var(--t-primary)' }} />
+            <p className="text-xl font-black" style={{ color: 'var(--t-primary)' }}>
               شكراً! تم الاشتراك بنجاح.
             </p>
           </div>
@@ -44,12 +44,12 @@ export default function Newsletter() {
               required
               className="w-full rounded-2xl px-6 py-4 text-base outline-none border-2 transition-all duration-200 text-right"
               style={{
-                backgroundColor: '#ffffff',
-                borderColor: 'rgba(207,167,103,0.25)',
-                color: '#191c1b',
+                backgroundColor: 'var(--t-input-bg)',
+                borderColor: 'var(--t-border-gold)',
+                color: 'var(--t-text)',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#CFA767')}
-              onBlur={(e) => (e.target.style.borderColor = 'rgba(207,167,103,0.25)')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--t-secondary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--t-border-gold)')}
             />
             <input
               type="tel"
@@ -57,18 +57,18 @@ export default function Newsletter() {
               required
               className="w-full rounded-2xl px-6 py-4 text-base outline-none border-2 transition-all duration-200 text-right"
               style={{
-                backgroundColor: '#ffffff',
-                borderColor: 'rgba(207,167,103,0.25)',
-                color: '#191c1b',
+                backgroundColor: 'var(--t-input-bg)',
+                borderColor: 'var(--t-border-gold)',
+                color: 'var(--t-text)',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#CFA767')}
-              onBlur={(e) => (e.target.style.borderColor = 'rgba(207,167,103,0.25)')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--t-secondary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--t-border-gold)')}
             />
             <button
               type="submit"
               id="newsletter-submit"
               className="w-full py-4 rounded-2xl font-bold text-lg text-white transition-all duration-300 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 shadow-md mt-2"
-              style={{ backgroundColor: '#CFA767' }}
+              style={{ backgroundColor: 'var(--t-secondary)' }}
             >
               اشترك الآن
             </button>

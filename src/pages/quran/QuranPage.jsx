@@ -11,7 +11,7 @@ import QuranFooter from './QuranFooter';
 
 export default function QuranPage() {
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: '#f9faf7', color: '#191c1b' }}>
+    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
       <main>
         <QuranHero />

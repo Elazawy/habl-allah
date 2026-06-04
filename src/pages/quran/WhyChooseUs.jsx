@@ -26,7 +26,7 @@ const features = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: '#f3f4f1' }}>
+    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-14">
 
         {/* Image */}
@@ -42,7 +42,7 @@ export default function WhyChooseUs() {
 
         {/* Features */}
         <div className="w-full md:w-7/12 order-1 md:order-2">
-          <h2 className="text-4xl font-black mb-12" style={{ color: '#1B4D3E' }}>
+          <h2 className="text-4xl font-black mb-12" style={{ color: 'var(--t-primary)' }}>
             لماذا يختار الدارسون أكاديميتنا؟
           </h2>
           <div className="space-y-8">
@@ -51,15 +51,15 @@ export default function WhyChooseUs() {
                 {/* Icon badge */}
                 <div
                   className="p-3 rounded-2xl text-white shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-md"
-                  style={{ backgroundColor: '#1B4D3E' }}
+                  style={{ backgroundColor: 'var(--t-primary)' }}
                 >
                   {f.icon}
                 </div>
                 <div>
-                  <h4 className="text-xl font-black mb-1" style={{ color: '#1B4D3E' }}>
+                  <h4 className="text-xl font-black mb-1" style={{ color: 'var(--t-primary)' }}>
                     {f.title}
                   </h4>
-                  <p className="text-base leading-relaxed" style={{ color: '#404945' }}>
+                  <p className="text-base leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>
                     {f.desc}
                   </p>
                 </div>

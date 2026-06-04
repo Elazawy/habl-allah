@@ -27,14 +27,14 @@ const portals = [
 
 export default function TeacherPortals() {
   return (
-    <section id="portals" className="py-24 px-5 md:px-8" style={{ backgroundColor: '#f3f4f1' }}>
+    <section id="portals" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-14">
-          <h2 className="text-4xl font-black mb-4" style={{ color: '#1B4D3E' }}>
+          <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
             اختر قسمك
           </h2>
-          <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: '#CFA767' }} />
+          <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: 'var(--t-secondary)' }} />
         </div>
 
         {/* Cards */}

@@ -2,13 +2,22 @@ import { Eye, Send, Award } from 'lucide-react';
 
 function InfoBlock({ icon: Icon, title, text }) {
   return (
-    <div className="flex gap-4 p-5 bg-white rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-      <div className="shrink-0 w-11 h-11 bg-emerald-100 rounded-xl flex items-center justify-center mt-0.5">
-        <Icon size={20} className="text-emerald-700" />
+    <div
+      className="flex gap-4 p-5 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+      style={{
+        backgroundColor: 'var(--t-bg-card)',
+        borderColor: 'var(--t-border)',
+      }}
+    >
+      <div
+        className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center mt-0.5"
+        style={{ backgroundColor: 'var(--t-primary-light)' }}
+      >
+        <Icon size={20} style={{ color: 'var(--t-primary)' }} />
       </div>
       <div>
-        <h4 className="font-bold text-emerald-900 text-base mb-1">{title}</h4>
-        <p className="text-gray-500 text-sm leading-relaxed">{text}</p>
+        <h4 className="font-bold text-base mb-1" style={{ color: 'var(--t-primary)' }}>{title}</h4>
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>{text}</p>
       </div>
     </div>
   );
@@ -16,10 +25,13 @@ function InfoBlock({ icon: Icon, title, text }) {
 
 export default function About() {
   return (
-    <section id="about" className="py-24 px-6 bg-white">
+    <section id="about" className="py-24 px-6" style={{ backgroundColor: 'var(--t-bg-card)' }}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <span className="inline-block bg-emerald-100 text-emerald-700 text-sm font-semibold px-4 py-1.5 rounded-full">
+          <span
+            className="inline-block text-sm font-semibold px-4 py-1.5 rounded-full"
+            style={{ backgroundColor: 'var(--t-primary-light)', color: 'var(--t-primary)' }}
+          >
             تعرّف علينا
           </span>
         </div>
@@ -28,8 +40,10 @@ export default function About() {
           {/* Right: Text */}
           <div className="space-y-8">
             <div>
-              <h2 className="text-4xl font-black text-emerald-900 leading-tight mb-5">من نحن</h2>
-              <p className="text-gray-600 text-lg leading-relaxed">
+              <h2 className="text-4xl font-black leading-tight mb-5" style={{ color: 'var(--t-primary)' }}>
+                من نحن
+              </h2>
+              <p className="text-lg leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>
                 أكاديمية حبل الله القرآنية هي مؤسسة تعليمية رائدة تهدف إلى نشر علوم القرآن الكريم
                 وتعليم تلاوته وأحكام تجويده بأعلى معايير الجودة. نؤمن بأن التعليم القرآني حق
                 للجميع، ونسعى إلى تيسيره بأحدث الوسائل التقنية.
@@ -51,7 +65,10 @@ export default function About() {
 
           {/* Left: Image + Badge */}
           <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 m-auto w-[90%] h-[90%] rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-50 rotate-3 pointer-events-none" />
+            <div
+              className="absolute inset-0 m-auto w-[90%] h-[90%] rounded-3xl rotate-3 pointer-events-none"
+              style={{ background: 'linear-gradient(to bottom right, var(--t-primary-light), var(--t-bg-surface-low))' }}
+            />
 
             <div className="relative z-10 w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-950 flex flex-col items-center justify-center gap-4">
@@ -82,9 +99,15 @@ export default function About() {
             </div>
 
             {/* Secondary badge */}
-            <div className="absolute -top-4 -left-4 z-20 bg-white border border-emerald-100 rounded-xl px-4 py-3 shadow-lg text-center">
-              <div className="text-emerald-700 font-black text-xl leading-none">٪٩٨</div>
-              <div className="text-gray-400 text-xs mt-1">رضا الطلاب</div>
+            <div
+              className="absolute -top-4 -left-4 z-20 rounded-xl px-4 py-3 shadow-lg text-center border"
+              style={{
+                backgroundColor: 'var(--t-bg-card)',
+                borderColor: 'var(--t-border)',
+              }}
+            >
+              <div className="font-black text-xl leading-none" style={{ color: 'var(--t-primary)' }}>٪٩٨</div>
+              <div className="text-xs mt-1" style={{ color: 'var(--t-text-subtle)' }}>رضا الطلاب</div>
             </div>
           </div>
         </div>

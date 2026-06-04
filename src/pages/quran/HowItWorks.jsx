@@ -23,14 +23,14 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: '#f9faf7' }}>
+    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-page)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4" style={{ color: '#1B4D3E' }}>
+          <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
             كيف تبدأ رحلتك
           </h2>
-          <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: '#CFA767' }} />
+          <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: 'var(--t-secondary)' }} />
         </div>
 
         {/* Steps */}
@@ -47,25 +47,25 @@ export default function HowItWorks() {
               <div
                 className="w-20 h-20 rounded-full flex items-center justify-center shadow-md mb-6 border-2 relative"
                 style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--t-bg-card)',
                   borderColor: 'rgba(207, 167, 103, 0.35)',
-                  color: '#1B4D3E',
+                  color: 'var(--t-primary)',
                 }}
               >
                 {s.icon}
                 {/* Step number badge */}
                 <span
                   className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white"
-                  style={{ backgroundColor: '#CFA767' }}
+                  style={{ backgroundColor: 'var(--t-secondary)' }}
                 >
                   {s.num}
                 </span>
               </div>
 
-              <h3 className="text-xl font-black mb-2" style={{ color: '#1B4D3E' }}>
+              <h3 className="text-xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>
                 {s.title}
               </h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#404945' }}>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>
                 {s.desc}
               </p>
             </div>

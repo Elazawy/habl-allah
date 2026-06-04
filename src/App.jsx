@@ -6,9 +6,15 @@ import About from './components/About';
 import Footer from './components/Footer';
 import QuranPage from './pages/quran/QuranPage';
 import ScrollToTop from './components/ScrollToTop';
+import DarkModeToggle from './components/DarkModeToggle';
+
 function HomePage() {
   return (
-    <div dir="rtl" className="min-h-screen bg-white">
+    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
+      {/* Floating dark mode toggle */}
+      <div className="fixed top-5 left-5 z-50">
+        <DarkModeToggle />
+      </div>
       <Hero />
       <Portals />
       <About />

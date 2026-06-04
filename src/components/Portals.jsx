@@ -1,5 +1,5 @@
 import { BookOpen, Award, Users, CheckCircle2, ArrowLeft, Smile, Star, BookMarked } from 'lucide-react';
-import { Link } from 'react-router-dom'; // 1️⃣ ضفنا الاستيراد ده هنا
+import { Link } from 'react-router-dom';
 
 function FeatureItem({ text, dark = false }) {
   return (
@@ -8,29 +8,41 @@ function FeatureItem({ text, dark = false }) {
         size={18}
         className={`shrink-0 ${dark ? 'text-amber-400' : 'text-emerald-500'}`}
       />
-      <span className={`text-base ${dark ? 'text-emerald-100' : 'text-gray-700'}`}>{text}</span>
+      <span
+        className="text-base"
+        style={{ color: dark ? 'rgba(226,232,228,0.9)' : 'var(--t-text-muted)' }}
+      >
+        {text}
+      </span>
     </li>
   );
 }
 
 export default function Portals() {
   return (
-    <section id="portals" className="py-24 px-6 bg-gradient-to-b from-white to-emerald-50/40">
+    <section
+      id="portals"
+      className="py-24 px-6"
+      style={{ background: 'linear-gradient(to bottom, var(--t-bg), var(--t-bg-surface-low))' }}
+    >
       <div className="max-w-6xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-16">
-          <span className="inline-block bg-emerald-100 text-emerald-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+          <span
+            className="inline-block text-sm font-semibold px-4 py-1.5 rounded-full mb-4"
+            style={{ backgroundColor: 'var(--t-primary-light)', color: 'var(--t-primary)' }}
+          >
             منصاتنا التعليمية
           </span>
-          <h2 className="text-4xl font-black text-emerald-900 mb-4">
+          <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
             اختر منصتك المناسبة
           </h2>
-          <p className="text-gray-500 max-w-xl mx-auto text-lg">
+          <p className="max-w-xl mx-auto text-lg" style={{ color: 'var(--t-text-muted)' }}>
             لدينا بيئة تعليمية مخصصة لكل فئة عمرية — سواء كنت بالغاً أو طفلاً
           </p>
         </div>
 
-        {/* Cards grid — RTL: right card first = Card 1, left = Card 2 */}
+        {/* Cards grid */}
         <div className="grid md:grid-cols-2 gap-8 items-stretch">
 
           {/* ── Card 1: Adults ── */}
@@ -63,7 +75,6 @@ export default function Portals() {
               </ul>
             </div>
 
-            {/* 2️⃣ حوّلنا الـ <a> إلى <Link> وعدّلنا الـ href لتكون to */}
             <Link
               to="/quran"
               id="portal-adults-cta"
@@ -75,10 +86,16 @@ export default function Portals() {
           </div>
 
           {/* ── Card 2: Kids ── */}
-          <div className="group relative bg-white border border-gray-100 rounded-3xl p-8 shadow-xl hover:-translate-y-2 hover:shadow-2xl hover:shadow-sky-200/40 transition-all duration-300 flex flex-col overflow-hidden">
+          <div
+            className="group relative rounded-3xl p-8 shadow-xl hover:-translate-y-2 hover:shadow-2xl hover:shadow-sky-200/40 transition-all duration-300 flex flex-col overflow-hidden border"
+            style={{
+              backgroundColor: 'var(--t-bg-card)',
+              borderColor: 'var(--t-border)',
+            }}
+          >
             {/* Decorative blobs */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-orange-50 rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-sky-50 rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-orange-50/50 rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-sky-50/50 rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
             {/* Playful star decorations */}
             <Star size={14} className="absolute top-8 left-10 text-orange-300 fill-orange-300 pointer-events-none" />
@@ -86,7 +103,7 @@ export default function Portals() {
             <Star size={12} className="absolute bottom-24 right-8 text-amber-300 fill-amber-300 pointer-events-none" />
 
             {/* Icon badge */}
-            <div className="relative z-10 w-14 h-14 bg-orange-100 border border-orange-200 rounded-2xl flex items-center justify-center mb-6">
+            <div className="relative z-10 w-14 h-14 bg-orange-100/70 border border-orange-200 rounded-2xl flex items-center justify-center mb-6">
               <Smile size={28} className="text-orange-500" />
             </div>
 
@@ -95,8 +112,10 @@ export default function Portals() {
               <div className="mb-1">
                 <span className="text-sky-500 text-xs font-semibold tracking-widest uppercase">للأطفال</span>
               </div>
-              <h3 className="text-3xl font-black text-emerald-900 mb-3">منصة أسس حبل الله</h3>
-              <p className="text-gray-500 text-sm leading-relaxed mb-8">
+              <h3 className="text-3xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>
+                منصة أسس حبل الله
+              </h3>
+              <p className="text-sm leading-relaxed mb-8" style={{ color: 'var(--t-text-muted)' }}>
                 بيئة تعليمية تفاعلية مرحة وآمنة، تبني في الطفل الأسس الإيمانية بطريقة تشويقية ومحببة.
               </p>
 
