@@ -13,7 +13,13 @@ export default function Footer() {
     <footer className="bg-gradient-to-br from-emerald-950 to-emerald-900 text-emerald-100">
       {/* Top wave divider */}
       <div className="w-full overflow-hidden leading-none">
-        <svg viewBox="0 0 1200 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-12 fill-white">
+        <svg
+          viewBox="0 0 1200 60"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          className="w-full h-12"
+          style={{ fill: 'var(--t-bg-card)' }}
+        >
           <path d="M0,0 C300,60 900,0 1200,50 L1200,0 L0,0 Z" />
         </svg>
       </div>

@@ -34,14 +34,14 @@ const courses = [
 
 export default function FeaturedCourses() {
   return (
-    <section id="courses" className="py-24 px-5 md:px-8" style={{ backgroundColor: '#f9faf7' }}>
+    <section id="courses" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-page)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-12">
-          <h2 className="text-4xl font-black mb-3" style={{ color: '#1B4D3E' }}>
+          <h2 className="text-4xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>
             أبرز الدورات والمبادرات
           </h2>
-          <p className="text-base max-w-2xl" style={{ color: '#404945' }}>
+          <p className="text-base max-w-2xl" style={{ color: 'var(--t-text-muted)' }}>
             اختر من بين باقة متنوعة من الدورات المتخصصة التي صُممت بعناية لتناسب جميع المستويات
             والأعمار.
           </p>
@@ -52,11 +52,14 @@ export default function FeaturedCourses() {
           {courses.map((c) => (
             <div
               key={c.id}
-              className="bg-white rounded-3xl overflow-hidden shadow-sm border flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-              style={{ borderColor: 'rgba(207, 167, 103, 0.15)' }}
+              className="rounded-3xl overflow-hidden shadow-sm border flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+              style={{
+                backgroundColor: 'var(--t-bg-card)',
+                borderColor: 'var(--t-border-gold)',
+              }}
             >
               {/* Image */}
-              <div className="relative h-52 overflow-hidden" style={{ backgroundColor: '#edeeeb' }}>
+              <div className="relative h-52 overflow-hidden" style={{ backgroundColor: 'var(--t-bg-surface)' }}>
                 <img
                   src={c.image}
                   alt={c.alt}
@@ -65,7 +68,7 @@ export default function FeaturedCourses() {
                 {c.badge && (
                   <span
                     className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold text-white"
-                    style={{ backgroundColor: '#CFA767' }}
+                    style={{ backgroundColor: 'var(--t-secondary)' }}
                   >
                     {c.badge}
                   </span>
@@ -74,25 +77,25 @@ export default function FeaturedCourses() {
 
               {/* Content */}
               <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-xl font-black mb-2 leading-snug" style={{ color: '#1B4D3E' }}>
+                <h3 className="text-xl font-black mb-2 leading-snug" style={{ color: 'var(--t-primary)' }}>
                   {c.title}
                 </h3>
-                <p className="text-sm leading-relaxed flex-1 mb-6" style={{ color: '#404945' }}>
+                <p className="text-sm leading-relaxed flex-1 mb-6" style={{ color: 'var(--t-text-muted)' }}>
                   {c.desc}
                 </p>
 
                 {/* Footer row */}
                 <div
                   className="flex items-center justify-between border-t pt-4"
-                  style={{ borderColor: 'rgba(207, 167, 103, 0.2)' }}
+                  style={{ borderColor: 'var(--t-border-gold)' }}
                 >
-                  <span className="font-black text-base" style={{ color: '#CFA767' }}>
+                  <span className="font-black text-base" style={{ color: 'var(--t-secondary)' }}>
                     {c.price}
                   </span>
                   <button
                     id={c.id}
                     className="flex items-center gap-1 font-bold text-sm transition-colors duration-200 hover:opacity-70"
-                    style={{ color: '#1B4D3E' }}
+                    style={{ color: 'var(--t-primary)' }}
                   >
                     التفاصيل
                     <ArrowLeft size={14} />
@@ -109,8 +112,8 @@ export default function FeaturedCourses() {
             href="#"
             className="inline-flex items-center gap-3 px-10 py-4 border-2 rounded-2xl font-bold text-lg transition-all duration-300 hover:text-white hover:-translate-y-0.5"
             id="view-all-courses"
-            style={{ color: '#CFA767', borderColor: '#CFA767' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#CFA767'; }}
+            style={{ color: 'var(--t-secondary)', borderColor: 'var(--t-secondary)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--t-secondary)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
             استعرض كافة الدورات

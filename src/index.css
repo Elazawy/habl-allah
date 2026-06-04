@@ -12,6 +12,60 @@
   --color-q-outline-variant: #c0c9c3;
 }
 
+/* ── Theme tokens ── */
+:root,
+[data-theme="light"] {
+  --t-bg:              #f8f9fa;
+  --t-bg-page:         #f9faf7;
+  --t-bg-surface-low:  #f3f4f1;
+  --t-bg-surface:      #edeeeb;
+  --t-bg-card:         #ffffff;
+  --t-text:            #191c1b;
+  --t-text-muted:      #404945;
+  --t-text-subtle:     #6b7280;
+  --t-primary:         #1B4D3E;
+  --t-primary-light:   rgba(27,77,62,0.08);
+  --t-secondary:       #CFA767;
+  --t-border:          rgba(192,201,195,0.4);
+  --t-border-gold:     rgba(207,167,103,0.15);
+  --t-hero-bg:         #f9faf7;
+  --t-nav-scrolled:    rgba(255,255,255,0.8);
+  --t-nav-mobile:      rgba(255,255,255,0.95);
+  --t-input-bg:        #ffffff;
+  --t-shadow-card:     rgba(0,0,0,0.06);
+  --t-badge-bg:        rgba(27,77,62,0.08);
+  --t-newsletter-success: rgba(27,77,62,0.08);
+  --t-footer-bg:       #f9faf7;
+  --t-hero-gradient:   linear-gradient(to left, #f9faf7 12%, transparent 55%);
+  --t-hero-gradient-m: linear-gradient(to top, #f9faf7 15%, transparent 55%);
+}
+
+[data-theme="dark"] {
+  --t-bg:              #0f1512;
+  --t-bg-page:         #111916;
+  --t-bg-surface-low:  #161e1a;
+  --t-bg-surface:      #1c2620;
+  --t-bg-card:         #1c2620;
+  --t-text:            #e2e8e4;
+  --t-text-muted:      #a0b0a8;
+  --t-text-subtle:     #728b80;
+  --t-primary:         #4ead88;
+  --t-primary-light:   rgba(78,173,136,0.12);
+  --t-secondary:       #d4aa6e;
+  --t-border:          rgba(78,173,136,0.18);
+  --t-border-gold:     rgba(212,170,110,0.2);
+  --t-hero-bg:         #111916;
+  --t-nav-scrolled:    rgba(15,21,18,0.85);
+  --t-nav-mobile:      rgba(17,25,22,0.97);
+  --t-input-bg:        #1c2620;
+  --t-shadow-card:     rgba(0,0,0,0.3);
+  --t-badge-bg:        rgba(78,173,136,0.12);
+  --t-newsletter-success: rgba(78,173,136,0.12);
+  --t-footer-bg:       #111916;
+  --t-hero-gradient:   linear-gradient(to left, #111916 12%, transparent 55%);
+  --t-hero-gradient-m: linear-gradient(to top, #111916 15%, transparent 55%);
+}
+
 * {
   font-family: 'Cairo', sans-serif;
 }
@@ -22,8 +76,10 @@ html {
 
 body {
   direction: rtl;
-  background-color: #f8f9fa;
+  background-color: var(--t-bg);
   overflow-x: hidden;
+  color: var(--t-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ── Islamic geometric SVG pattern ── */
