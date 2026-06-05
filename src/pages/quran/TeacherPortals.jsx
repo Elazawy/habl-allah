@@ -1,9 +1,15 @@
-import { Building2, UserRound, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useReveal } from '../../hooks/useReveal';
 
 const portals = [
   {
-    icon: <Building2 size={52} />,
+    icon: (
+      <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="20" r="10" stroke="currentColor" strokeWidth="2.5" fill="none"/>
+        <path d="M12 52c0-11.046 8.954-20 20-20s20 8.954 20 20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      </svg>
+    ),
     label: 'قسم المعلمين',
     desc: 'معلمون مجازون بالقراءات العشر لتعليم الرجال والأطفال',
     bg: '#1B4D3E',
@@ -12,9 +18,16 @@ const portals = [
     descColor: 'rgba(255,255,255,0.75)',
     linkColor: '#CFA767',
     id: 'portal-teachers-male',
+    to: '/quran/teachers/male',
   },
   {
-    icon: <UserRound size={52} />,
+    icon: (
+      <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="18" r="10" stroke="currentColor" strokeWidth="2.5" fill="none"/>
+        <path d="M14 52c0-9.941 8.059-18 18-18s18 8.059 18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+        <path d="M22 18 Q32 8 42 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+      </svg>
+    ),
     label: 'قسم المعلمات',
     desc: 'معلمات متميزات لتعليم النساء والفتيات في خصوصية تامة',
     bg: '#CFA767',
@@ -23,6 +36,7 @@ const portals = [
     descColor: 'rgba(27,77,62,0.75)',
     linkColor: '#1B4D3E',
     id: 'portal-teachers-female',
+    to: '/quran/teachers/female',
   },
 ];
 
@@ -61,14 +75,15 @@ export default function TeacherPortals() {
                 <p className="text-base leading-relaxed mb-8 max-w-xs" style={{ color: p.descColor }}>
                   {p.desc}
                 </p>
-                <button
+                <Link
                   id={p.id}
+                  to={p.to}
                   className="inline-flex items-center gap-2 font-bold text-sm hover:underline transition-all"
                   style={{ color: p.linkColor }}
                 >
-                  عرض التفاصيل
+                  اختر من هذا القسم
                   <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform duration-300" />
-                </button>
+                </Link>
               </div>
             </div>
           ))}

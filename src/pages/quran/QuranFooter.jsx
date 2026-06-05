@@ -24,7 +24,7 @@ const navLinks = [
 ];
 
 const socials = [
-  { icon: <WhatsAppIcon size={18} />, href: '#', label: 'واتساب' },
+  { icon: <WhatsAppIcon size={18} />, href: 'https://api.whatsapp.com/send?phone=201101452585&text=السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل', label: 'واتساب' },
 ];
 
 export default function QuranFooter() {

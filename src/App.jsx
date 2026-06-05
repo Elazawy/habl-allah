@@ -5,6 +5,9 @@ import Portals from './components/Portals';
 import About from './components/About';
 import Footer from './components/Footer';
 import QuranPage from './pages/quran/QuranPage';
+import ChooseTeacherPage from './pages/quran/ChooseTeacherPage';
+import TeacherListPage from './pages/quran/TeacherListPage';
+import TeacherProfilePage from './pages/quran/TeacherProfilePage';
 import ScrollToTop from './components/ScrollToTop';
 import DarkModeToggle from './components/DarkModeToggle';
 
@@ -30,6 +33,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/quran" element={<QuranPage />} />
+        <Route path="/quran/teachers" element={<ChooseTeacherPage />} />
+        <Route path="/quran/teachers/:gender" element={<TeacherListPage />} />
+        <Route path="/quran/teachers/:gender/:id" element={<TeacherProfilePage />} />
       </Routes>
     </>
   );
