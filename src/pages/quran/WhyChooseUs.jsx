@@ -1,5 +1,6 @@
 import { ShieldCheck, Clock, TrendingUp, BadgeCheck } from 'lucide-react';
 import studentTablet from '../../assets/student-tablet.png';
+import { useReveal } from '../../hooks/useReveal';
 
 const features = [
   {
@@ -25,12 +26,14 @@ const features = [
 ];
 
 export default function WhyChooseUs() {
+  const ref = useReveal();
+
   return (
-    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
+    <section ref={ref} className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-14">
 
-        {/* Image */}
-        <div className="w-full md:w-5/12 order-2 md:order-1">
+        {/* Image — slides in from left */}
+        <div className="reveal-right w-full md:w-5/12 order-2 md:order-1">
           <div className="rounded-[2.5rem] overflow-hidden shadow-2xl">
             <img
               src={studentTablet}
@@ -40,14 +43,17 @@ export default function WhyChooseUs() {
           </div>
         </div>
 
-        {/* Features */}
-        <div className="w-full md:w-7/12 order-1 md:order-2">
+        {/* Features — slides in from right */}
+        <div className="reveal-left w-full md:w-7/12 order-1 md:order-2">
           <h2 className="text-4xl font-black mb-12" style={{ color: 'var(--t-primary)' }}>
             لماذا يختار الدارسون أكاديميتنا؟
           </h2>
           <div className="space-y-8">
-            {features.map((f) => (
-              <div key={f.title} className="flex items-start gap-5 group">
+            {features.map((f, i) => (
+              <div
+                key={f.title}
+                className={`reveal reveal-d${i + 1} flex items-start gap-5 group`}
+              >
                 {/* Icon badge */}
                 <div
                   className="p-3 rounded-2xl text-white shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-md"

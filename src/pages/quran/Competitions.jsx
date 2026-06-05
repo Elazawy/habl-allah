@@ -1,4 +1,5 @@
 import { Trophy, BookOpen, Calendar, Award } from 'lucide-react';
+import { useReveal } from '../../hooks/useReveal';
 
 const competitions = [
   {
@@ -20,11 +21,13 @@ const competitions = [
 ];
 
 export default function Competitions() {
+  const ref = useReveal();
+
   return (
-    <section id="competitions" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
+    <section ref={ref} id="competitions" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-12 reveal">
           <h2 className="text-4xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>
             المسابقات الحالية
           </h2>
@@ -34,10 +37,10 @@ export default function Competitions() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {competitions.map((c) => (
+          {competitions.map((c, i) => (
             <div
               key={c.id}
-              className="rounded-3xl p-8 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+              className={`reveal reveal-d${i + 1} rounded-3xl p-8 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
               style={{
                 backgroundColor: 'var(--t-bg-card)',
                 borderColor: 'var(--t-border-gold)',

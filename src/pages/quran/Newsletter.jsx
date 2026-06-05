@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
+import { useReveal } from '../../hooks/useReveal';
 
 export default function Newsletter() {
   const [submitted, setSubmitted] = useState(false);
+  const ref = useReveal();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -10,19 +12,19 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
+    <section ref={ref} className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-xl mx-auto text-center">
         <span
-          className="inline-block text-xs font-bold tracking-widest uppercase mb-4 px-4 py-1.5 rounded-full"
+          className="reveal inline-block text-xs font-bold tracking-widest uppercase mb-4 px-4 py-1.5 rounded-full"
           style={{ backgroundColor: 'rgba(207,167,103,0.12)', color: 'var(--t-secondary)' }}
         >
           النشرة البريدية
         </span>
 
-        <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
+        <h2 className="reveal reveal-d1 text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
           كن أول من يعرف
         </h2>
-        <p className="text-base leading-relaxed mb-10" style={{ color: 'var(--t-text-muted)' }}>
+        <p className="reveal reveal-d2 text-base leading-relaxed mb-10" style={{ color: 'var(--t-text-muted)' }}>
           اشترك ليصلك جديد الدورات والمسابقات القرآنية
         </p>
 
@@ -37,7 +39,7 @@ export default function Newsletter() {
             </p>
           </div>
         ) : (
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <form className="reveal reveal-d3 flex flex-col gap-4" onSubmit={handleSubmit}>
             <input
               type="text"
               placeholder="الاسم الكامل"

@@ -41,8 +41,8 @@ export default function Hero() {
         >
           مرحباً بكم في
           <span
-            className="block mt-2 text-transparent bg-clip-text"
-            style={{ backgroundImage: 'linear-gradient(to left, var(--t-primary), color-mix(in srgb, var(--t-primary) 60%, black))' }}
+            className="block mt-2"
+            style={{ color: 'var(--t-secondary)' }}
           >
             أكاديمية حبل الله القرآنية
           </span>

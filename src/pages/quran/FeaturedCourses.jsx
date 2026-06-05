@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import quranHero from '../../assets/quran-hero.png';
 import studentTablet from '../../assets/student-tablet.png';
+import { useReveal } from '../../hooks/useReveal';
 
 const courses = [
   {
@@ -33,11 +34,13 @@ const courses = [
 ];
 
 export default function FeaturedCourses() {
+  const ref = useReveal();
+
   return (
-    <section id="courses" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+    <section ref={ref} id="courses" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-page)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-12 reveal">
           <h2 className="text-4xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>
             أبرز الدورات والمبادرات
           </h2>
@@ -49,10 +52,10 @@ export default function FeaturedCourses() {
 
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {courses.map((c) => (
+          {courses.map((c, i) => (
             <div
               key={c.id}
-              className="rounded-3xl overflow-hidden shadow-sm border flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+              className={`reveal-scale reveal-d${i + 1} rounded-3xl overflow-hidden shadow-sm border flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
               style={{
                 backgroundColor: 'var(--t-bg-card)',
                 borderColor: 'var(--t-border-gold)',
@@ -107,7 +110,7 @@ export default function FeaturedCourses() {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 reveal">
           <a
             href="#"
             className="inline-flex items-center gap-3 px-10 py-4 border-2 rounded-2xl font-bold text-lg transition-all duration-300 hover:text-white hover:-translate-y-0.5"

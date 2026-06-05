@@ -38,6 +38,14 @@
   --t-footer-bg:       #f9faf7;
   --t-hero-gradient:   linear-gradient(to left, #f9faf7 12%, transparent 55%);
   --t-hero-gradient-m: linear-gradient(to top, #f9faf7 15%, transparent 55%);
+
+  /* Footer */
+  --t-footer-surface:  #edf0ec;
+  --t-footer-border:   rgba(27,77,62,0.15);
+  --t-footer-brand:    #1B4D3E;
+  --t-footer-text:     #404945;
+  --t-footer-link:     #404945;
+  --t-footer-icon-bg:  rgba(27,77,62,0.06);
 }
 
 [data-theme="dark"] {
@@ -64,6 +72,14 @@
   --t-footer-bg:       #111916;
   --t-hero-gradient:   linear-gradient(to left, #111916 12%, transparent 55%);
   --t-hero-gradient-m: linear-gradient(to top, #111916 15%, transparent 55%);
+
+  /* Footer */
+  --t-footer-surface:  #0a100d;
+  --t-footer-border:   rgba(78,173,136,0.15);
+  --t-footer-brand:    #6dd4ae;
+  --t-footer-text:     #a0b0a8;
+  --t-footer-link:     #c8d8d0;
+  --t-footer-icon-bg:  rgba(78,173,136,0.08);
 }
 
 * {
@@ -142,3 +158,48 @@ body {
 /* ── No scrollbar ── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Reveal on scroll ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* stagger helpers */
+.reveal-d1 { transition-delay: 0.08s; }
+.reveal-d2 { transition-delay: 0.16s; }
+.reveal-d3 { transition-delay: 0.24s; }
+.reveal-d4 { transition-delay: 0.32s; }
+.reveal-d5 { transition-delay: 0.40s; }
+
+/* slide from left / right */
+.reveal-left  { opacity: 0; transform: translateX(32px);  transition: opacity 0.65s cubic-bezier(0.22,1,0.36,1), transform 0.65s cubic-bezier(0.22,1,0.36,1); }
+.reveal-right { opacity: 0; transform: translateX(-32px); transition: opacity 0.65s cubic-bezier(0.22,1,0.36,1), transform 0.65s cubic-bezier(0.22,1,0.36,1); }
+.reveal-left.visible,
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+/* scale in */
+.reveal-scale { opacity: 0; transform: scale(0.93); transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+/* Hero entrance — runs once on mount, no scroll trigger needed */
+@keyframes hero-text-in {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes hero-img-in {
+  from { opacity: 0; transform: scale(1.04); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.hero-text-in {
+  animation: hero-text-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero-img-in {
+  animation: hero-img-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

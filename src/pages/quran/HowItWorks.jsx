@@ -1,4 +1,5 @@
 import { UserSearch, CalendarDays, PlayCircle } from 'lucide-react';
+import { useReveal } from '../../hooks/useReveal';
 
 const steps = [
   {
@@ -22,11 +23,13 @@ const steps = [
 ];
 
 export default function HowItWorks() {
+  const ref = useReveal();
+
   return (
-    <section className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+    <section ref={ref} className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-page)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 reveal">
           <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
             كيف تبدأ رحلتك
           </h2>
@@ -41,8 +44,11 @@ export default function HowItWorks() {
             style={{ borderColor: 'rgba(207, 167, 103, 0.3)', zIndex: 0 }}
           />
 
-          {steps.map((s) => (
-            <div key={s.num} className="relative z-10 flex flex-col items-center text-center">
+          {steps.map((s, i) => (
+            <div
+              key={s.num}
+              className={`reveal reveal-d${i + 1} relative z-10 flex flex-col items-center text-center`}
+            >
               {/* Step circle */}
               <div
                 className="w-20 h-20 rounded-full flex items-center justify-center shadow-md mb-6 border-2 relative"

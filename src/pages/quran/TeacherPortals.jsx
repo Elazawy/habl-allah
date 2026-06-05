@@ -1,4 +1,5 @@
 import { Building2, UserRound, ArrowLeft } from 'lucide-react';
+import { useReveal } from '../../hooks/useReveal';
 
 const portals = [
   {
@@ -26,11 +27,13 @@ const portals = [
 ];
 
 export default function TeacherPortals() {
+  const ref = useReveal();
+
   return (
-    <section id="portals" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
+    <section ref={ref} id="portals" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-14 reveal">
           <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
             اختر قسمك
           </h2>
@@ -39,10 +42,10 @@ export default function TeacherPortals() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {portals.map((p) => (
+          {portals.map((p, i) => (
             <div
               key={p.id}
-              className="relative group cursor-pointer overflow-hidden rounded-3xl h-[380px] flex items-center justify-center text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 pattern-overlay-gold"
+              className={`reveal-scale reveal-d${i + 1} relative group cursor-pointer overflow-hidden rounded-3xl h-[380px] flex items-center justify-center text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 pattern-overlay-gold`}
               style={{ backgroundColor: p.bg }}
             >
               <div className="z-10 p-10 flex flex-col items-center">

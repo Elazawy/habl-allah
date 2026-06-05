@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react';
+import { useReveal } from '../../hooks/useReveal';
 
 const testimonials = [
   {
@@ -25,11 +26,13 @@ const testimonials = [
 ];
 
 export default function Testimonials() {
+  const ref = useReveal();
+
   return (
-    <section className="py-24 px-5 md:px-8 pattern-overlay-gold" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+    <section ref={ref} className="py-24 px-5 md:px-8 pattern-overlay-gold" style={{ backgroundColor: 'var(--t-bg-page)' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-14 reveal">
           <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
             ماذا يقول طلابنا؟
           </h2>
@@ -38,10 +41,10 @@ export default function Testimonials() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((t) => (
+          {testimonials.map((t, i) => (
             <div
               key={t.name}
-              className="p-8 rounded-[2rem] shadow-sm border flex flex-col"
+              className={`reveal reveal-d${i + 1} p-8 rounded-[2rem] shadow-sm border flex flex-col`}
               style={{
                 backgroundColor: 'var(--t-bg-card)',
                 borderColor: 'var(--t-border-gold)',
