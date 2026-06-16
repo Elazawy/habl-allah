@@ -1,10 +1,9 @@
 /**
  * Teachers Service Layer
  * ──────────────────────
- * Reads from Supabase when connected, falls back to mock data.
- * To switch to Supabase: update src/lib/supabase.js with real credentials.
+ * Reads from Supabase. Falls back to mock data if Supabase is not configured.
  *
- * Supabase tables expected:
+ * Supabase tables:
  *   teachers            (id, name, gender, bio, photo_url, recitation_url, recitation_type)
  *   teacher_reviews     (id, teacher_id, student_name, rating, text, created_at)
  *   preference_requests (id, student_name, age, whatsapp, description, gender_preference, created_at)
@@ -52,13 +51,11 @@ export async function fetchTeacherById(id) {
 
 /**
  * Submit a teacher-preference form (recommendation request).
- * The student's WhatsApp number is stored here so the academy can
- * follow up — it is NOT sent inside the WhatsApp message.
  */
 export async function submitPreferenceForm({
   student_name,
   age,
-  whatsapp,       // stored for academy follow-up, not in WA message
+  whatsapp,
   description,
   gender_preference,
 }) {
@@ -70,21 +67,18 @@ export async function submitPreferenceForm({
       .insert([payload]);
     if (error) throw error;
   } else {
-    // Mock mode — log only
     console.log('[preference_request saved]', payload);
   }
 }
 
 /**
  * Submit a subscription request.
- * The student's WhatsApp number is stored for academy follow-up only.
- * The WA redirect message contains only: teacher name + student name.
  */
 export async function submitSubscriptionRequest({
   teacher_id,
   teacher_name,
   student_name,
-  whatsapp,       // stored for follow-up, not sent in WA message
+  whatsapp,
 }) {
   const payload = { teacher_id, teacher_name, student_name, whatsapp };
 

@@ -10,6 +10,12 @@ import TeacherListPage from './pages/quran/TeacherListPage';
 import TeacherProfilePage from './pages/quran/TeacherProfilePage';
 import ScrollToTop from './components/ScrollToTop';
 import DarkModeToggle from './components/DarkModeToggle';
+import { AuthProvider } from './context/AuthContext';
+import RequireAuth from './components/RequireAuth';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import TeachersManagementPage from './pages/admin/TeachersManagementPage';
 
 function HomePage() {
   return (
@@ -28,15 +34,41 @@ function HomePage() {
 
 export default function App() {
   return (
-    <>
+    <AuthProvider>
       <ScrollToTop />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/quran" element={<QuranPage />} />
         <Route path="/quran/teachers" element={<ChooseTeacherPage />} />
         <Route path="/quran/teachers/:gender" element={<TeacherListPage />} />
         <Route path="/quran/teachers/:gender/:id" element={<TeacherProfilePage />} />
+
+        {/* Admin auth */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+
+        {/* Protected admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <AdminLayout>
+                <AdminDashboard />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/teachers"
+          element={
+            <RequireAuth>
+              <AdminLayout>
+                <TeachersManagementPage />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
       </Routes>
-    </>
+    </AuthProvider>
   );
 }
