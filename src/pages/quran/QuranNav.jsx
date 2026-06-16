@@ -4,10 +4,10 @@ import { Menu, X } from 'lucide-react';
 import DarkModeToggle from '../../components/DarkModeToggle';
 
 const links = [
-  { label: 'الرئيسية', href: '#' },
-  { label: 'اختر معلمك', href: '#portals' },
-  { label: 'المسابقات', href: '#competitions' },
-  { label: 'الدورات', href: '#courses' },
+  { label: 'الرئيسية',    href: null,             to: '/quran' },
+  { label: 'اختر معلمك', href: null,             to: '/quran/teachers' },
+  { label: 'المسابقات',  href: '#competitions',  to: null },
+  { label: 'الدورات',    href: '#courses',        to: null },
 ];
 
 export default function QuranNav() {
@@ -42,22 +42,33 @@ export default function QuranNav() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
-          {links.map((l, i) => (
-            <a
-              key={l.label}
-              href={l.href}
-              className={`font-semibold text-sm transition-colors duration-200 pb-1 ${
-                i === 0 ? 'border-b-2' : 'hover:opacity-100 opacity-60'
-              }`}
-              style={
-                i === 0
-                  ? { color: 'var(--t-primary)', borderColor: 'var(--t-secondary)' }
-                  : { color: 'var(--t-text)' }
-              }
-            >
-              {l.label}
-            </a>
-          ))}
+          {links.map((l, i) =>
+            l.to ? (
+              <Link
+                key={l.label}
+                to={l.to}
+                className={`font-semibold text-sm transition-colors duration-200 pb-1 hover:opacity-100 opacity-60`}
+                style={{ color: 'var(--t-text)' }}
+              >
+                {l.label}
+              </Link>
+            ) : (
+              <a
+                key={l.label}
+                href={l.href}
+                className={`font-semibold text-sm transition-colors duration-200 pb-1 ${
+                  i === 0 ? 'border-b-2' : 'hover:opacity-100 opacity-60'
+                }`}
+                style={
+                  i === 0
+                    ? { color: 'var(--t-primary)', borderColor: 'var(--t-secondary)' }
+                    : { color: 'var(--t-text)' }
+                }
+              >
+                {l.label}
+              </a>
+            )
+          )}
         </nav>
 
         {/* Right actions: toggle + mobile menu */}
@@ -85,17 +96,29 @@ export default function QuranNav() {
             borderColor: 'var(--t-border)',
           }}
         >
-          {links.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              className="font-semibold text-base py-1"
-              style={{ color: 'var(--t-primary)' }}
-              onClick={() => setMenuOpen(false)}
-            >
-              {l.label}
-            </a>
-          ))}
+          {links.map((l) =>
+            l.to ? (
+              <Link
+                key={l.label}
+                to={l.to}
+                className="font-semibold text-base py-1"
+                style={{ color: 'var(--t-primary)' }}
+                onClick={() => setMenuOpen(false)}
+              >
+                {l.label}
+              </Link>
+            ) : (
+              <a
+                key={l.label}
+                href={l.href}
+                className="font-semibold text-base py-1"
+                style={{ color: 'var(--t-primary)' }}
+                onClick={() => setMenuOpen(false)}
+              >
+                {l.label}
+              </a>
+            )
+          )}
         </div>
       )}
     </header>
