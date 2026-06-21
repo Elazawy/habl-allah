@@ -108,6 +108,43 @@ body {
   z-index: 0;
 }
 
+/* ── Hero brand logo ── */
+.hero-logo-img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 24px rgba(207, 167, 103, 0.35));
+  animation: logo-glow 3s ease-in-out infinite alternate;
+}
+@media (min-width: 640px) {
+  .hero-logo-img { width: 170px; height: 170px; }
+}
+@media (min-width: 1024px) {
+  .hero-logo-img { width: 200px; height: 200px; }
+}
+@keyframes logo-glow {
+  0%   { filter: drop-shadow(0 4px 24px rgba(207, 167, 103, 0.25)); }
+  100% { filter: drop-shadow(0 8px 40px rgba(207, 167, 103, 0.55)); }
+}
+
+/* ── Admin sidebar logo (image version) ── */
+.admin-sidebar-logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* ── Admin login logo (image version) ── */
+.admin-login-logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 1rem;
+  filter: drop-shadow(0 4px 16px rgba(207, 167, 103, 0.3));
+}
+
 /* ── Gold SVG pattern overlay (Quran page) ── */
 .pattern-overlay-gold {
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l2.598 15h5.196L30 7.5 22.206 15h5.196L30 0zm0 60l-2.598-15h-5.196L30 52.5 37.794 45h-5.196L30 60zM0 30l15-2.598v-5.196L7.5 30 15 37.794v-5.196L0 30zm60 0l-15 2.598v5.196L52.5 30 45 22.206v5.196L60 30z' fill='%23CFA767' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");

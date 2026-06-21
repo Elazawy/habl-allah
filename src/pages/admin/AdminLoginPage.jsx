@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import logoGold from '../../assets/logo-gold.png';
 
 export default function AdminLoginPage() {
   const { signIn } = useAuth();
@@ -41,9 +42,11 @@ export default function AdminLoginPage() {
       <div className="admin-login-card">
         {/* Logo / Brand */}
         <div className="admin-login-brand">
-          <div className="admin-login-logo">
-            <span>ح</span>
-          </div>
+          <img
+            src={logoGold}
+            alt="شعار حبل الله"
+            className="admin-login-logo-img"
+          />
           <h1 className="admin-login-title">حبل الله</h1>
           <p className="admin-login-subtitle">لوحة تحكم المدير</p>
         </div>

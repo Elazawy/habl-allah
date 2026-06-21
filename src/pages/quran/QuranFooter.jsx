@@ -1,5 +1,6 @@
 import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import logoGold from '../../assets/logo-gold.png';
 
 // WhatsApp SVG icon
 function WhatsAppIcon({ size = 18 }) {
@@ -37,10 +38,19 @@ export default function QuranFooter() {
           <div className="text-center md:text-right">
             <Link
               to="/quran"
-              className="block text-3xl font-black mb-3"
-              style={{ color: 'var(--t-footer-brand)' }}
+              className="inline-flex items-center gap-3 mb-3"
             >
-              حبل الله
+              <img
+                src={logoGold}
+                alt="شعار حبل الله"
+                className="w-12 h-12 object-contain"
+              />
+              <span
+                className="text-3xl font-black"
+                style={{ color: 'var(--t-footer-brand)' }}
+              >
+                حبل الله
+              </span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'var(--t-footer-text)' }}>
               منصة رائدة تهدف لتقديم تعليم قرآني متميز يجمع بين الأصالة والتقنية الحديثة.

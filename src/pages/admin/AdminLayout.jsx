@@ -1,6 +1,7 @@
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { BookOpen, Users, LogOut, LayoutDashboard } from 'lucide-react';
+import logoGold from '../../assets/logo-gold.png';
 
 export default function AdminLayout({ children }) {
   const { user, signOut } = useAuth();
@@ -16,7 +17,7 @@ export default function AdminLayout({ children }) {
       {/* Sidebar */}
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
-          <div className="admin-sidebar-logo">ح</div>
+          <img src={logoGold} alt="شعار حبل الله" className="admin-sidebar-logo-img" />
           <span className="admin-sidebar-name">حبل الله</span>
         </div>
 

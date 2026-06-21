@@ -1,4 +1,5 @@
-import { BookOpen, HelpCircle, Phone, Shield } from 'lucide-react';
+import { HelpCircle, Phone, Shield } from 'lucide-react';
+import logoGold from '../assets/logo-gold.png';
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -28,9 +29,11 @@ export default function Footer() {
         {/* Brand row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-400/20 border border-amber-400/30 rounded-xl flex items-center justify-center">
-              <BookOpen size={20} className="text-amber-400" />
-            </div>
+            <img
+              src={logoGold}
+              alt="شعار حبل الله"
+              className="w-11 h-11 rounded-xl object-contain"
+            />
             <div>
               <div className="font-black text-lg text-white leading-none">أكاديمية حبل الله</div>
               <div className="text-emerald-400 text-xs mt-0.5">القرآنية</div>

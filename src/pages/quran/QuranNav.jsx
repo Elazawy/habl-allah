@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import DarkModeToggle from '../../components/DarkModeToggle';
+import logoGold from '../../assets/logo-gold.png';
 
 const links = [
   { label: 'الرئيسية',    href: null,             to: '/quran' },
@@ -34,10 +35,19 @@ export default function QuranNav() {
         {/* Brand */}
         <Link
           to="/quran"
-          className="text-2xl font-black"
-          style={{ color: 'var(--t-primary)' }}
+          className="flex items-center gap-2.5"
         >
-          حبل الله
+          <img
+            src={logoGold}
+            alt="شعار حبل الله"
+            className="w-10 h-10 object-contain"
+          />
+          <span
+            className="text-xl font-black"
+            style={{ color: 'var(--t-primary)' }}
+          >
+            حبل الله
+          </span>
         </Link>
 
         {/* Desktop nav */}

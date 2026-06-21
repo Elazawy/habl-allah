@@ -1,4 +1,5 @@
-import { ChevronDown, BookOpen, Star } from 'lucide-react';
+import { ChevronDown, BookOpen } from 'lucide-react';
+import logoGold from '../assets/logo-gold.png';
 
 export default function Hero() {
   const scrollDown = () => {
@@ -20,18 +21,25 @@ export default function Hero() {
 
       {/* ── Content ── */}
       <div className="relative z-10 flex flex-col items-center text-center px-6 py-20 max-w-5xl mx-auto">
+        {/* Brand Logo */}
+        <div className="fade-in-up mb-6">
+          <img
+            src={logoGold}
+            alt="شعار حبل الله"
+            className="hero-logo-img"
+          />
+        </div>
+
         {/* Decorative top badge */}
         <div
-          className="fade-in-up mb-8 inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-full shadow-sm border"
+          className="fade-in-up delay-100 mb-8 inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-full shadow-sm border"
           style={{
             backgroundColor: 'var(--t-primary-light)',
             borderColor: 'var(--t-border)',
             color: 'var(--t-primary)',
           }}
         >
-          <Star size={14} className="fill-amber-400 text-amber-400" />
           <span>منصة تعليمية قرآنية متكاملة</span>
-          <Star size={14} className="fill-amber-400 text-amber-400" />
         </div>
 
         {/* Main title */}
