@@ -1,13 +1,15 @@
-import { HelpCircle, Phone, Shield } from 'lucide-react';
+import { HelpCircle, Phone, Shield, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import logoGold from '../assets/logo-gold.png';
 
 export default function Footer() {
   const year = new Date().getFullYear();
 
   const links = [
-    { icon: HelpCircle, label: 'الأسئلة الشائعة', href: '#' },
-    { icon: Phone,      label: 'اتصل بنا',        href: '#' },
-    { icon: Shield,     label: 'سياسة الخصوصية',  href: '#' },
+    { icon: HelpCircle, label: 'الأسئلة الشائعة', href: '/faq', isRoute: true },
+    { icon: Phone,      label: 'اتصل بنا', href: 'https://api.whatsapp.com/send?phone=201024744963' },
+    { icon: Shield,     label: 'سياسة الخصوصية',  href: '/privacy-policy', isRoute: true },
+    { icon: FileText,   label: 'شروط الاستخدام',  href: '/terms', isRoute: true },
   ];
 
   return (
@@ -42,16 +44,27 @@ export default function Footer() {
 
           {/* Links */}
           <nav className="flex items-center gap-6 flex-wrap justify-center">
-            {links.map(({ icon: Icon, label, href }) => (
-              <a
-                key={label}
-                href={href}
-                className="flex items-center gap-1.5 text-emerald-300 hover:text-amber-400 text-sm transition-colors duration-200"
-              >
-                <Icon size={14} />
-                {label}
-              </a>
-            ))}
+            {links.map(({ icon: Icon, label, href, isRoute }) =>
+              isRoute ? (
+                <Link
+                  key={label}
+                  to={href}
+                  className="flex items-center gap-1.5 text-emerald-300 hover:text-amber-400 text-sm transition-colors duration-200"
+                >
+                  <Icon size={14} />
+                  {label}
+                </Link>
+              ) : (
+                <a
+                  key={label}
+                  href={href}
+                  className="flex items-center gap-1.5 text-emerald-300 hover:text-amber-400 text-sm transition-colors duration-200"
+                >
+                  <Icon size={14} />
+                  {label}
+                </a>
+              )
+            )}
           </nav>
         </div>
 

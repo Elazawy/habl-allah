@@ -18,10 +18,10 @@ function WhatsAppIcon({ size = 18 }) {
 }
 
 const navLinks = [
-  { label: 'اتصل بنا', href: '#' },
-  { label: 'شروط الاستخدام', href: '#' },
-  { label: 'سياسة الخصوصية', href: '#' },
-  { label: 'عن المنصة', href: '#' },
+  { label: 'الأسئلة الشائعة', href: '/quran/faq', isRoute: true },
+  { label: 'اتصل بنا', href: 'https://api.whatsapp.com/send?phone=201024744963' },
+  { label: 'شروط الاستخدام', href: '/terms', isRoute: true },
+  { label: 'سياسة الخصوصية', href: '/privacy-policy', isRoute: true },
 ];
 
 const socials = [
@@ -59,18 +59,31 @@ export default function QuranFooter() {
 
           {/* Nav links */}
           <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3">
-            {navLinks.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                className="text-sm font-medium transition-opacity duration-200 hover:opacity-100"
-                style={{ color: 'var(--t-footer-link)', opacity: 0.7 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
-              >
-                {l.label}
-              </a>
-            ))}
+            {navLinks.map((l) =>
+              l.isRoute ? (
+                <Link
+                  key={l.label}
+                  to={l.href}
+                  className="text-sm font-medium transition-opacity duration-200 hover:opacity-100"
+                  style={{ color: 'var(--t-footer-link)', opacity: 0.7 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+                >
+                  {l.label}
+                </Link>
+              ) : (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className="text-sm font-medium transition-opacity duration-200 hover:opacity-100"
+                  style={{ color: 'var(--t-footer-link)', opacity: 0.7 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+                >
+                  {l.label}
+                </a>
+              )
+            )}
           </nav>
         </div>
 
