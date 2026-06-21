@@ -313,13 +313,36 @@ export default function TeacherProfilePage() {
                   <AudioPlayer src={teacher.recitation_url} />
                 ) : (
                   <div className="rounded-2xl overflow-hidden aspect-video bg-black">
-                    <video
-                      id="recitation-video"
-                      src={teacher.recitation_url}
-                      controls
-                      className="w-full h-full object-cover"
-                      aria-label={`تسجيل قرآني للمعلم ${teacher.name}`}
-                    />
+                    {(() => {
+                      const url = teacher.recitation_url ?? '';
+                      // Detect YouTube links and extract video ID
+                      const ytMatch =
+                        url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/) ||
+                        url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/);
+                      if (ytMatch) {
+                        const embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?rel=0`;
+                        return (
+                          <iframe
+                            id="recitation-video"
+                            src={embedUrl}
+                            title={`تسجيل قرآني للمعلم ${teacher.name}`}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-full"
+                            style={{ border: 'none' }}
+                          />
+                        );
+                      }
+                      return (
+                        <video
+                          id="recitation-video"
+                          src={url}
+                          controls
+                          className="w-full h-full object-cover"
+                          aria-label={`تسجيل قرآني للمعلم ${teacher.name}`}
+                        />
+                      );
+                    })()}
                   </div>
                 )}
               </SectionCard>

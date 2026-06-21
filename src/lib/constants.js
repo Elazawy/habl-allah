@@ -5,7 +5,7 @@
  * Format: country code + number, no spaces, no + (e.g. "201001234567")
  */
 
-export const WHATSAPP_NUMBER = '201001234567'; // ← غيّر هذا برقم الأكاديمية الحقيقي
+export const WHATSAPP_NUMBER = '201101452585'; // ← رقم الواتساب الرسمي
 
 export const GENDER_LABELS = {
   male: 'قسم المعلمين',
