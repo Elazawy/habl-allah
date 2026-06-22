@@ -992,6 +992,12 @@ body {
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ── Header ── */
+.faq-page-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .faq-header {
   position: sticky;
   top: 0;
@@ -1081,6 +1087,7 @@ body {
 
 /* ── FAQ Content ── */
 .faq-content {
+  flex: 1;
   padding: 2rem 1.5rem 4rem;
 }
 .faq-content-inner {

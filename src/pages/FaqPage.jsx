@@ -53,7 +53,7 @@ export default function FaqPage() {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
+    <div dir="rtl" className="faq-page-shell" style={{ backgroundColor: 'var(--t-bg)' }}>
       {/* Dark mode toggle */}
       <div className="fixed top-5 left-5 z-50">
         <DarkModeToggle />

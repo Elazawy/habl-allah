@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import { fetchFaqs } from '../../services/faqService';
 import QuranNav from './QuranNav';
@@ -52,7 +51,7 @@ export default function QuranFaqPage() {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+    <div dir="rtl" className="faq-page-shell" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
 
       {/* Hero */}
