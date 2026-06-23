@@ -1,26 +1,43 @@
 import { useEffect, useState } from 'react';
 import { fetchAllTeachers, fetchAllQuranReviews } from '../../services/adminService';
 import { fetchAllFaqs } from '../../services/faqService';
-import { Users, Star, BookOpen, HelpCircle, Image } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { Users, Star, BookOpen, HelpCircle, Image, Phone, User, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function QuranAdminDashboard() {
   const [teachers, setTeachers] = useState([]);
   const [faqCount, setFaqCount] = useState(0);
   const [quranReviewsCount, setQuranReviewsCount] = useState(0);
+  const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    async function fetchNewsletterSubscribers() {
+      try {
+        const { data, error } = await supabase
+          .from('newsletter_subscribers')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        return data ?? [];
+      } catch {
+        return [];
+      }
+    }
+
     Promise.all([
       fetchAllTeachers(),
       fetchAllFaqs('quran'),
       fetchAllQuranReviews(),
+      fetchNewsletterSubscribers(),
     ])
-      .then(([teachersData, faqsData, quranReviewsData]) => {
+      .then(([teachersData, faqsData, quranReviewsData, subscribersData]) => {
         setTeachers(teachersData);
         setFaqCount(faqsData.length);
         setQuranReviewsCount(quranReviewsData.length);
+        setSubscribers(subscribersData);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -37,7 +54,11 @@ export default function QuranAdminDashboard() {
     { label: 'مراجعات المعلمين', value: reviewCount, icon: Star, color: '#8b5cf6' },
     { label: 'مراجعات صفحة القرآن', value: quranReviewsCount, icon: Image, color: '#0ea5e9' },
     { label: 'الأسئلة الشائعة', value: faqCount, icon: HelpCircle, color: '#06b6d4' },
+    { label: 'الأرقام المسجلة', value: subscribers.length, icon: Phone, color: '#ec4899' },
   ];
+
+  // Show last 5 subscribers
+  const recentSubscribers = subscribers.slice(0, 5);
 
   return (
     <div className="admin-page">
@@ -65,7 +86,65 @@ export default function QuranAdminDashboard() {
             ))}
           </div>
 
-          <div className="admin-dashboard-quick">
+          {/* الارقام المسجلة — Recent subscribers preview */}
+          <div className="admin-dashboard-quick" style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <h2 className="admin-section-title" style={{ margin: 0 }}>
+                <Phone size={18} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '0.375rem' }} />
+                الأرقام المسجلة
+              </h2>
+              <button
+                id="admin-goto-newsletter-btn"
+                className="admin-btn admin-btn--ghost admin-btn--sm"
+                onClick={() => navigate('/admin/quran/newsletter')}
+                style={{ fontSize: '0.8rem' }}
+              >
+                عرض الكل ({subscribers.length})
+              </button>
+            </div>
+
+            {recentSubscribers.length === 0 ? (
+              <div className="admin-empty-state" style={{ padding: '2rem' }}>
+                <Phone size={36} style={{ color: 'var(--admin-text-muted)', marginBottom: '0.75rem' }} />
+                <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.9rem' }}>
+                  لا يوجد مشتركون بعد
+                </p>
+              </div>
+            ) : (
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th><User size={14} style={{ display: 'inline', marginLeft: '0.25rem', verticalAlign: 'middle' }} /> الاسم</th>
+                      <th><Phone size={14} style={{ display: 'inline', marginLeft: '0.25rem', verticalAlign: 'middle' }} /> رقم التواصل</th>
+                      <th>تاريخ التسجيل</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentSubscribers.map((sub, i) => (
+                      <tr key={sub.id}>
+                        <td style={{ color: 'var(--admin-text-muted)', fontSize: '0.8rem' }}>{i + 1}</td>
+                        <td style={{ fontWeight: 600 }}>{sub.full_name}</td>
+                        <td dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.5px' }}>{sub.phone}</td>
+                        <td style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem' }}>
+                          {new Date(sub.created_at).toLocaleDateString('ar-EG', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="admin-dashboard-quick" style={{ marginTop: '2rem' }}>
             <h2 className="admin-section-title">إجراءات سريعة</h2>
             <div className="admin-quick-actions">
               <button
@@ -91,6 +170,14 @@ export default function QuranAdminDashboard() {
               >
                 <HelpCircle size={16} />
                 إدارة الأسئلة الشائعة
+              </button>
+              <button
+                id="admin-goto-newsletter-subscribers-btn"
+                className="admin-btn admin-btn--ghost"
+                onClick={() => navigate('/admin/quran/newsletter')}
+              >
+                <Phone size={16} />
+                الأرقام المسجلة
               </button>
             </div>
           </div>

@@ -13,6 +13,7 @@ const EMPTY_FORM = {
   photo_url: '',
   recitation_url: '',
   recitation_type: '',
+  free_trial_enabled: false,
 };
 
 export default function TeacherFormModal({ teacher, onClose, onSaved }) {
@@ -23,6 +24,7 @@ export default function TeacherFormModal({ teacher, onClose, onSaved }) {
     photo_url: teacher.photo_url ?? '',
     recitation_url: teacher.recitation_url ?? '',
     recitation_type: teacher.recitation_type ?? '',
+    free_trial_enabled: teacher.free_trial_enabled ?? false,
   } : EMPTY_FORM);
 
   const [photoFile, setPhotoFile] = useState(null);
@@ -221,6 +223,28 @@ export default function TeacherFormModal({ teacher, onClose, onSaved }) {
               <option value="audio">صوت</option>
               <option value="video">فيديو</option>
             </select>
+          </div>
+
+          {/* Free Trial Toggle */}
+          <div className="admin-field-group">
+            <label className="admin-label" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                id="teacher-free-trial"
+                checked={form.free_trial_enabled}
+                onChange={(e) => handleField('free_trial_enabled', e.target.checked)}
+                style={{
+                  width: '1.25rem',
+                  height: '1.25rem',
+                  accentColor: 'var(--admin-accent)',
+                  cursor: 'pointer',
+                }}
+              />
+              تفعيل زر «جرب حصة مجانية» في صفحة المعلم
+            </label>
+            <p style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)', marginTop: '0.25rem' }}>
+              عند التفعيل، سيظهر زر إضافي في صفحة المعلم يوجّه الطالب للواتساب لحجز حصة تجريبية
+            </p>
           </div>
 
           {error && (

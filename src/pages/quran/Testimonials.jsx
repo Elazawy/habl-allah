@@ -40,7 +40,7 @@ export default function Testimonials() {
              scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
           } else {
              scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-          }
+          }g
         }
       }, 3000);
     }

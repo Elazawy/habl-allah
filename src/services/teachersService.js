@@ -38,7 +38,7 @@ export async function fetchTeachers(gender) {
       .from('teachers')
       .select(`
         id, name, gender, bio, photo_url,
-        recitation_url, recitation_type,
+        recitation_url, recitation_type, free_trial_enabled,
         teacher_reviews (*)
       `)
       .eq('gender', gender)
@@ -58,7 +58,7 @@ export async function fetchTeacherById(id) {
       .from('teachers')
       .select(`
         id, name, gender, bio, photo_url,
-        recitation_url, recitation_type,
+        recitation_url, recitation_type, free_trial_enabled,
         teacher_reviews (*)
       `)
       .eq('id', id)

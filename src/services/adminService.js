@@ -85,7 +85,7 @@ export async function fetchAllTeachers() {
     .from('teachers')
     .select(`
       id, name, gender, bio, photo_url,
-      recitation_url, recitation_type, created_at,
+      recitation_url, recitation_type, free_trial_enabled, created_at,
       teacher_reviews (*)
     `)
     .order('created_at', { ascending: true });
@@ -96,7 +96,7 @@ export async function fetchAllTeachers() {
 export async function fetchTeacherAdminById(id) {
   const { data, error } = await supabase
     .from('teachers')
-    .select('id, name, gender, bio, photo_url, recitation_url, recitation_type, created_at')
+    .select('id, name, gender, bio, photo_url, recitation_url, recitation_type, free_trial_enabled, created_at')
     .eq('id', id)
     .single();
 

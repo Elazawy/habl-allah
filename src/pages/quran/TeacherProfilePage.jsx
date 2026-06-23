@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, PlayCircle, BookOpen, MessageSquare, Play, Pause, Volume2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, PlayCircle, BookOpen, MessageSquare, Play, Pause, Volume2, X, Gift } from 'lucide-react';
 import { fetchTeacherById } from '../../services/teachersService';
-import { GENDER_LABELS } from '../../lib/constants';
+import { GENDER_LABELS, WHATSAPP_NUMBER } from '../../lib/constants';
 import { FemaleMonogram, MalePhoto } from './TeacherCard';
 import SubscribeModal from './SubscribeModal';
 import QuranNav from './QuranNav';
@@ -305,14 +305,29 @@ export default function TeacherProfilePage() {
               {isMale ? 'معلم قرآن كريم' : 'معلمة قرآن كريم'}
             </p>
             <h1 className="text-3xl md:text-5xl font-black mb-4">{teacher.name}</h1>
-            <button
-              onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:scale-105"
-              style={{ backgroundColor: '#CFA767', color: '#000' }}
-            >
-              احجز موعدك الآن
-              <ChevronRight size={18} />
-            </button>
+            <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
+              <button
+                onClick={() => setShowModal(true)}
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:scale-105"
+                style={{ backgroundColor: '#CFA767', color: '#000' }}
+              >
+              اشترك مع المعلم 
+                <ChevronRight size={18} />
+              </button>
+              {teacher.free_trial_enabled && (
+                <a
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`اود حجز حصة تجريبية مجانية مع ${teacher.gender === 'female' ? 'الأستاذة' : 'الشيخ'} ${teacher.name}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  id="free-trial-btn"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:scale-105 border-2 border-white/30"
+                  style={{ backgroundColor: '#25D366', color: '#fff' }}
+                >
+                  <Gift size={18} />
+                  جرب حصة مجانية
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </header>

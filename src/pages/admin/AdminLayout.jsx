@@ -3,7 +3,7 @@ import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   BookOpen, Users, LogOut, LayoutDashboard,
-  HelpCircle, FileText, Menu, X, ArrowLeftRight, Image,
+  HelpCircle, FileText, Menu, X, ArrowLeftRight, Image, Phone,
 } from 'lucide-react';
 import logoGold from '../../assets/logo-gold.png';
 
@@ -24,6 +24,7 @@ const NAV_LINKS = {
     { to: '/admin/quran', end: true, icon: LayoutDashboard, label: 'الرئيسية', id: 'admin-nav-quran-dashboard' },
     { to: '/admin/quran/teachers', icon: Users, label: 'المعلمون', id: 'admin-nav-quran-teachers' },
     { to: '/admin/quran/reviews', icon: Image, label: 'مراجعات القرآن', id: 'admin-nav-quran-reviews' },
+    { to: '/admin/quran/newsletter', icon: Phone, label: 'الأرقام المسجلة', id: 'admin-nav-quran-newsletter' },
     { to: '/admin/quran/faq', icon: HelpCircle, label: 'الأسئلة الشائعة', id: 'admin-nav-quran-faq' },
     { to: '/quran', icon: BookOpen, label: 'عرض الموقع', id: 'admin-nav-quran-site', external: true },
   ],

@@ -27,6 +27,7 @@ import QuranFaqManagementPage from './pages/admin/QuranFaqManagementPage';
 import PagesManagementPage from './pages/admin/PagesManagementPage';
 import TeacherReviewsManagementPage from './pages/admin/TeacherReviewsManagementPage';
 import QuranReviewsManagementPage from './pages/admin/QuranReviewsManagementPage';
+import NewsletterSubscribersPage from './pages/admin/NewsletterSubscribersPage';
 
 function HomePage() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/admin/quran/teachers" element={<ProtectedAdmin><TeachersManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/teachers/:id/reviews" element={<ProtectedAdmin><TeacherReviewsManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/reviews" element={<ProtectedAdmin><QuranReviewsManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/newsletter" element={<ProtectedAdmin><NewsletterSubscribersPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/faq" element={<ProtectedAdmin><QuranFaqManagementPage /></ProtectedAdmin>} />
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}
