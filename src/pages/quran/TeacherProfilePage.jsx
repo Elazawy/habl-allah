@@ -359,11 +359,37 @@ export default function TeacherProfilePage() {
             </h2>
             {teacher.recitation_type === 'audio' ? (
               <AudioPlayer src={teacher.recitation_url} />
-            ) : (
-              <div className="rounded-2xl overflow-hidden aspect-video bg-black/5">
-                <video src={teacher.recitation_url} controls className="w-full h-full object-cover" />
-              </div>
-            )}
+            ) : (() => {
+              // Extract YouTube video ID from various URL formats
+              const url = teacher.recitation_url ?? '';
+              const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+
+              if (ytMatch) {
+                const videoId = ytMatch[1];
+                // Preserve list parameter if present
+                const listMatch = url.match(/[?&]list=([^&]+)/);
+                const embedSrc = `https://www.youtube.com/embed/${videoId}${listMatch ? `?list=${listMatch[1]}` : ''}`;
+                return (
+                  <div className="rounded-2xl overflow-hidden aspect-video bg-black/5">
+                    <iframe
+                      src={embedSrc}
+                      title="تلاوة المعلم"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{ border: 'none' }}
+                    />
+                  </div>
+                );
+              }
+
+              // Fallback: direct video file
+              return (
+                <div className="rounded-2xl overflow-hidden aspect-video bg-black/5">
+                  <video src={teacher.recitation_url} controls className="w-full h-full object-cover" />
+                </div>
+              );
+            })()}
           </section>
         )}
 
