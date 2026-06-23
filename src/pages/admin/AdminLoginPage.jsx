@@ -8,6 +8,7 @@ export default function AdminLoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname ?? '/admin';
+  const unauthorized = Boolean(location.state?.unauthorized);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,6 +53,12 @@ export default function AdminLoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="admin-login-form" id="admin-login-form">
+          {unauthorized && !error && (
+            <div className="admin-error-banner" role="alert">
+              <span>⚠️</span> هذا الحساب غير مخول للوصول إلى لوحة الإدارة.
+            </div>
+          )}
+
           <div className="admin-field-group">
             <label htmlFor="admin-email" className="admin-label">البريد الإلكتروني</label>
             <input

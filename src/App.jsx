@@ -24,6 +24,8 @@ import TeachersManagementPage from './pages/admin/TeachersManagementPage';
 import FaqManagementPage from './pages/admin/FaqManagementPage';
 import QuranFaqManagementPage from './pages/admin/QuranFaqManagementPage';
 import PagesManagementPage from './pages/admin/PagesManagementPage';
+import TeacherReviewsManagementPage from './pages/admin/TeacherReviewsManagementPage';
+import QuranReviewsManagementPage from './pages/admin/QuranReviewsManagementPage';
 
 function HomePage() {
   return (
@@ -77,6 +79,8 @@ export default function App() {
         {/* Protected admin routes — Quran Platform */}
         <Route path="/admin/quran" element={<ProtectedAdmin><QuranAdminDashboard /></ProtectedAdmin>} />
         <Route path="/admin/quran/teachers" element={<ProtectedAdmin><TeachersManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/teachers/:id/reviews" element={<ProtectedAdmin><TeacherReviewsManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/reviews" element={<ProtectedAdmin><QuranReviewsManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/faq" element={<ProtectedAdmin><QuranFaqManagementPage /></ProtectedAdmin>} />
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}

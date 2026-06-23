@@ -746,6 +746,20 @@ body {
   color: var(--admin-danger);
 }
 .admin-icon-btn--delete:hover { background: rgba(248,81,73,0.2); }
+.admin-icon-btn--neutral {
+  background: rgba(255,255,255,0.06);
+  color: var(--admin-text);
+}
+.admin-icon-btn--neutral:hover { background: rgba(255,255,255,0.12); }
+
+.admin-review-thumb {
+  width: 92px;
+  height: 132px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  background: #0b141a;
+}
 
 /* ══════════════════════════════════════
    SHARED FORM CONTROLS

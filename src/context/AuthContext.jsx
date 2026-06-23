@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { isCurrentUserAdmin } from '../services/adminService';
 
 const AuthContext = createContext(null);
 
@@ -7,24 +8,52 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(true);
+
+  const refreshAdminState = async (targetUser) => {
+    if (!supabase || !targetUser) {
+      setIsAdmin(false);
+      return false;
+    }
+
+    try {
+      const admin = await isCurrentUserAdmin();
+      setIsAdmin(admin);
+      return admin;
+    } catch (error) {
+      console.error('[admin check failed]', error);
+      setIsAdmin(false);
+      return false;
+    }
+  };
 
   useEffect(() => {
     if (!supabase) {
       setLoading(false);
+      setAdminLoading(false);
       return;
     }
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const nextUser = session?.user ?? null;
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(nextUser);
       setLoading(false);
+      setAdminLoading(true);
+      await refreshAdminState(nextUser);
+      setAdminLoading(false);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const nextUser = session?.user ?? null;
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(nextUser);
+      setAdminLoading(true);
+      await refreshAdminState(nextUser);
+      setAdminLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -40,10 +69,22 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
+    setIsAdmin(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        isAdmin,
+        adminLoading,
+        refreshAdminState,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

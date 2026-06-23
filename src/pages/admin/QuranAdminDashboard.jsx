@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchAllTeachers } from '../../services/adminService';
+import { fetchAllTeachers, fetchAllQuranReviews } from '../../services/adminService';
 import { fetchAllFaqs } from '../../services/faqService';
-import { Users, Star, BookOpen, HelpCircle } from 'lucide-react';
+import { Users, Star, BookOpen, HelpCircle, Image } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function QuranAdminDashboard() {
   const [teachers, setTeachers] = useState([]);
   const [faqCount, setFaqCount] = useState(0);
+  const [quranReviewsCount, setQuranReviewsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -14,10 +15,12 @@ export default function QuranAdminDashboard() {
     Promise.all([
       fetchAllTeachers(),
       fetchAllFaqs('quran'),
+      fetchAllQuranReviews(),
     ])
-      .then(([teachersData, faqsData]) => {
+      .then(([teachersData, faqsData, quranReviewsData]) => {
         setTeachers(teachersData);
         setFaqCount(faqsData.length);
+        setQuranReviewsCount(quranReviewsData.length);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -31,7 +34,8 @@ export default function QuranAdminDashboard() {
     { label: 'إجمالي المعلمين', value: teachers.length, icon: Users, color: 'var(--admin-accent)' },
     { label: 'المعلمون', value: maleCount, icon: BookOpen, color: '#10b981' },
     { label: 'المعلمات', value: femaleCount, icon: BookOpen, color: '#f59e0b' },
-    { label: 'التقييمات', value: reviewCount, icon: Star, color: '#8b5cf6' },
+    { label: 'مراجعات المعلمين', value: reviewCount, icon: Star, color: '#8b5cf6' },
+    { label: 'مراجعات صفحة القرآن', value: quranReviewsCount, icon: Image, color: '#0ea5e9' },
     { label: 'الأسئلة الشائعة', value: faqCount, icon: HelpCircle, color: '#06b6d4' },
   ];
 
@@ -71,6 +75,14 @@ export default function QuranAdminDashboard() {
               >
                 <Users size={16} />
                 إدارة المعلمين
+              </button>
+              <button
+                id="admin-goto-quran-reviews-btn"
+                className="admin-btn admin-btn--ghost"
+                onClick={() => navigate('/admin/quran/reviews')}
+              >
+                <Image size={16} />
+                مراجعات صفحة القرآن
               </button>
               <button
                 id="admin-goto-quran-faq-btn"

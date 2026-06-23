@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { fetchAllTeachers, deleteTeacher } from '../../services/adminService';
 import TeacherFormModal from './TeacherFormModal';
-import { Plus, Pencil, Trash2, Search, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Users, Images } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function TeachersManagementPage() {
+  const navigate = useNavigate();
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -178,6 +180,15 @@ export default function TeachersManagementPage() {
                   </td>
                   <td>
                     <div className="admin-row-actions">
+                      <button
+                        id={`manage-reviews-${teacher.id}`}
+                        className="admin-icon-btn admin-icon-btn--neutral"
+                        onClick={() => navigate(`/admin/quran/teachers/${teacher.id}/reviews`)}
+                        aria-label={`إدارة مراجعات ${teacher.name}`}
+                        title="إدارة المراجعات"
+                      >
+                        <Images size={15} />
+                      </button>
                       <button
                         id={`edit-teacher-${teacher.id}`}
                         className="admin-icon-btn admin-icon-btn--edit"
