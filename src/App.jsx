@@ -13,6 +13,7 @@ import FaqPage from './pages/FaqPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsPage from './pages/TermsPage';
 import ScrollToTop from './components/ScrollToTop';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
 import DarkModeToggle from './components/DarkModeToggle';
 import { AuthProvider } from './context/AuthContext';
 import RequireAuth from './components/RequireAuth';
@@ -56,6 +57,7 @@ export default function App() {
   return (
     <AuthProvider>
       <ScrollToTop />
+      <FloatingWhatsApp />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<HomePage />} />

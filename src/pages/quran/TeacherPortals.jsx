@@ -57,10 +57,11 @@ export default function TeacherPortals() {
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {portals.map((p, i) => (
-            <div
+            <Link
               key={p.id}
+              to={p.to}
               className={`reveal-scale reveal-d${i + 1} relative group cursor-pointer overflow-hidden rounded-3xl h-[380px] flex items-center justify-center text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 pattern-overlay-gold`}
-              style={{ backgroundColor: p.bg }}
+              style={{ backgroundColor: p.bg, display: 'flex' }}
             >
               <div className="z-10 p-10 flex flex-col items-center">
                 <div
@@ -75,17 +76,16 @@ export default function TeacherPortals() {
                 <p className="text-base leading-relaxed mb-8 max-w-xs" style={{ color: p.descColor }}>
                   {p.desc}
                 </p>
-                <Link
+                <span
                   id={p.id}
-                  to={p.to}
                   className="inline-flex items-center gap-2 font-bold text-sm hover:underline transition-all"
                   style={{ color: p.linkColor }}
                 >
                   اختر من هذا القسم
                   <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform duration-300" />
-                </Link>
+                </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

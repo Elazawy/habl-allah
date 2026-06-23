@@ -36,6 +36,7 @@ export default function QuranHero() {
 
         <div className="hero-text-in flex flex-wrap gap-4" style={{ animationDelay: '0.32s' }}>
           <button
+            onClick={() => document.getElementById('portals')?.scrollIntoView({ behavior: 'smooth' })}
             className="px-10 py-4 rounded-2xl font-bold text-lg text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:translate-y-0"
             style={{ backgroundColor: 'var(--t-secondary)', boxShadow: '0 8px 24px color-mix(in srgb, var(--t-secondary) 35%, transparent)' }}
           >
