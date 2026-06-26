@@ -1,6 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logoGold from '../../assets/logo-gold.png';
+import { WHATSAPP_NUMBER } from '../../lib/constants';
 
 // WhatsApp SVG icon
 function WhatsAppIcon({ size = 18 }) {
@@ -40,7 +41,7 @@ const navLinks = [
 ];
 
 const socials = [
-  { icon: <WhatsAppIcon size={18} />, href: 'https://api.whatsapp.com/send?phone=201101452585&text=السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل', label: 'واتساب', color: '#25D366', bgRgba: 'rgba(37,211,102,0.12)' },
+  { icon: <WhatsAppIcon size={18} />, href: `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent('السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل')}`, label: 'واتساب', color: '#25D366', bgRgba: 'rgba(37,211,102,0.12)' },
   { icon: <FacebookIcon size={18} />, href: 'https://www.facebook.com/share/1D6hxrKSno/', label: 'فيسبوك', color: '#1877F2', bgRgba: 'rgba(24,119,242,0.12)' },
 ];
 

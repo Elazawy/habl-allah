@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import { WHATSAPP_NUMBER } from '../lib/constants';
 
 
 function WhatsAppIcon({ size = 24 }) {
@@ -30,7 +31,7 @@ export default function FloatingWhatsApp() {
       
       {/* WhatsApp Button */}
       <a
-        href="https://api.whatsapp.com/send?phone=201101452585&text=السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل"
+        href={`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent('السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل')}`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="تواصل عبر واتساب"

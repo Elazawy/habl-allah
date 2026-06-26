@@ -267,7 +267,7 @@ export default function TeacherProfilePage() {
       <QuranNav />
 
       {/* Immersive Hero Header */}
-      <header className="relative w-full h-[50vh] min-h-[400px] flex items-end pb-12 overflow-hidden">
+      <header className="relative w-full pt-16 pb-8 md:pt-24 md:pb-12 overflow-hidden flex flex-col justify-end min-h-[340px] md:min-h-[400px]">
         {/* Background Overlay */}
         <div 
           className="absolute inset-0"
@@ -279,7 +279,7 @@ export default function TeacherProfilePage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         
         {/* Breadcrumb Navigation in Header */}
-        <div className="absolute top-24 inset-x-0 z-20 w-full max-w-5xl mx-auto px-5 md:px-8">
+        <div className="absolute top-4 md:top-6 inset-x-0 z-20 w-full max-w-5xl mx-auto px-5 md:px-8">
            <nav className="flex items-center gap-1.5 text-xs md:text-sm flex-wrap drop-shadow-md" aria-label="مسار التنقل" style={anim(0.05)}>
              <Link to="/quran" className="font-semibold text-white/70 hover:text-white transition-colors">حبل الله</Link>
              <ChevronLeft size={14} className="text-white/40" />
@@ -336,7 +336,7 @@ export default function TeacherProfilePage() {
       <main className="max-w-5xl mx-auto px-5 md:px-8 -mt-6 relative z-20 flex flex-col gap-8 pb-20">
         
         {/* Bio Section */}
-        <section className="rounded-3xl p-8 shadow-xl border backdrop-blur-md" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', ...anim(0.2) }}>
+        <section className="rounded-3xl p-5 sm:p-8 shadow-xl border backdrop-blur-md" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', ...anim(0.2) }}>
           <h2 className="text-xl font-bold mb-5 flex items-center gap-3" style={{ color: 'var(--t-primary)' }}>
             <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--t-primary-light)' }}>
               <BookOpen size={20} />
@@ -350,7 +350,7 @@ export default function TeacherProfilePage() {
 
         {/* Recitation Section */}
         {isMale && teacher.recitation_url && (
-          <section className="rounded-3xl p-8 shadow-xl border" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', ...anim(0.3) }}>
+          <section className="rounded-3xl p-4 sm:p-8 shadow-xl border" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', ...anim(0.3) }}>
             <h2 className="text-xl font-bold mb-5 flex items-center gap-3" style={{ color: 'var(--t-primary)' }}>
               <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--t-primary-light)' }}>
                 <PlayCircle size={20} />
@@ -395,7 +395,7 @@ export default function TeacherProfilePage() {
 
         {/* Reviews Section */}
         {reviews.length > 0 && (
-          <section className="rounded-3xl p-6 sm:p-8 shadow-xl border overflow-hidden" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', ...anim(0.4) }}>
+          <section className="rounded-3xl p-4 sm:p-8 shadow-xl border overflow-hidden" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', ...anim(0.4) }}>
             <h2 className="text-xl font-bold mb-5 flex items-center gap-3" style={{ color: 'var(--t-primary)' }}>
               <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--t-primary-light)' }}>
                 <MessageSquare size={20} />

@@ -31,7 +31,7 @@ export default function QuranNav() {
         borderColor: 'var(--t-border)',
       }}
     >
-      <div className="max-w-6xl mx-auto px-5 md:px-6 h-20 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-5 md:px-6 h-16 md:h-20 flex items-center justify-between">
         {/* Brand */}
         <Link
           to="/quran"
