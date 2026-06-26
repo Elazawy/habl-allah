@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAllFaqs } from '../../services/faqService';
 import { fetchAllPages } from '../../services/pagesService';
-import { HelpCircle, FileText, Shield, BookOpen } from 'lucide-react';
+import { HelpCircle, FileText, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {

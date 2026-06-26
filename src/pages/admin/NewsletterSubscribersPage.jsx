@@ -5,27 +5,42 @@ import { supabase } from '../../lib/supabase';
 export default function NewsletterSubscribersPage() {
   const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [deleting, setDeleting] = useState(null);
 
-  async function loadSubscribers() {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('newsletter_subscribers')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setSubscribers(data ?? []);
-    } catch (err) {
-      console.error('[newsletter] fetch error', err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    let active = true;
+
+    const loadSubscribers = async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('newsletter_subscribers')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (fetchError) throw fetchError;
+        if (!active) return;
+
+        setSubscribers(data ?? []);
+        setError('');
+      } catch (err) {
+        console.error('[newsletter] fetch error', err);
+        if (!active) return;
+        setSubscribers([]);
+        setError('تعذر تحميل الأرقام المسجلة حالياً. حاول مرة أخرى بعد قليل.');
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
     loadSubscribers();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function handleDelete(id) {
@@ -80,33 +95,24 @@ export default function NewsletterSubscribersPage() {
           <div className="admin-spinner-lg" />
           <span>جارٍ التحميل…</span>
         </div>
+      ) : error ? (
+        <div className="admin-empty">
+          <Phone size={48} />
+          <p>{error}</p>
+        </div>
       ) : (
         <>
           {/* Toolbar */}
-          <div className="admin-toolbar" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ position: 'relative', flex: '1 1 280px' }}>
-              <Search
-                size={16}
-                style={{
-                  position: 'absolute',
-                  right: '0.875rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'var(--admin-text-muted)',
-                  pointerEvents: 'none',
-                }}
-              />
+          <div className="admin-filters">
+            <div className="admin-search-wrapper" style={{ flex: '1 1 280px' }}>
+              <Search size={16} className="admin-search-icon" />
               <input
                 id="newsletter-search"
                 type="text"
                 placeholder="بحث بالاسم أو الرقم…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="admin-input"
-                style={{
-                  width: '100%',
-                  paddingRight: '2.5rem',
-                }}
+                className="admin-input admin-search-input"
               />
             </div>
             <button
@@ -122,15 +128,15 @@ export default function NewsletterSubscribersPage() {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="admin-empty-state">
+            <div className="admin-empty">
               <Phone size={48} style={{ color: 'var(--admin-text-muted)', marginBottom: '1rem' }} />
               <p style={{ color: 'var(--admin-text-muted)', fontSize: '1rem' }}>
                 {search ? 'لا توجد نتائج لهذا البحث' : 'لا يوجد مشتركون بعد'}
               </p>
             </div>
           ) : (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
+            <div className="admin-table-wrapper admin-table-wrapper--cards">
+              <table className="admin-table admin-table--cards" id="newsletter-subscribers-table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -143,10 +149,10 @@ export default function NewsletterSubscribersPage() {
                 <tbody>
                   {filtered.map((sub, i) => (
                     <tr key={sub.id}>
-                      <td style={{ color: 'var(--admin-text-muted)', fontSize: '0.8rem' }}>{i + 1}</td>
-                      <td style={{ fontWeight: 600 }}>{sub.full_name}</td>
-                      <td dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.5px' }}>{sub.phone}</td>
-                      <td style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem' }}>
+                      <td data-label="#" style={{ color: 'var(--admin-text-muted)', fontSize: '0.8rem' }}>{i + 1}</td>
+                      <td data-label="الاسم" style={{ fontWeight: 600 }}>{sub.full_name}</td>
+                      <td data-label="رقم التواصل" dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.5px' }}>{sub.phone}</td>
+                      <td data-label="تاريخ التسجيل" style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem' }}>
                         {new Date(sub.created_at).toLocaleDateString('ar-EG', {
                           year: 'numeric',
                           month: 'short',
@@ -155,7 +161,7 @@ export default function NewsletterSubscribersPage() {
                           minute: '2-digit',
                         })}
                       </td>
-                      <td>
+                      <td data-label="إجراءات">
                         <button
                           id={`newsletter-delete-${sub.id}`}
                           className="admin-btn admin-btn--danger admin-btn--sm"

@@ -6,9 +6,12 @@ import { useEffect, useRef } from 'react';
  * or "reveal-scale" will get the "visible" class when they enter the viewport.
  *
  * @param {object} options - IntersectionObserver options
+ * @param {Array} deps - Re-run observation when dynamic content appears
  */
-export function useReveal(options = {}) {
+export function useReveal(options = {}, deps = []) {
   const ref = useRef(null);
+  const { threshold = 0.12, rootMargin = '0px 0px -40px 0px' } = options;
+  const depsKey = JSON.stringify(deps);
 
   useEffect(() => {
     const el = ref.current;
@@ -28,12 +31,12 @@ export function useReveal(options = {}) {
           }
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px', ...options }
+      { threshold, rootMargin }
     );
 
     targets.forEach((t) => observer.observe(t));
     return () => observer.disconnect();
-  }, []);
+  }, [threshold, rootMargin, depsKey]);
 
   return ref;
 }

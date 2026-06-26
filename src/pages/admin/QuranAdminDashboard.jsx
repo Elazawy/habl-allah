@@ -2,18 +2,22 @@ import { useEffect, useState } from 'react';
 import { fetchAllTeachers, fetchAllQuranReviews } from '../../services/adminService';
 import { fetchAllFaqs } from '../../services/faqService';
 import { supabase } from '../../lib/supabase';
-import { Users, Star, BookOpen, HelpCircle, Image, Phone, User, Loader2 } from 'lucide-react';
+import { Users, Star, BookOpen, HelpCircle, Image, Phone, User, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { fetchAllCompetitions } from '../../services/competitionsService';
 
 export default function QuranAdminDashboard() {
   const [teachers, setTeachers] = useState([]);
   const [faqCount, setFaqCount] = useState(0);
   const [quranReviewsCount, setQuranReviewsCount] = useState(0);
   const [subscribers, setSubscribers] = useState([]);
+  const [competitionsCount, setCompetitionsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    let active = true;
+
     async function fetchNewsletterSubscribers() {
       try {
         const { data, error } = await supabase
@@ -27,20 +31,39 @@ export default function QuranAdminDashboard() {
       }
     }
 
-    Promise.all([
-      fetchAllTeachers(),
-      fetchAllFaqs('quran'),
-      fetchAllQuranReviews(),
-      fetchNewsletterSubscribers(),
-    ])
-      .then(([teachersData, faqsData, quranReviewsData, subscribersData]) => {
-        setTeachers(teachersData);
-        setFaqCount(faqsData.length);
-        setQuranReviewsCount(quranReviewsData.length);
-        setSubscribers(subscribersData);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const withFallback = async (promise, fallback) => {
+      try {
+        return await promise;
+      } catch (error) {
+        console.error(error);
+        return fallback;
+      }
+    };
+
+    const loadDashboard = async () => {
+      const [teachersData, faqsData, quranReviewsData, subscribersData, competitionsData] = await Promise.all([
+        withFallback(fetchAllTeachers(), []),
+        withFallback(fetchAllFaqs('quran'), []),
+        withFallback(fetchAllQuranReviews(), []),
+        withFallback(fetchNewsletterSubscribers(), []),
+        withFallback(fetchAllCompetitions(), []),
+      ]);
+
+      if (!active) return;
+
+      setTeachers(teachersData);
+      setFaqCount(faqsData.length);
+      setQuranReviewsCount(quranReviewsData.length);
+      setSubscribers(subscribersData);
+      setCompetitionsCount(competitionsData.length);
+      setLoading(false);
+    };
+
+    loadDashboard();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const maleCount = teachers.filter((t) => t.gender === 'male').length;
@@ -54,6 +77,7 @@ export default function QuranAdminDashboard() {
     { label: 'مراجعات المعلمين', value: reviewCount, icon: Star, color: '#8b5cf6' },
     { label: 'مراجعات صفحة القرآن', value: quranReviewsCount, icon: Image, color: '#0ea5e9' },
     { label: 'الأسئلة الشائعة', value: faqCount, icon: HelpCircle, color: '#06b6d4' },
+    { label: 'المسابقات القرآنية', value: competitionsCount, icon: Trophy, color: '#d97706' },
     { label: 'الأرقام المسجلة', value: subscribers.length, icon: Phone, color: '#ec4899' },
   ];
 
@@ -104,15 +128,15 @@ export default function QuranAdminDashboard() {
             </div>
 
             {recentSubscribers.length === 0 ? (
-              <div className="admin-empty-state" style={{ padding: '2rem' }}>
+              <div className="admin-empty" style={{ padding: '2rem' }}>
                 <Phone size={36} style={{ color: 'var(--admin-text-muted)', marginBottom: '0.75rem' }} />
                 <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.9rem' }}>
                   لا يوجد مشتركون بعد
                 </p>
               </div>
             ) : (
-              <div className="admin-table-wrap">
-                <table className="admin-table">
+              <div className="admin-table-wrapper admin-table-wrapper--cards">
+                <table className="admin-table admin-table--cards" id="dashboard-subscribers-table">
                   <thead>
                     <tr>
                       <th>#</th>
@@ -124,10 +148,10 @@ export default function QuranAdminDashboard() {
                   <tbody>
                     {recentSubscribers.map((sub, i) => (
                       <tr key={sub.id}>
-                        <td style={{ color: 'var(--admin-text-muted)', fontSize: '0.8rem' }}>{i + 1}</td>
-                        <td style={{ fontWeight: 600 }}>{sub.full_name}</td>
-                        <td dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.5px' }}>{sub.phone}</td>
-                        <td style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem' }}>
+                        <td data-label="#" style={{ color: 'var(--admin-text-muted)', fontSize: '0.8rem' }}>{i + 1}</td>
+                        <td data-label="الاسم" style={{ fontWeight: 600 }}>{sub.full_name}</td>
+                        <td data-label="رقم التواصل" dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.5px' }}>{sub.phone}</td>
+                        <td data-label="تاريخ التسجيل" style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem' }}>
                           {new Date(sub.created_at).toLocaleDateString('ar-EG', {
                             year: 'numeric',
                             month: 'short',
@@ -178,6 +202,14 @@ export default function QuranAdminDashboard() {
               >
                 <Phone size={16} />
                 الأرقام المسجلة
+              </button>
+              <button
+                id="admin-goto-quran-competitions-btn"
+                className="admin-btn admin-btn--ghost"
+                onClick={() => navigate('/admin/quran/competitions')}
+              >
+                <Trophy size={16} />
+                إدارة المسابقات
               </button>
             </div>
           </div>

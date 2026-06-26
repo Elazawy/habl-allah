@@ -7,7 +7,7 @@ import logoGold from '../../assets/logo-gold.png';
 const links = [
   { label: 'الرئيسية',    href: null,             to: '/quran' },
   { label: 'اختر معلمك', href: null,             to: '/quran/teachers' },
-  { label: 'المسابقات',  href: '#competitions',  to: null },
+  { label: 'المسابقات',  href: null,             to: '/quran/competitions' },
   { label: 'الدورات',    href: '#courses',        to: null },
 ];
 

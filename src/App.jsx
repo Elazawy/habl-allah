@@ -28,6 +28,10 @@ import PagesManagementPage from './pages/admin/PagesManagementPage';
 import TeacherReviewsManagementPage from './pages/admin/TeacherReviewsManagementPage';
 import QuranReviewsManagementPage from './pages/admin/QuranReviewsManagementPage';
 import NewsletterSubscribersPage from './pages/admin/NewsletterSubscribersPage';
+import CompetitionsPage from './pages/quran/CompetitionsPage';
+import CompetitionDetailsPage from './pages/quran/CompetitionDetailsPage';
+import CompetitionsManagementPage from './pages/admin/CompetitionsManagementPage';
+
 
 function HomePage() {
   return (
@@ -70,6 +74,9 @@ export default function App() {
         <Route path="/quran/teachers" element={<ChooseTeacherPage />} />
         <Route path="/quran/teachers/:gender" element={<TeacherListPage />} />
         <Route path="/quran/teachers/:gender/:id" element={<TeacherProfilePage />} />
+        <Route path="/quran/competitions" element={<CompetitionsPage />} />
+        <Route path="/quran/competition/:slug" element={<CompetitionDetailsPage />} />
+
 
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -86,6 +93,8 @@ export default function App() {
         <Route path="/admin/quran/reviews" element={<ProtectedAdmin><QuranReviewsManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/newsletter" element={<ProtectedAdmin><NewsletterSubscribersPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/faq" element={<ProtectedAdmin><QuranFaqManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/competitions" element={<ProtectedAdmin><CompetitionsManagementPage /></ProtectedAdmin>} />
+
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}
         <Route path="/admin/teachers" element={<Navigate to="/admin/quran/teachers" replace />} />

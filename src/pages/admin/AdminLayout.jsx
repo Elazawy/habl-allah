@@ -3,7 +3,7 @@ import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   BookOpen, Users, LogOut, LayoutDashboard,
-  HelpCircle, FileText, Menu, X, ArrowLeftRight, Image, Phone,
+  HelpCircle, FileText, Menu, X, ArrowLeftRight, Image, Phone, Trophy,
 } from 'lucide-react';
 import logoGold from '../../assets/logo-gold.png';
 
@@ -26,6 +26,7 @@ const NAV_LINKS = {
     { to: '/admin/quran/reviews', icon: Image, label: 'مراجعات القرآن', id: 'admin-nav-quran-reviews' },
     { to: '/admin/quran/newsletter', icon: Phone, label: 'الأرقام المسجلة', id: 'admin-nav-quran-newsletter' },
     { to: '/admin/quran/faq', icon: HelpCircle, label: 'الأسئلة الشائعة', id: 'admin-nav-quran-faq' },
+    { to: '/admin/quran/competitions', icon: Trophy, label: 'المسابقات', id: 'admin-nav-quran-competitions' },
     { to: '/quran', icon: BookOpen, label: 'عرض الموقع', id: 'admin-nav-quran-site', external: true },
   ],
 };
@@ -44,11 +45,6 @@ export default function AdminLayout({ children }) {
   const platform = detectPlatform(location.pathname);
   const links = NAV_LINKS[platform];
 
-  // Close mobile drawer on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
-
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (mobileOpen) {
@@ -59,12 +55,18 @@ export default function AdminLayout({ children }) {
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
+  const closeMobileDrawer = () => {
+    setMobileOpen(false);
+  };
+
   const handleSignOut = async () => {
+    closeMobileDrawer();
     await signOut();
     navigate('/admin/login');
   };
 
   const switchPlatform = () => {
+    closeMobileDrawer();
     if (platform === 'general') {
       navigate('/admin/quran');
     } else {
@@ -109,6 +111,7 @@ export default function AdminLayout({ children }) {
               rel="noopener noreferrer"
               id={link.id}
               className="admin-nav-link"
+              onClick={closeMobileDrawer}
             >
               <link.icon size={18} />
               <span>{link.label}</span>
@@ -122,6 +125,7 @@ export default function AdminLayout({ children }) {
               className={({ isActive }) =>
                 `admin-nav-link ${isActive ? 'admin-nav-link--active' : ''}`
               }
+              onClick={closeMobileDrawer}
             >
               <link.icon size={18} />
               <span>{link.label}</span>

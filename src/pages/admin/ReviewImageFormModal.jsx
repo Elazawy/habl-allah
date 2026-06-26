@@ -136,7 +136,7 @@ export default function ReviewImageFormModal({
                 <img
                   src={imagePreview}
                   alt="معاينة المراجعة"
-                  className="w-full h-[420px] object-contain"
+                  className="w-full max-h-[420px] object-contain"
                 />
               ) : (
                 <div className="h-[200px] flex flex-col items-center justify-center gap-2" style={{ color: 'var(--admin-muted)' }}>

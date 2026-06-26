@@ -1421,16 +1421,109 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 
-  .admin-table th:nth-child(3),
-  .admin-table td:nth-child(3),
-  .admin-table th:nth-child(4),
-  .admin-table td:nth-child(4) {
-    display: none;
+  .admin-modal-backdrop {
+    align-items: flex-end;
+    padding: 0.75rem;
   }
 
   .admin-modal {
-    max-width: 95vw;
-    margin: 0.5rem;
+    max-width: 100%;
+    max-height: calc(100vh - 1.5rem);
+    margin: 0;
+  }
+
+  .admin-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .admin-modal-actions .admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-field-row {
+    flex-direction: column;
+  }
+
+  .admin-table-wrapper--cards {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+  }
+
+  .admin-table--cards {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .admin-table--cards thead {
+    display: none;
+  }
+
+  .admin-table--cards,
+  .admin-table--cards tbody,
+  .admin-table--cards tr,
+  .admin-table--cards td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table--cards tbody {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .admin-table--cards tbody tr {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    padding: 1rem;
+  }
+
+  .admin-table--cards tbody tr:hover {
+    background: var(--admin-surface);
+  }
+
+  .admin-table--cards td {
+    padding: 0 0 0.85rem;
+    border-bottom: 1px solid var(--admin-border);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .admin-table--cards td:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .admin-table--cards td::before {
+    content: attr(data-label);
+    color: var(--admin-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .admin-table--cards td[dir='ltr'] {
+    text-align: left;
+  }
+
+  .admin-table--cards .admin-row-actions {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-table--cards .admin-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .admin-table--cards .admin-review-thumb {
+    width: 100%;
+    max-width: 140px;
+    height: auto;
+    max-height: 220px;
   }
 
   .admin-platform-switch {

@@ -1,4 +1,3 @@
-import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logoGold from '../../assets/logo-gold.png';
 import { WHATSAPP_NUMBER } from '../../lib/constants';

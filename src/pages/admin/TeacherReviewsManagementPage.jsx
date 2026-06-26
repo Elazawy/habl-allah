@@ -35,31 +35,45 @@ export default function TeacherReviewsManagementPage() {
   const [teacher, setTeacher] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [modalState, setModalState] = useState({ open: false, review: null });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadData = () => {
-    setLoading(true);
-    Promise.all([
-      fetchTeacherAdminById(id),
-      fetchTeacherReviews(id),
-    ])
-      .then(([teacherData, reviewData]) => {
+  useEffect(() => {
+    let active = true;
+
+    const loadData = async () => {
+      try {
+        const [teacherData, reviewData] = await Promise.all([
+          fetchTeacherAdminById(id),
+          fetchTeacherReviews(id),
+        ]);
+
+        if (!active) return;
+
         setTeacher(teacherData);
         setReviews(sortReviews(reviewData));
-      })
-      .catch((error) => {
-        console.error(error);
+        setError('');
+      } catch (loadError) {
+        console.error(loadError);
+        if (!active) return;
         setTeacher(null);
         setReviews([]);
-      })
-      .finally(() => setLoading(false));
-  };
+        setError('تعذر تحميل مراجعات المعلم حالياً. حاول مرة أخرى بعد قليل.');
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
 
-  useEffect(() => {
     loadData();
+
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const filtered = useMemo(() => {
@@ -167,6 +181,11 @@ export default function TeacherReviewsManagementPage() {
           <div className="admin-spinner-lg" />
           <span>جارٍ التحميل…</span>
         </div>
+      ) : error ? (
+        <div className="admin-empty">
+          <ImageIcon size={48} />
+          <p>{error}</p>
+        </div>
       ) : !teacher ? (
         <div className="admin-empty">
           <ImageIcon size={48} />
@@ -188,8 +207,8 @@ export default function TeacherReviewsManagementPage() {
           )}
         </div>
       ) : (
-        <div className="admin-table-wrapper">
-          <table className="admin-table" id="teacher-reviews-table">
+        <div className="admin-table-wrapper admin-table-wrapper--cards">
+          <table className="admin-table admin-table--cards" id="teacher-reviews-table">
             <thead>
               <tr>
                 <th>الصورة</th>
@@ -201,15 +220,15 @@ export default function TeacherReviewsManagementPage() {
             <tbody>
               {filtered.map((review) => (
                 <tr key={review.id} id={`teacher-review-row-${review.id}`}>
-                  <td>
+                  <td data-label="الصورة">
                     <img
                       src={review.image_url}
                       alt="صورة مراجعة"
                       className="admin-review-thumb"
                     />
                   </td>
-                  <td className="admin-reviews-count">{review.sort_order ?? 0}</td>
-                  <td>
+                  <td className="admin-reviews-count" data-label="الترتيب">{review.sort_order ?? 0}</td>
+                  <td data-label="الحالة">
                     <button
                       className={`admin-badge ${review.is_published ? 'admin-badge--published' : 'admin-badge--draft'}`}
                       onClick={() => togglePublished(review)}
@@ -218,7 +237,7 @@ export default function TeacherReviewsManagementPage() {
                       {review.is_published ? <><Eye size={12} /> منشور</> : <><EyeOff size={12} /> مخفي</>}
                     </button>
                   </td>
-                  <td>
+                  <td data-label="الإجراءات">
                     <div className="admin-row-actions">
                       <button
                         className="admin-icon-btn admin-icon-btn--edit"
