@@ -8,7 +8,7 @@ const links = [
   { label: 'الرئيسية',    href: null,             to: '/quran' },
   { label: 'اختر معلمك', href: null,             to: '/quran/teachers' },
   { label: 'المسابقات',  href: null,             to: '/quran/competitions' },
-  { label: 'الدورات',    href: '#courses',        to: null },
+  { label: 'الدورات',    href: null,             to: '/quran/courses' },
 ];
 
 export default function QuranNav() {

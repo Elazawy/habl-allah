@@ -35,9 +35,14 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    // Tracks the signed-in user's ID so we can detect real identity changes
+    // in onAuthStateChange (vs. harmless token refreshes on tab focus).
+    let currentUserId = null;
+
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const nextUser = session?.user ?? null;
+      currentUserId = nextUser?.id ?? null;
       setSession(session);
       setUser(nextUser);
       setLoading(false);
@@ -46,9 +51,25 @@ export function AuthProvider({ children }) {
       setAdminLoading(false);
     });
 
-    // Listen for auth changes
+    // Listen for auth changes.
+    // IMPORTANT: We only re-verify admin status when the user identity actually
+    // changes (different user id, or sign-out). Token refreshes (TOKEN_REFRESHED)
+    // and other events that leave the same user logged in must NOT flip
+    // adminLoading=true, because RequireAuth replaces its children with a spinner
+    // while adminLoading is true — unmounting the admin page and wiping all
+    // unsaved form state (e.g. open modals).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const nextUser = session?.user ?? null;
+      const nextUserId = nextUser?.id ?? null;
+
+      // Same user — only update session ref, do NOT re-check admin or touch adminLoading
+      if (nextUserId === currentUserId) {
+        setSession(session);
+        return;
+      }
+
+      // User actually changed (sign-in, sign-out, account switch)
+      currentUserId = nextUserId;
       setSession(session);
       setUser(nextUser);
       setAdminLoading(true);

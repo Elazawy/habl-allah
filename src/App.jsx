@@ -31,6 +31,12 @@ import NewsletterSubscribersPage from './pages/admin/NewsletterSubscribersPage';
 import CompetitionsPage from './pages/quran/CompetitionsPage';
 import CompetitionDetailsPage from './pages/quran/CompetitionDetailsPage';
 import CompetitionsManagementPage from './pages/admin/CompetitionsManagementPage';
+import CoursesManagementPage from './pages/admin/CoursesManagementPage';
+import CoursesPage from './pages/quran/CoursesPage';
+
+import CourseDetailPage from './pages/quran/CourseDetailPage';
+
+
 
 
 function HomePage() {
@@ -76,6 +82,10 @@ export default function App() {
         <Route path="/quran/teachers/:gender/:id" element={<TeacherProfilePage />} />
         <Route path="/quran/competitions" element={<CompetitionsPage />} />
         <Route path="/quran/competition/:slug" element={<CompetitionDetailsPage />} />
+        <Route path="/quran/courses" element={<CoursesPage />} />
+        <Route path="/quran/courses/:slug" element={<CourseDetailPage />} />
+
+
 
 
         {/* Admin auth */}
@@ -94,6 +104,8 @@ export default function App() {
         <Route path="/admin/quran/newsletter" element={<ProtectedAdmin><NewsletterSubscribersPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/faq" element={<ProtectedAdmin><QuranFaqManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/competitions" element={<ProtectedAdmin><CompetitionsManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/courses" element={<ProtectedAdmin><CoursesManagementPage /></ProtectedAdmin>} />
+
 
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}
