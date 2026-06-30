@@ -24,6 +24,11 @@ export default function FloatingWhatsApp() {
     return null;
   }
 
+  // Hide on course watch pages to avoid covering UI elements
+  if (location.pathname.endsWith('/watch')) {
+    return null;
+  }
+
   return (
     <div className="fixed bottom-6 right-6 z-50 group flex justify-center items-center">
       {/* Soft static glow instead of annoying ping */}

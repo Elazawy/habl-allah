@@ -103,3 +103,61 @@ CREATE POLICY "Authenticated users can delete course images"
   ON storage.objects
   FOR DELETE
   USING (bucket_id = 'quran-courses' AND auth.role() = 'authenticated');
+
+-- ──────────────────────────────────────────
+-- Table: quran_course_lectures
+-- ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.quran_course_lectures (
+  id                uuid          DEFAULT gen_random_uuid() PRIMARY KEY,
+  course_id         uuid          NOT NULL REFERENCES public.quran_courses(id) ON DELETE CASCADE,
+  slug              text          NOT NULL,
+  title             text          NOT NULL,
+  description       text,
+  youtube_url       text,          -- for free courses
+  r2_object_key     text,          -- for paid courses (Cloudflare R2)
+  original_file_name text,
+  video_status      text,
+  sort_order        integer       NOT NULL DEFAULT 0,
+  is_published      boolean       NOT NULL DEFAULT false,
+  created_at        timestamptz   NOT NULL DEFAULT now(),
+  updated_at        timestamptz   NOT NULL DEFAULT now(),
+  UNIQUE (course_id, slug)
+);
+
+ALTER TABLE public.quran_course_lectures ENABLE ROW LEVEL SECURITY;
+
+-- Allow public reads on lectures
+CREATE POLICY "Public can read published lectures"
+  ON public.quran_course_lectures
+  FOR SELECT
+  USING (is_published = true);
+
+-- Authenticated users can manage lectures
+CREATE POLICY "Authenticated users can manage lectures"
+  ON public.quran_course_lectures FOR ALL
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- View used by the public watch page
+CREATE OR REPLACE VIEW public.published_quran_course_lectures AS
+  SELECT * FROM public.quran_course_lectures WHERE is_published = true;
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS quran_course_lectures_course_id_idx
+  ON public.quran_course_lectures(course_id);
+CREATE INDEX IF NOT EXISTS quran_course_lectures_sort_order_idx
+  ON public.quran_course_lectures(course_id, sort_order, created_at);
+
+-- Trigger for updating updated_at timestamp
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger
+    WHERE tgname = 'quran_course_lectures_set_updated_at'
+  ) THEN
+    CREATE TRIGGER quran_course_lectures_set_updated_at
+      BEFORE UPDATE ON public.quran_course_lectures
+      FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+  END IF;
+END;
+$$;

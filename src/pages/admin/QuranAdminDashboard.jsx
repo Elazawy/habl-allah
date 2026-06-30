@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchAllTeachers, fetchAllQuranReviews } from '../../services/adminService';
 import { fetchAllFaqs } from '../../services/faqService';
 import { supabase } from '../../lib/supabase';
-import { Users, Star, BookOpen, HelpCircle, Image, Phone, User, Trophy } from 'lucide-react';
+import { Users, Star, BookOpen, GraduationCap, HelpCircle, Image, Phone, User, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllCompetitions } from '../../services/competitionsService';
 import { fetchAllCourses } from '../../services/coursesService';
@@ -81,7 +81,7 @@ export default function QuranAdminDashboard() {
     { label: 'إجمالي المعلمين', value: teachers.length, icon: Users, color: 'var(--admin-accent)' },
     { label: 'المعلمون', value: maleCount, icon: BookOpen, color: '#10b981' },
     { label: 'المعلمات', value: femaleCount, icon: BookOpen, color: '#f59e0b' },
-    { label: 'دورات القرآن', value: coursesCount, icon: BookOpen, color: '#047857' },
+    { label: 'دورات القرآن', value: coursesCount, icon: GraduationCap, color: '#047857' },
     { label: 'مراجعات المعلمين', value: reviewCount, icon: Star, color: '#8b5cf6' },
     { label: 'مراجعات صفحة القرآن', value: quranReviewsCount, icon: Image, color: '#0ea5e9' },
     { label: 'الأسئلة الشائعة', value: faqCount, icon: HelpCircle, color: '#06b6d4' },
@@ -193,7 +193,7 @@ export default function QuranAdminDashboard() {
                 className="admin-btn admin-btn--ghost"
                 onClick={() => navigate('/admin/quran/courses')}
               >
-                <BookOpen size={16} />
+                <GraduationCap size={16} />
                 إدارة الدورات
               </button>
               <button

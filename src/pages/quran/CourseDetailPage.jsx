@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, Award, CheckCircle, ChevronRight, MessageCircle } from 'lucide-react';
+import { BookOpen, Award, CheckCircle, ChevronRight, MessageCircle, PlayCircle } from 'lucide-react';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 import { fetchCourseBySlug } from '../../services/coursesService';
@@ -178,18 +178,30 @@ export default function CourseDetailPage() {
                     <div className="flex items-center justify-between md:justify-end gap-4">
                       <span className="text-sm font-bold" style={{ color: 'var(--t-text-muted)' }}>سعر الاشتراك:</span>
                       <span className="text-2xl font-black" style={{ color: 'var(--t-secondary)' }}>
-                        {course.price}
+                        {course.price || 'تواصل معنا للسعر'}
                       </span>
                     </div>
                   )}
 
-                  <button
-                    onClick={handleSubscribe}
-                    className="py-3.5 px-8 rounded-xl font-bold text-white text-sm bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm shadow-emerald-600/10 cursor-pointer justify-center"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    {course.is_free ? 'ابدأ الآن' : 'اضغط للاشتراك'}
-                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full md:w-auto">
+                    <Link
+                      to={`/quran/courses/${course.slug}/watch`}
+                      className={`py-3.5 px-6 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 justify-center cursor-pointer ${course.is_free ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/10' : 'border hover:bg-black/5 dark:hover:bg-white/5'}`}
+                      style={course.is_free ? undefined : { borderColor: 'var(--t-border)', color: 'var(--t-primary)' }}
+                    >
+                      <PlayCircle className="w-4 h-4" />
+                      {course.is_free ? 'ابدأ المشاهدة' : 'صفحة المشاهدة'}
+                    </Link>
+
+                    <button
+                      onClick={handleSubscribe}
+                      className={`py-3.5 px-6 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 cursor-pointer justify-center ${course.is_free ? 'border hover:bg-black/5 dark:hover:bg-white/5' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/10'}`}
+                      style={course.is_free ? { borderColor: 'var(--t-border)', color: 'var(--t-primary)' } : undefined}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      {course.is_free ? 'تواصل معنا' : 'اضغط للاشتراك'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

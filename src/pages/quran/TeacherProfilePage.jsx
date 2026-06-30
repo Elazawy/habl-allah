@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, PlayCircle, BookOpen, MessageSquare, Play, Pause, Volume2, X, Gift } from 'lucide-react';
 import { fetchTeacherById } from '../../services/teachersService';
 import { GENDER_LABELS, WHATSAPP_NUMBER } from '../../lib/constants';
+import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import { FemaleMonogram, MalePhoto } from './TeacherCard';
 import SubscribeModal from './SubscribeModal';
 import QuranNav from './QuranNav';
@@ -14,7 +15,7 @@ const anim = (delay = 0) => ({
 
 /* ─── Shared Components from Variants ──────────────────────── */
 
-export function AudioPlayer({ src }) {
+function AudioPlayer({ src }) {
   const audioRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -48,7 +49,7 @@ export function AudioPlayer({ src }) {
     return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
   }
 
-  const elapsed = audioRef.current ? (progress / 100) * duration : 0;
+  const elapsed = (progress / 100) * duration;
 
   return (
     <div
@@ -89,7 +90,7 @@ export function AudioPlayer({ src }) {
   );
 }
 
-export function ReviewImageCard({ review, onOpen, className = '' }) {
+function ReviewImageCard({ review, onOpen, className = '' }) {
   return (
     <button
       type="button"
@@ -111,7 +112,7 @@ export function ReviewImageCard({ review, onOpen, className = '' }) {
   );
 }
 
-export function ReviewImageLightbox({ review, onClose }) {
+function ReviewImageLightbox({ review, onClose }) {
   if (!review) return null;
 
   return (
@@ -226,10 +227,30 @@ export default function TeacherProfilePage() {
   const genderLabel = GENDER_LABELS[gender] ?? 'المعلمون';
 
   useEffect(() => {
-    setLoading(true);
-    fetchTeacherById(id)
-      .then(setTeacher)
-      .finally(() => setLoading(false));
+    let active = true;
+
+    const loadTeacher = async () => {
+      try {
+        setLoading(true);
+        const teacherData = await fetchTeacherById(id);
+        if (!active) return;
+        setTeacher(teacherData);
+      } catch (error) {
+        console.error(error);
+        if (!active) return;
+        setTeacher(null);
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadTeacher();
+
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   /* ── Loading state ── */
@@ -360,15 +381,10 @@ export default function TeacherProfilePage() {
             {teacher.recitation_type === 'audio' ? (
               <AudioPlayer src={teacher.recitation_url} />
             ) : (() => {
-              // Extract YouTube video ID from various URL formats
               const url = teacher.recitation_url ?? '';
-              const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+              const embedSrc = getYouTubeEmbedUrl(url);
 
-              if (ytMatch) {
-                const videoId = ytMatch[1];
-                // Preserve list parameter if present
-                const listMatch = url.match(/[?&]list=([^&]+)/);
-                const embedSrc = `https://www.youtube.com/embed/${videoId}${listMatch ? `?list=${listMatch[1]}` : ''}`;
+              if (embedSrc) {
                 return (
                   <div className="rounded-2xl overflow-hidden aspect-video bg-black/5">
                     <iframe

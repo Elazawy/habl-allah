@@ -33,11 +33,9 @@ import CompetitionDetailsPage from './pages/quran/CompetitionDetailsPage';
 import CompetitionsManagementPage from './pages/admin/CompetitionsManagementPage';
 import CoursesManagementPage from './pages/admin/CoursesManagementPage';
 import CoursesPage from './pages/quran/CoursesPage';
-
+import CourseLecturesManagementPage from './pages/admin/CourseLecturesManagementPage';
 import CourseDetailPage from './pages/quran/CourseDetailPage';
-
-
-
+import CourseWatchPage from './pages/quran/CourseWatchPage';
 
 function HomePage() {
   return (
@@ -83,10 +81,8 @@ export default function App() {
         <Route path="/quran/competitions" element={<CompetitionsPage />} />
         <Route path="/quran/competition/:slug" element={<CompetitionDetailsPage />} />
         <Route path="/quran/courses" element={<CoursesPage />} />
+        <Route path="/quran/courses/:slug/watch" element={<CourseWatchPage />} />
         <Route path="/quran/courses/:slug" element={<CourseDetailPage />} />
-
-
-
 
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -105,8 +101,7 @@ export default function App() {
         <Route path="/admin/quran/faq" element={<ProtectedAdmin><QuranFaqManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/competitions" element={<ProtectedAdmin><CompetitionsManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/courses" element={<ProtectedAdmin><CoursesManagementPage /></ProtectedAdmin>} />
-
-
+        <Route path="/admin/quran/courses/:id/lectures" element={<ProtectedAdmin><CourseLecturesManagementPage /></ProtectedAdmin>} />
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}
         <Route path="/admin/teachers" element={<Navigate to="/admin/quran/teachers" replace />} />

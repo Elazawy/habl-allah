@@ -29,8 +29,8 @@ export default function FeaturedCourses() {
     return () => { active = false; };
   }, []);
 
-  // Don't render the section at all if there are no courses
-  if (loaded && courses.length === 0) return null;
+  // Don't render the section at all if loading or if there are no courses
+  if (!loaded || courses.length === 0) return null;
 
   return (
     <section ref={ref} id="courses" className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-page)' }}>

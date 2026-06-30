@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme inline {
   --color-q-primary: #1B4D3E;
   --color-q-secondary: #CFA767;
@@ -15,18 +17,18 @@
 /* ── Theme tokens ── */
 :root,
 [data-theme="light"] {
-  --t-bg:              #f8f9fa;
-  --t-bg-page:         #f9faf7;
-  --t-bg-surface-low:  #f3f4f1;
-  --t-bg-surface:      #edeeeb;
+  --t-bg:              #f8faf7;
+  --t-bg-page:         #f8faf7;
+  --t-bg-surface-low:  #f0f3ef;
+  --t-bg-surface:      #e8ebe6;
   --t-bg-card:         #ffffff;
-  --t-text:            #191c1b;
-  --t-text-muted:      #404945;
-  --t-text-subtle:     #6b7280;
+  --t-text:            #1f2a24;
+  --t-text-muted:      #4a5750;
+  --t-text-subtle:     #73857c;
   --t-primary:         #1B4D3E;
   --t-primary-light:   rgba(27,77,62,0.08);
   --t-secondary:       #CFA767;
-  --t-border:          rgba(192,201,195,0.4);
+  --t-border:          rgba(27,77,62,0.12);
   --t-border-gold:     rgba(207,167,103,0.15);
   --t-hero-bg:         #f9faf7;
   --t-nav-scrolled:    rgba(255,255,255,0.8);
@@ -49,23 +51,23 @@
 }
 
 [data-theme="dark"] {
-  --t-bg:              #0f1512;
-  --t-bg-page:         #111916;
-  --t-bg-surface-low:  #161e1a;
-  --t-bg-surface:      #1c2620;
-  --t-bg-card:         #1c2620;
-  --t-text:            #e2e8e4;
-  --t-text-muted:      #a0b0a8;
-  --t-text-subtle:     #728b80;
+  --t-bg:              #0f1a16;
+  --t-bg-page:         #0f1a16;
+  --t-bg-surface-low:  #1c3027;
+  --t-bg-surface:      #223b30;
+  --t-bg-card:         #16261f;
+  --t-text:            #e8f3ed;
+  --t-text-muted:      #a9b8b0;
+  --t-text-subtle:     #8ba095;
   --t-primary:         #4ead88;
   --t-primary-light:   rgba(78,173,136,0.12);
   --t-secondary:       #d4aa6e;
-  --t-border:          rgba(78,173,136,0.18);
+  --t-border:          rgba(78,173,136,0.22);
   --t-border-gold:     rgba(212,170,110,0.2);
   --t-hero-bg:         #111916;
   --t-nav-scrolled:    rgba(15,21,18,0.85);
   --t-nav-mobile:      rgba(17,25,22,0.97);
-  --t-input-bg:        #1c2620;
+  --t-input-bg:        #1c2e25;
   --t-shadow-card:     rgba(0,0,0,0.3);
   --t-badge-bg:        rgba(78,173,136,0.12);
   --t-newsletter-success: rgba(78,173,136,0.12);

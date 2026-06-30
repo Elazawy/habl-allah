@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchAllCourses, deleteCourse, updateCourse, deleteCourseImage } from '../../services/coursesService';
+import { fetchCourseLecturesAdmin, deleteCourseLecture, maybeDeleteCourseLectureVideoAsset } from '../../services/courseLecturesService';
 import CourseFormModal from './CourseFormModal';
-import { Plus, Pencil, Trash2, Search, BookOpen, Eye, EyeOff, RefreshCcw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, BookOpen, Eye, EyeOff, PlayCircle, RefreshCcw } from 'lucide-react';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -11,6 +13,7 @@ function getLoadErrorMessage(error) {
 }
 
 export default function CoursesManagementPage() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,25 +23,32 @@ export default function CoursesManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async (activeRef) => {
     setLoading(true);
     setError('');
     try {
       const data = await fetchAllCourses();
+      if (activeRef?.current === false) return;
       setCourses(data);
     } catch (err) {
       console.error(err);
+      if (activeRef?.current === false) return;
       setCourses([]);
       setError(getLoadErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (activeRef?.current !== false) {
+        setLoading(false);
+      }
     }
-  };
-
-  useEffect(() => {
-    loadCourses();
   }, []);
 
+  useEffect(() => {
+    const active = { current: true };
+    loadCourses(active);
+    return () => {
+      active.current = false;
+    };
+  }, [loadCourses]);
 
   const handleSaved = (saved) => {
     setCourses((prev) => {
@@ -80,7 +90,19 @@ export default function CoursesManagementPage() {
       if (deleteTarget.image_path) {
         await deleteCourseImage(deleteTarget.image_path);
       }
-      // 2. Delete row from DB
+      // 2. Clean up lectures (R2 assets + DB rows)
+      try {
+        const lectures = await fetchCourseLecturesAdmin(deleteTarget.id);
+        for (const lecture of lectures) {
+          if (!deleteTarget.is_free) {
+            await maybeDeleteCourseLectureVideoAsset(lecture);
+          }
+          await deleteCourseLecture(lecture.id);
+        }
+      } catch (lectureErr) {
+        console.warn('Failed to clean up course lectures:', lectureErr);
+      }
+      // 3. Delete row from DB
       await deleteCourse(deleteTarget.id);
       setCourses((prev) => prev.filter((c) => c.id !== deleteTarget.id));
       setDeleteTarget(null);
@@ -239,6 +261,15 @@ export default function CoursesManagementPage() {
                   </td>
                   <td data-label="الإجراءات">
                     <div className="admin-row-actions">
+                      <button
+                        id={`manage-course-lectures-${c.id}`}
+                        className="admin-icon-btn admin-icon-btn--neutral"
+                        onClick={() => navigate(`/admin/quran/courses/${c.id}/lectures`)}
+                        aria-label={`إدارة محاضرات ${c.name}`}
+                        title="إدارة المحاضرات"
+                      >
+                        <PlayCircle size={15} />
+                      </button>
                       <button
                         id={`edit-course-${c.id}`}
                         className="admin-icon-btn admin-icon-btn--edit"

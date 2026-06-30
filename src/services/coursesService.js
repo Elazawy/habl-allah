@@ -125,6 +125,23 @@ export async function fetchAllCourses() {
   return data ?? [];
 }
 
+/**
+ * Fetch a single course by id for admin child-record pages.
+ * Returns null if the course does not exist.
+ */
+export async function fetchCourseAdminById(id) {
+  const client = ensureSupabaseClient();
+
+  const { data, error } = await client
+    .from('quran_courses')
+    .select('id, slug, name, short_description, is_free, is_published, created_at')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 // ─────────────────────────────────────────────────────────────
 // Admin writes
 // ─────────────────────────────────────────────────────────────

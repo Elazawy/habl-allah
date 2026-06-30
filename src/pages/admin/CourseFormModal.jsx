@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Upload, Loader, Plus, Trash2 } from 'lucide-react';
 import { createCourse, updateCourse, uploadCourseImage, deleteCourseImage } from '../../services/coursesService';
+import { fetchCourseLectureStats } from '../../services/courseLecturesService';
+import { normalizeSlug, SLUG_REGEX } from '../../lib/slug';
 
 const EMPTY_FORM = {
   name: '',
@@ -35,13 +37,18 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
           sort_order: course.sort_order ?? 0,
           is_published: course.is_published ?? true,
         }
-      : EMPTY_FORM
+      : { ...EMPTY_FORM }
   );
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(course?.image_url ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [lectureLock, setLectureLock] = useState(() => ({
+    loading: Boolean(course?.id),
+    count: 0,
+    error: '',
+  }));
 
   // Handle Escape key to close modal
   useEffect(() => {
@@ -51,6 +58,57 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!course?.id) return undefined;
+
+    const loadLectureLock = async () => {
+      try {
+        const stats = await fetchCourseLectureStats(course.id);
+        if (!active) return;
+
+        setLectureLock({ loading: false, count: stats.total ?? 0, error: '' });
+      } catch (lockError) {
+        console.error(lockError);
+        if (!active) return;
+
+        setLectureLock({
+          loading: false,
+          count: 0,
+          error: 'تعذر التحقق من وجود محاضرات لهذه الدورة حالياً. أبقينا نوع الدورة مقفلاً حتى لا يتغير بالخطأ.',
+        });
+      }
+    };
+
+    loadLectureLock();
+
+    return () => {
+      active = false;
+    };
+  }, [course?.id]);
+
+  const isCourseTypeLocked = Boolean(course?.id) && (
+    lectureLock.loading ||
+    lectureLock.count > 0 ||
+    Boolean(lectureLock.error)
+  );
+
+  const courseTypeHint = !course?.id
+    ? 'اختر الآن ما إذا كانت الدورة مجانية أو مدفوعة. بعد إضافة أول محاضرة سيتم قفل هذا الخيار.'
+    : lectureLock.loading
+      ? 'جارٍ التحقق من وجود محاضرات لهذه الدورة...'
+      : lectureLock.error ||
+        (lectureLock.count > 0
+          ? 'لا يمكن تغيير نوع الدورة بعد إنشاء محاضرات. إذا احتجت نوعاً مختلفاً فأنشئ دورة جديدة.'
+          : 'يمكنك التبديل بين المجاني والمدفوع قبل إضافة أي محاضرة فقط.');
+
+  const courseTypeHintColor = lectureLock.error
+    ? 'var(--admin-danger)'
+    : isCourseTypeLocked
+      ? 'var(--admin-gold)'
+      : 'var(--admin-muted)';
 
   const handleField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -90,17 +148,23 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
     e.preventDefault();
     setError('');
 
-    // Validation: Slug format (English lower alphanumeric, numbers, and dashes)
-    const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-    if (!slugRegex.test(form.slug)) {
+    if (!SLUG_REGEX.test(form.slug)) {
       setError('الرابط المختصر (slug) يجب أن يحتوي على حروف إنجليزية صغيرة وأرقام وواصلات فقط (مثال: tajweed-diploma).');
       return;
     }
 
     setSaving(true);
-    let uploadedImage = null;
+    let uploadedImage;
 
     try {
+      if (isEdit && form.is_free !== Boolean(course.is_free)) {
+        const stats = await fetchCourseLectureStats(course.id);
+
+        if ((stats.total ?? 0) > 0) {
+          throw new Error('لا يمكن تغيير نوع الدورة بعد إنشاء محاضرات. أنشئ دورة جديدة إذا كنت بحاجة إلى نوع مختلف.');
+        }
+      }
+
       let payload = { ...form };
 
       // 1. Upload cover image if a new file is chosen
@@ -245,7 +309,7 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
               type="text"
               className="admin-input"
               value={form.slug}
-              onChange={(e) => handleField('slug', e.target.value.toLowerCase())}
+              onChange={(e) => handleField('slug', normalizeSlug(e.target.value))}
               placeholder="مثال: tajweed-diploma"
               dir="ltr"
               required
@@ -308,10 +372,14 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
                   id="course-is-free"
                   checked={form.is_free}
                   onChange={(e) => handleField('is_free', e.target.checked)}
+                  disabled={isCourseTypeLocked}
                   style={{ width: '1.1rem', height: '1.1rem', accentColor: 'var(--admin-accent)' }}
                 />
                 <span>هذه الدورة مجانية بالكامل</span>
               </label>
+              <p className="admin-field-hint" style={{ lineHeight: 1.8, color: courseTypeHintColor }}>
+                {courseTypeHint}
+              </p>
             </div>
             
             {!form.is_free && (
