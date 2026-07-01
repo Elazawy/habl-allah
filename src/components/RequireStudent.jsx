@@ -15,7 +15,7 @@ export default function RequireStudent({ children }) {
 
   // No user logged in at all
   if (!user) {
-    return <Navigate to="/student/login" state={{ from: location }} replace />;
+    return <Navigate to="/quran/student/login" state={{ from: location }} replace />;
   }
 
   // User is an Admin, not a student, redirect to admin dashboard
@@ -25,7 +25,7 @@ export default function RequireStudent({ children }) {
 
   // User is authenticated but somehow has no student profile
   if (!isStudent) {
-    return <Navigate to="/student/login" state={{ from: location, error: 'لم يتم العثور على حساب طالب مرتبط.' }} replace />;
+    return <Navigate to="/quran/student/login" state={{ from: location, error: 'لم يتم العثور على حساب طالب مرتبط.' }} replace />;
   }
 
   return children;

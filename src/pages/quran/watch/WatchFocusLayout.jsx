@@ -10,11 +10,16 @@ import {
   FileText,
   HelpCircle,
   Send,
-  X
+  X,
+  Edit2,
+  MessageSquare,
+  Loader,
+  Trash2
 } from 'lucide-react';
 import logoGold from '../../../assets/logo-gold.png';
 import DarkModeToggle from '../../../components/DarkModeToggle';
-import { fetchLectureQuestions, submitQuestion } from '../../../services/lectureQuestionsService';
+import { fetchLectureQuestions, submitQuestion, updateQuestion, replyToQuestion, deleteQuestion } from '../../../services/lectureQuestionsService';
+import { useAuth } from '../../../context/AuthContext';
 
 const lectureNumberFormatter = new Intl.NumberFormat('ar-EG');
 
@@ -44,10 +49,23 @@ export default function WatchFocusLayout({
     return 'notes';
   });
 
+  const { user, isAdmin, studentProfile } = useAuth();
+
   // Interactive Question State
   const [questionTitle, setQuestionTitle] = useState('');
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false);
+
+  // Edit Question State
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
+  const [editingText, setEditingText] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  // Admin Reply State
+  const [replyingQuestionId, setReplyingQuestionId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   
   // UI UX helper states
   const [saveStatus, setSaveStatus] = useState('saved');
@@ -91,18 +109,102 @@ export default function WatchFocusLayout({
 
   const handleAskQuestion = async (e) => {
     e.preventDefault();
-    if (!questionTitle.trim()) return;
+    if (!questionTitle.trim() || isSubmittingQuestion) return;
 
     try {
+      setIsSubmittingQuestion(true);
       const newQ = await submitQuestion(selectedLecture.id, questionTitle.trim());
       setQuestions((prev) => [
-        { ...newQ, student_profiles: { full_name: 'أنت' } },
+        { ...newQ, student_profiles: { full_name: studentProfile?.full_name || 'أنت' } },
         ...prev,
       ]);
       setQuestionTitle('');
     } catch (err) {
       console.error(err);
       alert('حدث خطأ أثناء إرسال السؤال: ' + err.message);
+    } finally {
+      setIsSubmittingQuestion(false);
+    }
+  };
+
+  const handleStartEdit = (q) => {
+    setEditingQuestionId(q.id);
+    setEditingText(q.question_title);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuestionId(null);
+    setEditingText('');
+  };
+
+  const handleSaveEdit = async (questionId) => {
+    if (!editingText.trim() || isSavingEdit) return;
+
+    try {
+      setIsSavingEdit(true);
+      await updateQuestion(questionId, editingText.trim());
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === questionId ? { ...q, question_title: editingText.trim() } : q
+        )
+      );
+      setEditingQuestionId(null);
+      setEditingText('');
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ أثناء تعديل السؤال: ' + err.message);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const handleStartReply = (q) => {
+    setReplyingQuestionId(q.id);
+    setReplyText(q.admin_reply ?? '');
+  };
+
+  const handleCancelReply = () => {
+    setReplyingQuestionId(null);
+    setReplyText('');
+  };
+
+  const handleSaveReply = async (questionId) => {
+    if (!replyText.trim() || isSubmittingReply) return;
+
+    try {
+      setIsSubmittingReply(true);
+      await replyToQuestion(questionId, replyText.trim());
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === questionId
+            ? {
+                ...q,
+                is_answered: true,
+                admin_reply: replyText.trim(),
+                replied_at: new Date().toISOString(),
+              }
+            : q
+        )
+      );
+      setReplyingQuestionId(null);
+      setReplyText('');
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ أثناء إرسال الرد: ' + err.message);
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId) => {
+    if (!window.confirm('هل أنت متأكد من رغبتك في حذف هذا السؤال؟')) return;
+
+    try {
+      await deleteQuestion(questionId);
+      setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ أثناء حذف السؤال: ' + err.message);
     }
   };
 
@@ -250,36 +352,29 @@ export default function WatchFocusLayout({
         <section className={`transition-all duration-300 ${showSidebar ? 'lg:col-span-9' : 'lg:col-span-12'} flex flex-col min-h-screen`}>
           
           {/* Header Block (Compact layout next to return button) */}
-          <div className="px-4 md:px-8 py-3.5 flex items-center justify-between gap-4 flex-wrap border-b" style={{ borderColor: 'var(--t-border)' }}>
-            <div className="flex items-center gap-3 md:gap-4 flex-wrap">
+          <div className="px-4 md:px-8 py-3.5 flex items-center justify-between gap-4 border-b" style={{ borderColor: 'var(--t-border)' }}>
+            {/* Right Side: Back Arrow + Course Title */}
+            <div className="flex items-center gap-4 min-w-0">
               <Link
                 to={`/quran/courses/${course.slug}`}
-                className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm transition-all shrink-0 bg-[var(--t-bg-card)] border border-[var(--t-border)] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)] px-3 py-2 rounded-xl shadow-sm text-[var(--t-text-muted)] hover:shadow-md hover:scale-[1.01]"
+                className="inline-flex items-center justify-center transition-all shrink-0 bg-[var(--t-bg-card)] border border-[var(--t-border)] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)] w-9 h-9 rounded-xl shadow-sm text-[var(--t-text-muted)] hover:shadow-md hover:scale-[1.05]"
+                title="العودة للدورة"
               >
-                <ChevronRight size={16} />
-                <span>العودة للدورة</span>
+                <ChevronRight size={18} />
               </Link>
               
-              <span className="text-[var(--t-border)] hidden sm:inline">|</span>
+              <span className="text-[var(--t-border)]">|</span>
               
-              <h1 className="text-xs md:text-sm font-black truncate max-w-[280px] sm:max-w-md md:max-w-lg text-[var(--t-primary)]">
+              <h1 className="text-xs md:text-sm font-black truncate text-[var(--t-primary)]">
                 {course.name}
               </h1>
             </div>
 
-            {/* Hablallah logo & Dark mode toggle next to it on the right (takes to quran home page) */}
+            {/* Left Side: Logo only (+ DarkModeToggle) */}
             <div className="flex items-center gap-3 shrink-0">
-              {/* Only put Dark/Light mode switcher on large screen next to logo (appears on the right in RTL) */}
-              <div className="hidden lg:block">
-                <DarkModeToggle />
-              </div>
-
-              <span className="text-[var(--t-border)] hidden lg:inline">|</span>
-
-              {/* Gold logo link (appears on the left in RTL) */}
-              <Link to="/quran" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-                <img src={logoGold} alt="منصة حبل الله" className="w-[32px] h-[32px] object-contain" />
-                <span className="text-sm md:text-base font-black hidden sm:inline text-[var(--t-primary)]">حبل الله</span>
+              <DarkModeToggle />
+              <Link to="/quran/student/dashboard" className="flex items-center hover:opacity-90 transition-opacity shrink-0">
+                <img src={logoGold} alt="منصة حبل الله" className="w-[34px] h-[34px] object-contain" />
               </Link>
             </div>
           </div>
@@ -623,11 +718,15 @@ export default function WatchFocusLayout({
 
                         <button
                           type="submit"
-                          disabled={!questionTitle.trim()}
+                          disabled={!questionTitle.trim() || isSubmittingQuestion}
                           className="w-full sm:w-auto py-2.5 px-6 rounded-xl font-bold text-xs sm:text-sm text-white bg-[var(--t-primary)] hover:bg-emerald-700 dark:hover:bg-emerald-500 hover:scale-[1.01] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm shadow-[var(--t-primary)]/10 hover:shadow-md"
                         >
-                          <Send size={14} className="-rotate-45" />
-                          <span>إرسال السؤال</span>
+                          {isSubmittingQuestion ? (
+                            <Loader size={14} className="animate-spin" />
+                          ) : (
+                            <Send size={14} className="-rotate-45" />
+                          )}
+                          <span>{isSubmittingQuestion ? 'جاري الإرسال...' : 'إرسال السؤال'}</span>
                         </button>
                       </form>
                     </div>
@@ -643,6 +742,11 @@ export default function WatchFocusLayout({
                       ) : (
                         <div className="space-y-4">
                           {questions.map((q) => {
+                            const isMyQuestion = q.student_id === user?.id;
+                            const showEditBtn = isMyQuestion && !q.is_answered && !isAdmin;
+                            const isEditing = editingQuestionId === q.id;
+                            const isReplying = replyingQuestionId === q.id;
+
                             return (
                               <div 
                                 key={q.id} 
@@ -652,21 +756,82 @@ export default function WatchFocusLayout({
                                 <div className="flex items-center justify-between text-[11px] text-[var(--t-text-subtle)] pb-2 border-b border-[var(--t-border)]/50">
                                   <div className="flex items-center gap-1.5">
                                     <span className="font-bold text-[var(--t-text-muted)]">
-                                      {q.student_profiles?.full_name ?? 'طالب'}
+                                      {isMyQuestion ? 'أنت' : (q.student_profiles?.full_name ?? 'طالب')}
                                     </span>
                                   </div>
-                                  <span>{new Date(q.created_at).toLocaleDateString('ar-EG')}</span>
+                                  <div className="flex items-center gap-2.5">
+                                    <span>{new Date(q.created_at).toLocaleDateString('ar-EG')}</span>
+                                    {showEditBtn && !isEditing && (
+                                      <button
+                                        onClick={() => handleStartEdit(q)}
+                                        className="text-emerald-600 dark:text-emerald-400 hover:underline font-bold cursor-pointer flex items-center gap-0.5"
+                                        title="تعديل السؤال"
+                                      >
+                                        <Edit2 size={11} />
+                                        <span>تعديل</span>
+                                      </button>
+                                    )}
+                                    {isMyQuestion && !isAdmin && (
+                                      <button
+                                        onClick={() => handleDeleteQuestion(q.id)}
+                                        className="text-red-600 dark:text-red-400 hover:underline font-bold cursor-pointer flex items-center gap-0.5"
+                                        title="حذف السؤال"
+                                      >
+                                        <Trash2 size={11} />
+                                        <span>حذف</span>
+                                      </button>
+                                    )}
+                                    {isAdmin && !isReplying && (
+                                      <button
+                                        onClick={() => handleStartReply(q)}
+                                        className="text-emerald-700 dark:text-emerald-400 hover:underline font-bold cursor-pointer flex items-center gap-0.5"
+                                        title={q.is_answered ? 'تعديل الإجابة' : 'إضافة إجابة'}
+                                      >
+                                        <MessageSquare size={11} />
+                                        <span>{q.is_answered ? 'تعديل الرد' : 'رد'}</span>
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
 
-                                {/* Question Content */}
+                                {/* Question Content / Edit Field */}
                                 <div className="space-y-1.5">
-                                  <h4 className="font-bold text-sm sm:text-base text-[var(--t-text)] leading-snug">
-                                    {q.question_title}
-                                  </h4>
+                                  {isEditing ? (
+                                    <div className="space-y-2">
+                                      <input
+                                        type="text"
+                                        value={editingText}
+                                        onChange={(e) => setEditingText(e.target.value)}
+                                        className="w-full px-3 py-2 border border-[var(--t-border)] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[var(--t-primary)]/10 focus:border-[var(--t-primary)] bg-[var(--t-bg-surface-low)] text-[var(--t-text)]"
+                                        required
+                                      />
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => handleSaveEdit(q.id)}
+                                          disabled={!editingText.trim() || isSavingEdit}
+                                          className="px-3 py-1.5 bg-[var(--t-primary)] text-white text-xs font-bold rounded-lg hover:bg-emerald-700 cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                        >
+                                          {isSavingEdit && <Loader size={11} className="animate-spin" />}
+                                          <span>حفظ</span>
+                                        </button>
+                                        <button
+                                          onClick={handleCancelEdit}
+                                          disabled={isSavingEdit}
+                                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-[var(--t-text-muted)] text-xs font-bold rounded-lg hover:bg-gray-200 cursor-pointer"
+                                        >
+                                          إلغاء
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <h4 className="font-bold text-sm sm:text-base text-[var(--t-text)] leading-snug">
+                                      {q.question_title}
+                                    </h4>
+                                  )}
                                 </div>
 
                                 {/* Replies / الشيخ Answer */}
-                                {q.is_answered && q.admin_reply && (
+                                {q.is_answered && q.admin_reply && !isReplying && (
                                   <div className="space-y-2.5 pt-2 border-t border-[var(--t-border)]/50">
                                     <div 
                                       className="bg-[#d3dcd9] dark:bg-[#1C3329] border-r-4 border-[var(--t-primary)] p-3.5 rounded-l-2xl text-xs sm:text-sm space-y-1 border-t border-b border-l border-[var(--t-border)]/40"
@@ -677,6 +842,39 @@ export default function WatchFocusLayout({
                                       <p className="text-[var(--t-text-muted)] leading-relaxed text-xs sm:text-sm">
                                         {q.admin_reply}
                                       </p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Admin Reply Input Form */}
+                                {isReplying && (
+                                  <div className="space-y-2.5 pt-2 border-t border-[var(--t-border)]/50">
+                                    <div className="space-y-2">
+                                      <label className="text-[11px] font-bold text-[var(--t-primary)] block">إجابتك كأدمن:</label>
+                                      <textarea
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        rows={2}
+                                        placeholder="اكتب إجابتك هنا..."
+                                        className="w-full p-3 border border-[var(--t-border)] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[var(--t-primary)]/10 focus:border-[var(--t-primary)] bg-[var(--t-bg-surface-low)] text-[var(--t-text)]"
+                                      />
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => handleSaveReply(q.id)}
+                                          disabled={!replyText.trim() || isSubmittingReply}
+                                          className="px-3 py-1.5 bg-[var(--t-primary)] text-white text-xs font-bold rounded-lg hover:bg-emerald-700 cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                        >
+                                          {isSubmittingReply && <Loader size={11} className="animate-spin" />}
+                                          <span>حفظ الإجابة</span>
+                                        </button>
+                                        <button
+                                          onClick={handleCancelReply}
+                                          disabled={isSubmittingReply}
+                                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-[var(--t-text-muted)] text-xs font-bold rounded-lg hover:bg-gray-200 cursor-pointer"
+                                        >
+                                          إلغاء
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 )}

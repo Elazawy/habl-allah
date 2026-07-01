@@ -44,20 +44,20 @@ export default function Hero() {
 
         {/* Main title */}
         <h1
-          className="fade-in-up delay-100 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 tracking-tight"
-          style={{ color: 'var(--t-primary)' }}
+          className="fade-in-up delay-100 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 tracking-tight text-center w-full"
+          style={{ color: 'var(--t-primary)', textAlign: 'center' }}
         >
           مرحباً بكم في
           <span
-            className="block mt-2"
-            style={{ color: 'var(--t-secondary)' }}
+            className="block mt-2 text-center"
+            style={{ color: 'var(--t-secondary)', textAlign: 'center' }}
           >
             أكاديمية حبل الله القرآنية
           </span>
         </h1>
 
         {/* Decorative divider */}
-        <div className="fade-in-up delay-200 flex items-center gap-3 my-6">
+        <div className="fade-in-up delay-200 flex items-center justify-center gap-3 my-6 mx-auto">
           <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-400" />
           <BookOpen size={22} className="text-amber-500" />
           <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-400" />
@@ -65,8 +65,8 @@ export default function Hero() {
 
         {/* Subtitle */}
         <p
-          className="fade-in-up delay-300 text-lg sm:text-xl max-w-2xl leading-relaxed mb-12"
-          style={{ color: 'var(--t-text-muted)' }}
+          className="fade-in-up delay-300 text-lg sm:text-xl max-w-2xl leading-relaxed mb-12 text-center mx-auto"
+          style={{ color: 'var(--t-text-muted)', textAlign: 'center' }}
         >
           نور الهداية يبدأ من هنا، حيث نجمع بين الأصالة العلمية والتقنيات
           الحديثة لخدمة كتاب الله.

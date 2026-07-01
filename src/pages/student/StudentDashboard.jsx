@@ -83,9 +83,11 @@ export default function StudentDashboard() {
               <h1 className="text-2xl md:text-3xl font-black text-emerald-900 dark:text-emerald-300">
                 مرحباً، {studentProfile?.full_name}
               </h1>
-              <p className="text-xs md:text-sm text-emerald-800/60 dark:text-emerald-200/60 mt-1">
-                رقم الحساب: {studentProfile?.phone} | نسأل الله أن يجعلك من أهل القرآن الذين هم أهله وخاصته.
-              </p>
+              {studentProfile?.teachers?.name && (
+                <p className="text-xs md:text-sm text-emerald-800/60 dark:text-emerald-200/60 mt-1 font-semibold">
+                  الشيخ المتابع: {studentProfile.teachers.name}
+                </p>
+              )}
             </div>
             <button
               onClick={handleLogout}
@@ -107,7 +109,7 @@ export default function StudentDashboard() {
               <div className="lg:col-span-8 space-y-8">
                 
                 {/* 1. Teacher Assignment Check */}
-                {!studentProfile?.teachers ? (
+                {!studentProfile?.teachers && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-6 text-center space-y-4">
                     <User className="w-12 h-12 text-amber-500 mx-auto opacity-70" />
                     <h2 className="text-lg font-bold text-amber-800 dark:text-amber-400">أنت غير مشترك مع معلم حالياً</h2>
@@ -121,35 +123,6 @@ export default function StudentDashboard() {
                       تصفح قائمة المعلمين والاشتراك
                     </Link>
                   </div>
-                ) : (
-                  /* Teacher Information Card */
-                  <div className="bg-white dark:bg-emerald-950/20 border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center gap-5">
-                    {studentProfile.teachers.photo_url ? (
-                      <img
-                        src={studentProfile.teachers.photo_url}
-                        alt={studentProfile.teachers.name}
-                        className="w-20 h-20 rounded-2xl object-cover border border-emerald-600/20"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 rounded-2xl bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-3xl">
-                        {studentProfile.teachers.name[0]}
-                      </div>
-                    )}
-                    <div className="text-center sm:text-right flex-1">
-                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">معلمك المتابع الحالي</span>
-                      <h2 className="text-lg font-black text-emerald-900 dark:text-emerald-300">{studentProfile.teachers.name}</h2>
-                      <p className="text-xs text-emerald-800/60 dark:text-emerald-200/60 mt-0.5">
-                        حلقات تسميع القرآن الكريم ومراجعة الأحكام بشكل دوري.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleContactTeacher(studentProfile.teachers.name)}
-                      className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
-                    >
-                      <Phone className="w-4 h-4" />
-                      تواصل عبر واتساب
-                    </button>
-                  </div>
                 )}
 
                 {/* 2. Latest Quran Lesson Record */}
@@ -162,7 +135,7 @@ export default function StudentDashboard() {
                       </h2>
                       {lessons.length > 0 && (
                         <Link
-                          to="/student/lessons"
+                          to="/quran/student/lessons"
                           className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
                         >
                           عرض كل التقارير ({lessons.length})

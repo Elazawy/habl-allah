@@ -18,7 +18,7 @@ export default function StudentLoginPage() {
     setLoading(true);
     try {
       await signInAsStudent(phone, password);
-      navigate('/student/dashboard', { replace: true });
+      navigate('/quran/student/dashboard', { replace: true });
     } catch (err) {
       console.error(err);
       setError(

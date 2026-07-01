@@ -294,7 +294,7 @@ export default function CourseWatchPage() {
             لمشاهدة محاضرات هذه الدورة، يرجى تسجيل الدخول إلى حساب الطالب الخاص بك أولاً.
           </p>
           <Link
-            to="/student/login"
+            to="/quran/student/login"
             className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
           >
             تسجيل الدخول كطالب

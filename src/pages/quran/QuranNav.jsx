@@ -5,12 +5,9 @@ import DarkModeToggle from '../../components/DarkModeToggle';
 import logoGold from '../../assets/logo-gold.png';
 import { useAuth } from '../../context/AuthContext';
 
-const links = [
-  { label: 'الرئيسية',    to: '/quran' },
-  { label: 'اختر معلمك',  to: '/quran/teachers' },
-  { label: 'المسابقات',   to: '/quran/competitions' },
-  { label: 'الدورات',     to: '/quran/courses' },
-];
+const getDashboardPath = (isAdmin) => {
+  return isAdmin ? '/admin/quran' : '/quran/student/dashboard';
+};
 
 export default function QuranNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -29,14 +26,26 @@ export default function QuranNav() {
     navigate('/quran');
   };
 
-  const getDashboardPath = () => {
-    return isAdmin ? '/admin/quran' : '/student/dashboard';
-  };
-
   const getDisplayName = () => {
     if (isAdmin) return 'المدير';
     return studentProfile?.full_name ?? 'طالب';
   };
+
+  const isStudentLoggedIn = user && !isAdmin;
+
+  const navLinks = isStudentLoggedIn
+    ? [
+        { label: 'الصفحة الرئيسية', to: '/quran/student/dashboard' },
+        { label: 'الدروس', to: '/quran/student/lessons' },
+        { label: 'المسابقات',   to: '/quran/competitions' },
+        { label: 'الدورات',     to: '/quran/courses' },
+      ]
+    : [
+        { label: 'الرئيسية',    to: '/quran' },
+        { label: 'اختر معلمك',  to: '/quran/teachers' },
+        { label: 'المسابقات',   to: '/quran/competitions' },
+        { label: 'الدورات',     to: '/quran/courses' },
+      ];
 
   return (
     <header
@@ -59,7 +68,7 @@ export default function QuranNav() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6">
-          {links.map((l) => (
+          {navLinks.map((l) => (
             <Link
               key={l.label}
               to={l.to}
@@ -79,13 +88,20 @@ export default function QuranNav() {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
-                <Link
-                  to={getDashboardPath()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-600/20 transition-all"
-                >
-                  <Layout className="w-3.5 h-3.5" />
-                  <span>لوحة التحكم ({getDisplayName()})</span>
-                </Link>
+                {!isStudentLoggedIn && (
+                  <Link
+                    to={getDashboardPath(isAdmin)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-600/20 transition-all"
+                  >
+                    <Layout className="w-3.5 h-3.5" />
+                    <span>لوحة التحكم ({getDisplayName()})</span>
+                  </Link>
+                )}
+                {isStudentLoggedIn && (
+                  <span className="text-xs font-semibold px-2" style={{ color: 'var(--t-text)' }}>
+                    مرحباً، {getDisplayName()}
+                  </span>
+                )}
                 <button
                   onClick={handleSignOut}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-500/10 transition-all cursor-pointer"
@@ -97,7 +113,7 @@ export default function QuranNav() {
               </div>
             ) : (
               <Link
-                to="/student/login"
+                to="/quran/student/login"
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm shadow-emerald-600/10"
               >
                 <LogIn className="w-3.5 h-3.5" />
@@ -127,7 +143,7 @@ export default function QuranNav() {
             borderColor: 'var(--t-border)',
           }}
         >
-          {links.map((l) => (
+          {navLinks.map((l) => (
             <Link
               key={l.label}
               to={l.to}
@@ -143,14 +159,21 @@ export default function QuranNav() {
           <div className="border-t pt-4 flex flex-col gap-3" style={{ borderColor: 'var(--t-border)' }}>
             {user ? (
               <>
-                <Link
-                  to={getDashboardPath()}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 text-white"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <Layout className="w-4 h-4" />
-                  <span>لوحة التحكم ({getDisplayName()})</span>
-                </Link>
+                {!isStudentLoggedIn && (
+                  <Link
+                    to={getDashboardPath(isAdmin)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 text-white"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Layout className="w-4 h-4" />
+                    <span>لوحة التحكم ({getDisplayName()})</span>
+                  </Link>
+                )}
+                {isStudentLoggedIn && (
+                  <div className="text-center text-sm font-bold py-1.5" style={{ color: 'var(--t-text)' }}>
+                    مرحباً، {getDisplayName()}
+                  </div>
+                )}
                 <button
                   onClick={() => {
                     setMenuOpen(false);
@@ -164,7 +187,7 @@ export default function QuranNav() {
               </>
             ) : (
               <Link
-                to="/student/login"
+                to="/quran/student/login"
                 className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 text-white"
                 onClick={() => setMenuOpen(false)}
               >

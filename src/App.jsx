@@ -95,10 +95,11 @@ export default function App() {
         <Route path="/quran/courses/:slug" element={<CourseDetailPage />} />
 
         {/* Student auth & pages */}
-        <Route path="/student/login" element={<StudentLoginPage />} />
-        <Route path="/student/signup" element={<Navigate to="/student/login" replace />} />
-        <Route path="/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
-        <Route path="/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />
+        <Route path="/quran/student/login" element={<StudentLoginPage />} />
+        <Route path="/quran/student/signup" element={<Navigate to="/quran/student/login" replace />} />
+        <Route path="/quran/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
+        <Route path="/quran/student/dashbaord" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
+        <Route path="/quran/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />
 
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

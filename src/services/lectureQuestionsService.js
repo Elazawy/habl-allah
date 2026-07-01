@@ -23,6 +23,18 @@ export async function submitQuestion(lectureId, questionTitle) {
   return data;
 }
 
+export async function updateQuestion(questionId, questionTitle) {
+  const { data, error } = await supabase
+    .from('course_lecture_questions')
+    .update({ question_title: questionTitle })
+    .eq('id', questionId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+
 export async function replyToQuestion(questionId, reply) {
   const { data, error } = await supabase
     .from('course_lecture_questions')
@@ -37,6 +49,18 @@ export async function replyToQuestion(questionId, reply) {
   if (error) throw error;
   return data;
 }
+
+export async function deleteQuestion(questionId) {
+  const { data, error } = await supabase
+    .from('course_lecture_questions')
+    .delete()
+    .eq('id', questionId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 
 export async function fetchAllUnansweredQuestions() {
   const { data, error } = await supabase

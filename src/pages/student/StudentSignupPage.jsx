@@ -55,7 +55,7 @@ export default function StudentSignupPage() {
         await refreshStudentProfile(authData.user);
       }
 
-      navigate('/student/dashboard', { replace: true });
+      navigate('/quran/student/dashboard', { replace: true });
     } catch (err) {
       console.error(err);
       if (err.message?.includes('unique') || err.message?.includes('already exists')) {
@@ -182,7 +182,7 @@ export default function StudentSignupPage() {
           <p className="text-xs font-bold text-emerald-900/60 dark:text-emerald-100/60">
             لديك حساب بالفعل؟{' '}
             <Link
-              to="/student/login"
+              to="/quran/student/login"
               className="text-emerald-700 dark:text-emerald-400 hover:underline"
             >
               سجل دخولك هنا
