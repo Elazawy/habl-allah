@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
-  ChevronRight,
 } from 'lucide-react';
 import QuranNav from './QuranNav';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
@@ -12,14 +11,19 @@ import {
 } from '../../services/courseLecturesService';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import WatchFocusLayout from './watch/WatchFocusLayout';
+import { useAuth } from '../../context/AuthContext';
+import { checkMyCourseAccess } from '../../services/studentsService';
 
 export default function CourseWatchPage() {
   const { slug } = useParams();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user, isAdmin } = useAuth();
   const [course, setCourse] = useState(null);
   const [lectures, setLectures] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [accessLoading, setAccessLoading] = useState(true);
   const [error, setError] = useState('');
   const [playbackRefreshKey, setPlaybackRefreshKey] = useState(0);
   const [playbackState, setPlaybackState] = useState({
@@ -61,6 +65,7 @@ export default function CourseWatchPage() {
       try {
         setLoading(true);
         setError('');
+        setAccessLoading(true);
 
         const data = await fetchCourseWatchPageBySlug(slug);
         if (!active) return;
@@ -74,6 +79,21 @@ export default function CourseWatchPage() {
 
         setCourse(data.course);
         setLectures(data.lectures ?? []);
+
+        // Access check
+        if (!user) {
+          setHasAccess(false);
+        } else if (isAdmin) {
+          setHasAccess(true);
+        } else if (data.course.is_free) {
+          setHasAccess(true);
+        } else {
+          // Paid course, check student subscription
+          const subscribed = await checkMyCourseAccess(data.course.id);
+          if (active) {
+            setHasAccess(subscribed);
+          }
+        }
       } catch (loadError) {
         console.error(loadError);
         if (!active) return;
@@ -83,6 +103,7 @@ export default function CourseWatchPage() {
       } finally {
         if (active) {
           setLoading(false);
+          setAccessLoading(false);
         }
       }
     };
@@ -92,7 +113,7 @@ export default function CourseWatchPage() {
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [slug, user, isAdmin]);
 
   // Load user progress and notes once course details are fetched
   useEffect(() => {
@@ -150,7 +171,7 @@ export default function CourseWatchPage() {
     let active = true;
 
     const loadPlaybackUrl = async () => {
-      if (!course || isFreeCourse || !selectedLectureId) {
+      if (!course || isFreeCourse || !selectedLectureId || !hasAccess) {
         if (!active) return;
         setPlaybackState({ loading: false, url: '', error: '', expiresAt: null });
         return;
@@ -186,7 +207,7 @@ export default function CourseWatchPage() {
     return () => {
       active = false;
     };
-  }, [course, isFreeCourse, selectedLectureId, playbackRefreshKey]);
+  }, [course, isFreeCourse, selectedLectureId, playbackRefreshKey, hasAccess]);
 
   // Event handlers
   const handleSelectLecture = (lectureId) => {
@@ -227,13 +248,13 @@ export default function CourseWatchPage() {
   };
 
   // Loading indicator screen
-  if (loading) {
+  if (loading || accessLoading) {
     return (
       <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
         <QuranNav />
         <div className="flex-1 flex flex-col items-center justify-center py-24 gap-4">
           <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-600 rounded-full animate-spin" />
-          <p className="text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>جاري تحميل صفحة المشاهدة...</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>جاري تحميل صفحة المشاهدة والتحقق من الصلاحية...</p>
         </div>
       </div>
     );
@@ -256,6 +277,58 @@ export default function CourseWatchPage() {
           >
             العودة إلى صفحة الدورات
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Not logged in screen
+  if (!user) {
+    return (
+      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+        <QuranNav />
+        <div className="flex-1 flex flex-col items-center justify-center py-24 px-5 text-center">
+          <BookOpen className="w-16 h-16 text-emerald-600/40 mb-4" />
+          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>تسجيل الدخول مطلوب</h2>
+          <p className="text-sm max-w-md mx-auto mb-8" style={{ color: 'var(--t-text-muted)' }}>
+            لمشاهدة محاضرات هذه الدورة، يرجى تسجيل الدخول إلى حساب الطالب الخاص بك أولاً.
+          </p>
+          <Link
+            to="/student/login"
+            className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
+          >
+            تسجيل الدخول كطالب
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Subscribed but not authorized screen
+  if (!hasAccess) {
+    return (
+      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+        <QuranNav />
+        <div className="flex-1 flex flex-col items-center justify-center py-24 px-5 text-center">
+          <BookOpen className="w-16 h-16 text-amber-500/40 mb-4" />
+          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>الوصول غير مفعل</h2>
+          <p className="text-sm max-w-md mx-auto mb-8" style={{ color: 'var(--t-text-muted)' }}>
+            هذه الدورة مدفوعة، وحسابك غير مشترك فيها حالياً. يرجى التواصل مع إدارة المنصة لتفعيل الدورة لحسابك.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={handleSubscribe}
+              className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
+            >
+              طلب تفعيل الاشتراك عبر الواتساب
+            </button>
+            <Link
+              to="/quran/courses"
+              className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-emerald-700 border border-emerald-600/20 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/10 transition-colors cursor-pointer"
+            >
+              تصفح الدورات الأخرى
+            </Link>
+          </div>
         </div>
       </div>
     );

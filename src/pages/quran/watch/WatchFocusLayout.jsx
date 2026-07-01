@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import logoGold from '../../../assets/logo-gold.png';
 import DarkModeToggle from '../../../components/DarkModeToggle';
+import { fetchLectureQuestions, submitQuestion } from '../../../services/lectureQuestionsService';
 
 const lectureNumberFormatter = new Intl.NumberFormat('ar-EG');
 
@@ -45,6 +46,8 @@ export default function WatchFocusLayout({
 
   // Interactive Question State
   const [questionTitle, setQuestionTitle] = useState('');
+  const [questions, setQuestions] = useState([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
   
   // UI UX helper states
   const [saveStatus, setSaveStatus] = useState('saved');
@@ -55,51 +58,52 @@ export default function WatchFocusLayout({
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, []);
-  const [questions, setQuestions] = useState(() => {
-    const saved = localStorage.getItem(`questions_${course.id}`);
-    if (saved) {
+
+  // Fetch questions on selected lecture change
+  useEffect(() => {
+    let active = true;
+    if (!selectedLecture?.id) {
+      setQuestions([]);
+      return;
+    }
+
+    async function loadQuestions() {
       try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
+        setLoadingQuestions(true);
+        const data = await fetchLectureQuestions(selectedLecture.id);
+        if (active) {
+          setQuestions(data);
+        }
+      } catch (err) {
+        console.error('Error fetching questions:', err);
+      } finally {
+        if (active) {
+          setLoadingQuestions(false);
+        }
       }
     }
-    return [
-      {
-        id: 'seed-1',
-        title: 'كيف أراجع مخارج الحروف مع الشيخ؟',
-        content: 'السلام عليكم، أريد معرفة الطريقة الصحيحة للمتابعة وتصحيح التلاوة بشكل مباشر.',
-        date: 'منذ يومين',
-        user: 'أحمد علي',
-        replies: [{ user: 'منصة حبل الله', content: 'وعليكم السلام ورحمة الله، يمكنك التواصل مع الشيخ خلال ساعات البث المباشر المحددة في جدول المعلم وتسميع الحفظ المخصص.', date: 'منذ يوم' }]
-      },
-      {
-        id: 'seed-2',
-        title: 'هل هناك اختبار نهائي للحصول على الإجازة؟',
-        content: 'أود الاستفسار عن شروط الحصول على شهادة الإجازة بنهاية هذه الدورة.',
-        date: 'منذ أسبوع',
-        user: 'سارة محمد',
-        replies: [{ user: 'منصة حبل الله', content: 'نعم، يوجد اختبار تلاوة وحفظ شفهي مع الشيخ بنهاية الدورة لتحديد الأهلية للإجازة.', date: 'منذ 5 أيام' }]
-      }
-    ];
-  });
+    loadQuestions();
 
-  const handleAskQuestion = (e) => {
+    return () => {
+      active = false;
+    };
+  }, [selectedLecture?.id]);
+
+  const handleAskQuestion = async (e) => {
     e.preventDefault();
     if (!questionTitle.trim()) return;
 
-    const newQuestion = {
-      id: 'q-' + Date.now(),
-      title: questionTitle,
-      date: 'الآن',
-      user: 'أنت',
-      replies: []
-    };
-
-    const nextQuestions = [newQuestion, ...questions];
-    setQuestions(nextQuestions);
-    localStorage.setItem(`questions_${course.id}`, JSON.stringify(nextQuestions));
-    setQuestionTitle('');
+    try {
+      const newQ = await submitQuestion(selectedLecture.id, questionTitle.trim());
+      setQuestions((prev) => [
+        { ...newQ, student_profiles: { full_name: 'أنت' } },
+        ...prev,
+      ]);
+      setQuestionTitle('');
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ أثناء إرسال السؤال: ' + err.message);
+    }
   };
 
   const handleCopyNotes = () => {
@@ -632,52 +636,55 @@ export default function WatchFocusLayout({
                     <div className="space-y-4">
                       <span className="text-sm font-black block text-[var(--t-primary)]">الأسئلة والنقاشات المطروحة ({questions.length})</span>
                       
-                      <div className="space-y-4">
-                        {questions.map((q) => {
-                          return (
-                            <div 
-                              key={q.id} 
-                              className="bg-[var(--t-bg-card)] p-5 rounded-2xl border border-[var(--t-border)] shadow-sm space-y-3.5 transition-all hover:shadow-md"
-                            >
-                              {/* Question Header Metadata */}
-                              <div className="flex items-center justify-between text-[11px] text-[var(--t-text-subtle)] pb-2 border-b border-[var(--t-border)]/50">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-bold text-[var(--t-text-muted)]">{q.user}</span>
+                      {loadingQuestions ? (
+                        <div className="text-center py-6 text-xs font-bold text-[var(--t-text-muted)] animate-pulse">
+                          جاري تحميل الأسئلة...
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {questions.map((q) => {
+                            return (
+                              <div 
+                                key={q.id} 
+                                className="bg-[var(--t-bg-card)] p-5 rounded-2xl border border-[var(--t-border)] shadow-sm space-y-3.5 transition-all hover:shadow-md"
+                              >
+                                {/* Question Header Metadata */}
+                                <div className="flex items-center justify-between text-[11px] text-[var(--t-text-subtle)] pb-2 border-b border-[var(--t-border)]/50">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-[var(--t-text-muted)]">
+                                      {q.student_profiles?.full_name ?? 'طالب'}
+                                    </span>
+                                  </div>
+                                  <span>{new Date(q.created_at).toLocaleDateString('ar-EG')}</span>
                                 </div>
-                                <span>{q.date}</span>
-                              </div>
 
-                              {/* Question Content */}
-                              <div className="space-y-1.5">
-                                <h4 className="font-bold text-sm sm:text-base text-[var(--t-text)] leading-snug">
-                                  {q.title}
-                                </h4>
-                              </div>
+                                {/* Question Content */}
+                                <div className="space-y-1.5">
+                                  <h4 className="font-bold text-sm sm:text-base text-[var(--t-text)] leading-snug">
+                                    {q.question_title}
+                                  </h4>
+                                </div>
 
-                              {/* Replies / الشيخ Answer */}
-                              {q.replies && q.replies.length > 0 && (
-                                <div className="space-y-2.5 pt-2 border-t border-[var(--t-border)]/50">
-                                  {q.replies.map((reply, rIdx) => (
+                                {/* Replies / الشيخ Answer */}
+                                {q.is_answered && q.admin_reply && (
+                                  <div className="space-y-2.5 pt-2 border-t border-[var(--t-border)]/50">
                                     <div 
-                                      key={rIdx} 
                                       className="bg-[#d3dcd9] dark:bg-[#1C3329] border-r-4 border-[var(--t-primary)] p-3.5 rounded-l-2xl text-xs sm:text-sm space-y-1 border-t border-b border-l border-[var(--t-border)]/40"
                                     >
-                                      <div className="flex items-center justify-between">
-                                        <span className="font-black text-[var(--t-primary)] text-xs">
-                                          {reply.user === 'منصة حبل الله' ? 'إجابة الشيخ' : reply.user}
-                                        </span>
+                                      <div className="flex items-center justify-between font-bold text-xs mb-1" style={{ color: 'var(--t-primary)' }}>
+                                        <span>إجابة الشيخ:</span>
                                       </div>
                                       <p className="text-[var(--t-text-muted)] leading-relaxed text-xs sm:text-sm">
-                                        {reply.content}
+                                        {q.admin_reply}
                                       </p>
                                     </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                   </div>

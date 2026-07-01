@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { fetchPublishedCourses } from '../../services/coursesService';
-import { WHATSAPP_NUMBER } from '../../lib/constants';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 import quranHero from '../../assets/quran-hero.png';
+import { useAuth } from '../../context/AuthContext';
+import { fetchMySubscribedCourses } from '../../services/studentsService';
 
 export default function CoursesPage() {
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [myCourseIds, setMyCourseIds] = useState(new Set());
 
   useEffect(() => {
     async function loadCourses() {
@@ -18,6 +20,12 @@ export default function CoursesPage() {
         setLoading(true);
         const data = await fetchPublishedCourses();
         setCourses(data ?? []);
+
+        if (user) {
+          const subs = await fetchMySubscribedCourses();
+          const activeIds = new Set(subs.map((s) => s.course_id));
+          setMyCourseIds(activeIds);
+        }
       } catch (err) {
         console.warn('Supabase fetch failed:', err);
         setCourses([]);
@@ -26,17 +34,7 @@ export default function CoursesPage() {
       }
     }
     loadCourses();
-  }, []);
-
-  const handleSubscribe = (courseName) => {
-    const text = `السلام عليكم ورحمة الله وبركاته، أرغب في الاشتراك في دورة: (${courseName})، يرجى إفادتي بالتفاصيل.`;
-    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleDetails = (slug) => {
-    navigate(`/quran/courses/${slug}`);
-  };
+  }, [user]);
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
@@ -98,6 +96,11 @@ export default function CoursesPage() {
                         مبادرة مجانية
                       </span>
                     )}
+                    {myCourseIds.has(course.id) && (
+                      <span className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-black bg-amber-600 text-white shadow-sm">
+                        مشترك ✅
+                      </span>
+                    )}
                   </div>
 
                   {/* Card Body */}
@@ -121,20 +124,29 @@ export default function CoursesPage() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <button
-                          onClick={() => handleSubscribe(course.name)}
-                          className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/10 cursor-pointer"
-                        >
-                          {course.is_free ? 'ابدأ الآن' : 'اشترك الآن'}
-                        </button>
-                        <button
-                          onClick={() => handleDetails(course.slug)}
-                          className="w-full py-3 px-4 rounded-xl font-bold text-sm border hover:bg-black/5 dark:hover:bg-white/5 transition-colors duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
+                        {course.is_free ? (
+                          <Link
+                            to={`/quran/courses/${course.slug}/watch`}
+                            className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/10"
+                          >
+                            ابدأ الآن
+                          </Link>
+                        ) : (
+                          <Link
+                            to={`/quran/courses/${course.slug}`}
+                            className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/10"
+                          >
+                            اشترك الآن
+                          </Link>
+                        )}
+                        <Link
+                          to={`/quran/courses/${course.slug}`}
+                          className="w-full py-3 px-4 rounded-xl font-bold text-sm border hover:bg-black/5 dark:hover:bg-white/5 transition-colors duration-200 flex items-center justify-center gap-1.5"
                           style={{ borderColor: 'var(--t-border)', color: 'var(--t-primary)' }}
                         >
                           التفاصيل
                           <ArrowLeft className="w-4 h-4" />
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>

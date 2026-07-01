@@ -37,6 +37,16 @@ import CourseLecturesManagementPage from './pages/admin/CourseLecturesManagement
 import CourseDetailPage from './pages/quran/CourseDetailPage';
 import CourseWatchPage from './pages/quran/CourseWatchPage';
 
+// Student Pages
+import StudentLoginPage from './pages/student/StudentLoginPage';
+import RequireStudent from './components/RequireStudent';
+import StudentDashboard from './pages/student/StudentDashboard';
+import StudentQuranLessons from './pages/student/StudentQuranLessons';
+
+// Admin Users Pages
+import UsersManagementPage from './pages/admin/UsersManagementPage';
+import UserDetailPage from './pages/admin/UserDetailPage';
+
 function HomePage() {
   return (
     <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
@@ -84,6 +94,12 @@ export default function App() {
         <Route path="/quran/courses/:slug/watch" element={<CourseWatchPage />} />
         <Route path="/quran/courses/:slug" element={<CourseDetailPage />} />
 
+        {/* Student auth & pages */}
+        <Route path="/student/login" element={<StudentLoginPage />} />
+        <Route path="/student/signup" element={<Navigate to="/student/login" replace />} />
+        <Route path="/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
+        <Route path="/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />
+
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
 
@@ -102,6 +118,8 @@ export default function App() {
         <Route path="/admin/quran/competitions" element={<ProtectedAdmin><CompetitionsManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/courses" element={<ProtectedAdmin><CoursesManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/courses/:id/lectures" element={<ProtectedAdmin><CourseLecturesManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/users" element={<ProtectedAdmin><UsersManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/users/:id" element={<ProtectedAdmin><UserDetailPage /></ProtectedAdmin>} />
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}
         <Route path="/admin/teachers" element={<Navigate to="/admin/quran/teachers" replace />} />

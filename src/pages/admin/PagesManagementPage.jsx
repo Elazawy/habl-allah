@@ -22,11 +22,6 @@ export default function PagesManagementPage() {
     return FileText;
   };
 
-  const pageLabel = (slug) => {
-    if (slug === 'privacy-policy') return 'سياسة الخصوصية';
-    if (slug === 'terms') return 'شروط الاستخدام';
-    return slug;
-  };
 
   const openEditor = (page) => {
     setEditingPage(page);

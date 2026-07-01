@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, Award, CheckCircle, ChevronRight, MessageCircle, PlayCircle } from 'lucide-react';
+import { BookOpen, Award, CheckCircle, ChevronRight, MessageCircle, PlayCircle, List, Lock } from 'lucide-react';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 import { fetchCourseBySlug } from '../../services/coursesService';
+import { fetchPublishedCourseLectures } from '../../services/courseLecturesService';
+import { checkMyCourseAccess } from '../../services/studentsService';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
+import { useAuth } from '../../context/AuthContext';
 import quranHero from '../../assets/quran-hero.png';
 
 export default function CourseDetailPage() {
   const { slug } = useParams();
+  const { user, isAdmin } = useAuth();
+
   const [course, setCourse] = useState(null);
+  const [lectures, setLectures] = useState([]);
+  const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,12 +25,28 @@ export default function CourseDetailPage() {
       try {
         setLoading(true);
         setError(null);
+
         const data = await fetchCourseBySlug(slug);
-        if (data) {
-          setCourse(data);
-        } else {
+        if (!data) {
           setError('الدورة المطلوبة غير موجودة.');
+          return;
         }
+
+        setCourse(data);
+
+        // Fetch lectures in parallel with access check
+        const [lects, accessResult] = await Promise.all([
+          fetchPublishedCourseLectures(data.id).catch(() => []),
+          (async () => {
+            if (data.is_free) return true;        // Free: everyone has access
+            if (isAdmin) return true;              // Admin always has access
+            if (!user) return false;               // Not logged in
+            return checkMyCourseAccess(data.id);  // Check subscription
+          })(),
+        ]);
+
+        setLectures(lects);
+        setHasAccess(accessResult);
       } catch (err) {
         console.warn('Supabase fetch failed:', err);
         setError('تعذر تحميل تفاصيل الدورة حالياً.');
@@ -32,7 +55,7 @@ export default function CourseDetailPage() {
       }
     }
     loadCourse();
-  }, [slug]);
+  }, [slug, user, isAdmin]);
 
   // Document Title Manager
   useEffect(() => {
@@ -84,6 +107,8 @@ export default function CourseDetailPage() {
       </div>
     );
   }
+
+  const lectureNumberFormatter = new Intl.NumberFormat('ar-EG');
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
@@ -159,6 +184,46 @@ export default function CourseDetailPage() {
                 </div>
               )}
 
+              {/* Course Content: Lectures List */}
+              {lectures.length > 0 && (
+                <div className="rounded-2xl border overflow-hidden" style={{ borderColor: 'var(--t-border)' }}>
+                  <div
+                    className="flex items-center justify-between px-5 py-4 border-b"
+                    style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border)' }}
+                  >
+                    <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--t-primary)' }}>
+                      <List className="w-4 h-4 text-emerald-600" />
+                      محتوى الدورة
+                    </h2>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: 'var(--t-badge-bg)', color: 'var(--t-primary)' }}>
+                      {lectureNumberFormatter.format(lectures.length)} محاضرة
+                    </span>
+                  </div>
+                  <ul className="divide-y" style={{ borderColor: 'var(--t-border)' }}>
+                    {lectures.map((lecture, idx) => (
+                      <li
+                        key={lecture.id}
+                        className="flex items-center gap-3 px-5 py-3.5"
+                        style={{ color: 'var(--t-text-muted)' }}
+                      >
+                        <span className="text-xs font-black w-6 shrink-0 text-center opacity-50">
+                          {lectureNumberFormatter.format(idx + 1)}
+                        </span>
+                        {(course.is_free || hasAccess) ? (
+                          <PlayCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                        ) : (
+                          <Lock className="w-4 h-4 shrink-0 opacity-40" />
+                        )}
+                        <span className="text-sm font-semibold flex-1">{lecture.title}</span>
+                        {course.is_free && (
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">مجاني</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Subscription CTA Panel */}
               <div className="border-t pt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6" style={{ borderColor: 'var(--t-border)' }}>
                 <div>
@@ -183,24 +248,40 @@ export default function CourseDetailPage() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full md:w-auto">
-                    <Link
-                      to={`/quran/courses/${course.slug}/watch`}
-                      className={`py-3.5 px-6 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 justify-center cursor-pointer ${course.is_free ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/10' : 'border hover:bg-black/5 dark:hover:bg-white/5'}`}
-                      style={course.is_free ? undefined : { borderColor: 'var(--t-border)', color: 'var(--t-primary)' }}
-                    >
-                      <PlayCircle className="w-4 h-4" />
-                      {course.is_free ? 'ابدأ المشاهدة' : 'صفحة المشاهدة'}
-                    </Link>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    {/* Free course: direct watch button always shown */}
+                    {course.is_free && (
+                      <Link
+                        to={`/quran/courses/${course.slug}/watch`}
+                        className="py-3.5 px-6 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-2 justify-center shadow-sm shadow-emerald-600/10"
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        ابدأ المشاهدة
+                      </Link>
+                    )}
 
-                    <button
-                      onClick={handleSubscribe}
-                      className={`py-3.5 px-6 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 cursor-pointer justify-center ${course.is_free ? 'border hover:bg-black/5 dark:hover:bg-white/5' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/10'}`}
-                      style={course.is_free ? { borderColor: 'var(--t-border)', color: 'var(--t-primary)' } : undefined}
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      {course.is_free ? 'تواصل معنا' : 'اضغط للاشتراك'}
-                    </button>
+                    {/* Paid course: show watch button ONLY if user is logged in AND subscribed (or admin) */}
+                    {!course.is_free && hasAccess && (
+                      <Link
+                        to={`/quran/courses/${course.slug}/watch`}
+                        className="py-3.5 px-6 rounded-xl font-bold text-sm border hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-2 justify-center"
+                        style={{ borderColor: 'var(--t-border)', color: 'var(--t-primary)' }}
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        صفحة المشاهدة
+                      </Link>
+                    )}
+
+                    {/* Paid course: show subscribe (WhatsApp) button */}
+                    {!course.is_free && (
+                      <button
+                        onClick={handleSubscribe}
+                        className="py-3.5 px-6 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-2 cursor-pointer justify-center shadow-sm shadow-emerald-600/10"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        اضغط للاشتراك
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

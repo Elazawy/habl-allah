@@ -11,6 +11,7 @@ import {
   RefreshCcw,
   Search,
   Trash2,
+  HelpCircle,
 } from 'lucide-react';
 import { fetchCourseAdminById } from '../../services/coursesService';
 import {
@@ -21,6 +22,7 @@ import {
   updateCourseLecture,
 } from '../../services/courseLecturesService';
 import CourseLectureFormModal from './CourseLectureFormModal';
+import LectureQuestionsModal from './LectureQuestionsModal';
 
 function getLoadErrorMessage(error) {
   const message = error?.message ?? '';
@@ -60,6 +62,7 @@ export default function CourseLecturesManagementPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [modalState, setModalState] = useState({ open: false, lecture: null });
+  const [questionsModalState, setQuestionsModalState] = useState({ open: false, lectureId: '', lectureTitle: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -366,6 +369,14 @@ export default function CourseLecturesManagementPage() {
                   <td data-label="الإجراءات">
                     <div className="admin-row-actions">
                       <button
+                        className="admin-icon-btn admin-icon-btn--neutral"
+                        onClick={() => setQuestionsModalState({ open: true, lectureId: lecture.id, lectureTitle: lecture.title })}
+                        aria-label={`أسئلة وأجوبة ${lecture.title}`}
+                        title="الأسئلة والأجوبة"
+                      >
+                        <HelpCircle size={15} />
+                      </button>
+                      <button
                         className="admin-icon-btn admin-icon-btn--edit"
                         onClick={() => openEdit(lecture)}
                         aria-label={`تعديل ${lecture.title}`}
@@ -396,6 +407,14 @@ export default function CourseLecturesManagementPage() {
           lecture={modalState.lecture}
           onClose={closeModal}
           onSaved={handleSaved}
+        />
+      )}
+
+      {questionsModalState.open && (
+        <LectureQuestionsModal
+          lectureId={questionsModalState.lectureId}
+          lectureTitle={questionsModalState.lectureTitle}
+          onClose={() => setQuestionsModalState({ open: false, lectureId: '', lectureTitle: '' })}
         />
       )}
 

@@ -1,4 +1,4 @@
-import { BookOpen, Award, Users, CheckCircle2, ArrowLeft, Smile, Star, BookMarked } from 'lucide-react';
+import { BookOpen, CheckCircle2, ArrowLeft, Smile, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 function FeatureItem({ text, dark = false }) {

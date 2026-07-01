@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { isCurrentUserAdmin } from '../services/adminService';
+import { fetchMyStudentProfile, signInStudent } from '../services/studentsService';
 
 const AuthContext = createContext(null);
 
@@ -10,6 +11,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminLoading, setAdminLoading] = useState(true);
+  const [studentProfile, setStudentProfile] = useState(null);
+  const [isStudent, setIsStudent] = useState(false);
 
   const refreshAdminState = async (targetUser) => {
     if (!supabase || !targetUser) {
@@ -25,6 +28,26 @@ export function AuthProvider({ children }) {
       console.error('[admin check failed]', error);
       setIsAdmin(false);
       return false;
+    }
+  };
+
+  const refreshStudentProfile = async (targetUser) => {
+    if (!supabase || !targetUser) {
+      setStudentProfile(null);
+      setIsStudent(false);
+      return null;
+    }
+
+    try {
+      const profile = await fetchMyStudentProfile();
+      setStudentProfile(profile);
+      setIsStudent(!!profile);
+      return profile;
+    } catch (error) {
+      console.error('[student check failed]', error);
+      setStudentProfile(null);
+      setIsStudent(false);
+      return null;
     }
   };
 
@@ -48,6 +71,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
       setAdminLoading(true);
       await refreshAdminState(nextUser);
+      await refreshStudentProfile(nextUser);
       setAdminLoading(false);
     });
 
@@ -74,6 +98,7 @@ export function AuthProvider({ children }) {
       setUser(nextUser);
       setAdminLoading(true);
       await refreshAdminState(nextUser);
+      await refreshStudentProfile(nextUser);
       setAdminLoading(false);
     });
 
@@ -87,10 +112,17 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const signInAsStudent = async (phone, password) => {
+    const data = await signInStudent({ phone, password });
+    return data;
+  };
+
   const signOut = async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setStudentProfile(null);
+    setIsStudent(false);
   };
 
   return (
@@ -101,8 +133,12 @@ export function AuthProvider({ children }) {
         loading,
         isAdmin,
         adminLoading,
+        studentProfile,
+        isStudent,
         refreshAdminState,
+        refreshStudentProfile,
         signIn,
+        signInAsStudent,
         signOut,
       }}
     >

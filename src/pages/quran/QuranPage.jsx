@@ -8,8 +8,14 @@ import Competitions from './Competitions';
 import FeaturedCourses from './FeaturedCourses';
 import Newsletter from './Newsletter';
 import QuranFooter from './QuranFooter';
+import { useAuth } from '../../context/AuthContext';
 
 export default function QuranPage() {
+  const { isStudent, studentProfile } = useAuth();
+
+  // If logged in as student but has no assigned teacher, hide courses, competitions, and newsletter.
+  const isStudentWithoutTeacher = isStudent && studentProfile && !studentProfile.teacher_id;
+
   return (
     <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
@@ -19,9 +25,13 @@ export default function QuranPage() {
         <HowItWorks />
         <WhyChooseUs />
         <Testimonials />
-        <Competitions />
-        <FeaturedCourses />
-        <Newsletter />
+        {!isStudentWithoutTeacher && (
+          <>
+            <Competitions />
+            <FeaturedCourses />
+            <Newsletter />
+          </>
+        )}
       </main>
       <QuranFooter />
     </div>
