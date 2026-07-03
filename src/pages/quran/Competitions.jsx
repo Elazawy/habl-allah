@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Trophy, Calendar, Award, ArrowLeft, Clock } from 'lucide-react';
 import { useReveal } from '../../hooks/useReveal';
 import { fetchPublishedCompetitions } from '../../services/competitionsService';
-import { getWhatsAppJoinLink } from '../../lib/whatsapp';
+import CompetitionRegistrationModal from './CompetitionRegistrationModal';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -31,6 +31,8 @@ export default function Competitions() {
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedComp, setSelectedComp] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const ref = useReveal({}, [loading, competitions.length, error]);
 
   useEffect(() => {
@@ -165,15 +167,20 @@ export default function Competitions() {
               </div>
 
               <div className="flex gap-3">
-                <a
-                  href={getWhatsAppJoinLink(c)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 hover:opacity-95 hover:shadow-md"
+                <button
+                  onClick={() => {
+                    const isClosed = new Date(c.registration_deadline + 'T23:59:59') < new Date();
+                    if (!isClosed) {
+                      setSelectedComp(c);
+                      setModalOpen(true);
+                    }
+                  }}
+                  disabled={new Date(c.registration_deadline + 'T23:59:59') < new Date()}
+                  className="flex-1 py-3 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 hover:opacity-95 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: 'var(--t-secondary)' }}
                 >
-                  انضم الآن
-                </a>
+                  {new Date(c.registration_deadline + 'T23:59:59') < new Date() ? 'انتهى التسجيل' : 'سجّل الآن'}
+                </button>
                 <Link
                   to={`/quran/competition/${c.slug}`}
                   className="px-4 py-3 rounded-xl text-center font-bold text-xs border transition-all duration-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
@@ -189,6 +196,16 @@ export default function Competitions() {
           ))}
         </div>
       </div>
+      
+      {modalOpen && selectedComp && (
+        <CompetitionRegistrationModal
+          competition={selectedComp}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedComp(null);
+          }}
+        />
+      )}
     </section>
   );
 }

@@ -50,6 +50,7 @@ export default function WatchFocusLayout({
   });
 
   const { user, isAdmin, studentProfile } = useAuth();
+  const brandPath = user && !isAdmin ? '/quran/student/dashboard' : '/quran';
 
   // Interactive Question State
   const [questionTitle, setQuestionTitle] = useState('');
@@ -373,7 +374,7 @@ export default function WatchFocusLayout({
             {/* Left Side: Logo only (+ DarkModeToggle) */}
             <div className="flex items-center gap-3 shrink-0">
               <DarkModeToggle />
-              <Link to="/quran/student/dashboard" className="flex items-center hover:opacity-90 transition-opacity shrink-0">
+              <Link to={brandPath} className="flex items-center hover:opacity-90 transition-opacity shrink-0">
                 <img src={logoGold} alt="منصة حبل الله" className="w-[34px] h-[34px] object-contain" />
               </Link>
             </div>
@@ -701,34 +702,48 @@ export default function WatchFocusLayout({
                         <h3 className="text-sm sm:text-base font-black text-[var(--t-primary)]">اطرح سؤالك وسيجيبك الشيخ</h3>
                       </div>
                       
-                      <form onSubmit={handleAskQuestion} className="space-y-4">
-                        <div className="space-y-3">
-                          <div>
-                            <label className="text-[11px] font-bold text-[var(--t-text-muted)] block mb-1">السؤال</label>
-                            <input
-                              type="text"
-                              required
-                              value={questionTitle}
-                              onChange={(e) => setQuestionTitle(e.target.value)}
-                              placeholder="مثال: حكم القراءة بدون أحكام التجويد..."
-                              className="w-full px-4 py-2.5 border border-[var(--t-border)] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[var(--t-primary)]/10 focus:border-[var(--t-primary)] bg-[var(--t-bg-surface-low)]/50 focus:bg-[var(--t-bg-card)] text-[var(--t-text)] transition-all placeholder-[var(--t-text-subtle)] focus:shadow-sm"
-                            />
+                      {user ? (
+                        <form onSubmit={handleAskQuestion} className="space-y-4">
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-[11px] font-bold text-[var(--t-text-muted)] block mb-1">السؤال</label>
+                              <input
+                                type="text"
+                                required
+                                value={questionTitle}
+                                onChange={(e) => setQuestionTitle(e.target.value)}
+                                placeholder="مثال: حكم القراءة بدون أحكام التجويد..."
+                                className="w-full px-4 py-2.5 border border-[var(--t-border)] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[var(--t-primary)]/10 focus:border-[var(--t-primary)] bg-[var(--t-bg-surface-low)]/50 focus:bg-[var(--t-bg-card)] text-[var(--t-text)] transition-all placeholder-[var(--t-text-subtle)] focus:shadow-sm"
+                              />
+                            </div>
                           </div>
-                        </div>
 
-                        <button
-                          type="submit"
-                          disabled={!questionTitle.trim() || isSubmittingQuestion}
-                          className="w-full sm:w-auto py-2.5 px-6 rounded-xl font-bold text-xs sm:text-sm text-white bg-[var(--t-primary)] hover:bg-emerald-700 dark:hover:bg-emerald-500 hover:scale-[1.01] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm shadow-[var(--t-primary)]/10 hover:shadow-md"
-                        >
-                          {isSubmittingQuestion ? (
-                            <Loader size={14} className="animate-spin" />
-                          ) : (
-                            <Send size={14} className="-rotate-45" />
-                          )}
-                          <span>{isSubmittingQuestion ? 'جاري الإرسال...' : 'إرسال السؤال'}</span>
-                        </button>
-                      </form>
+                          <button
+                            type="submit"
+                            disabled={!questionTitle.trim() || isSubmittingQuestion}
+                            className="w-full sm:w-auto py-2.5 px-6 rounded-xl font-bold text-xs sm:text-sm text-white bg-[var(--t-primary)] hover:bg-emerald-700 dark:hover:bg-emerald-500 hover:scale-[1.01] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm shadow-[var(--t-primary)]/10 hover:shadow-md"
+                          >
+                            {isSubmittingQuestion ? (
+                              <Loader size={14} className="animate-spin" />
+                            ) : (
+                              <Send size={14} className="-rotate-45" />
+                            )}
+                            <span>{isSubmittingQuestion ? 'جاري الإرسال...' : 'إرسال السؤال'}</span>
+                          </button>
+                        </form>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-xs sm:text-sm text-[var(--t-text-muted)] leading-relaxed">
+                            يمكنك مشاهدة هذه الدورة المجانية بدون تسجيل دخول، لكن طرح الأسئلة يتطلب تسجيل الدخول بحساب طالب.
+                          </p>
+                          <Link
+                            to="/quran/student/login"
+                            className="inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[var(--t-primary)] hover:bg-emerald-700 transition-all shadow-sm shadow-[var(--t-primary)]/10"
+                          >
+                            تسجيل الدخول لطرح سؤال
+                          </Link>
+                        </div>
+                      )}
                     </div>
 
                     {/* Questions Board list */}

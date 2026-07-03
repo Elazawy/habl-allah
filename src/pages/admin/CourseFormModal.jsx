@@ -16,6 +16,7 @@ const EMPTY_FORM = {
   learning_outcomes: [],
   sort_order: 0,
   is_published: true,
+  teacher_name: '',
 };
 
 export default function CourseFormModal({ course, onClose, onSaved }) {
@@ -36,6 +37,7 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
           learning_outcomes: Array.isArray(course.learning_outcomes) ? course.learning_outcomes : [],
           sort_order: course.sort_order ?? 0,
           is_published: course.is_published ?? true,
+          teacher_name: course.teacher_name ?? '',
         }
       : { ...EMPTY_FORM }
   );
@@ -165,7 +167,10 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
         }
       }
 
-      let payload = { ...form };
+      let payload = {
+        ...form,
+        teacher_name: typeof form.teacher_name === 'string' ? form.teacher_name.trim() : form.teacher_name,
+      };
 
       // 1. Upload cover image if a new file is chosen
       if (imageFile) {
@@ -298,6 +303,19 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
               onChange={(e) => handleField('name', e.target.value)}
               placeholder="مثال: دبلوم إتقان التجويد..."
               required
+            />
+          </div>
+
+          {/* Teacher Name */}
+          <div className="admin-field-group">
+            <label htmlFor="course-teacher-name" className="admin-label">اسم الشيخ</label>
+            <input
+              id="course-teacher-name"
+              type="text"
+              className="admin-input"
+              value={form.teacher_name}
+              onChange={(e) => handleField('teacher_name', e.target.value)}
+              placeholder="اسم الشيخ..."
             />
           </div>
 

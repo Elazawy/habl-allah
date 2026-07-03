@@ -10,7 +10,7 @@
  *   subscription_requests (id, teacher_id, teacher_name, student_name, whatsapp, created_at)
  */
 
-import { supabase } from '../lib/supabase';
+import { supabase, publicSupabase } from '../lib/supabase';
 import { mockTeachers } from '../data/teachers';
 
 function normalizeTeacherReviews(reviews = []) {
@@ -33,8 +33,9 @@ function normalizeTeacher(teacher) {
 
 /** Fetch all teachers for a given gender ('male' | 'female') */
 export async function fetchTeachers(gender) {
-  if (supabase) {
-    const { data, error } = await supabase
+  const client = publicSupabase ?? supabase;
+  if (client) {
+    const { data, error } = await client
       .from('teachers')
       .select(`
         id, name, gender, bio, photo_url,
@@ -53,8 +54,9 @@ export async function fetchTeachers(gender) {
 
 /** Fetch a single teacher by id (includes reviews) */
 export async function fetchTeacherById(id) {
-  if (supabase) {
-    const { data, error } = await supabase
+  const client = publicSupabase ?? supabase;
+  if (client) {
+    const { data, error } = await client
       .from('teachers')
       .select(`
         id, name, gender, bio, photo_url,

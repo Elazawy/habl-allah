@@ -8,13 +8,13 @@
  *   quran_courses  (id, slug, name, short_description, long_description,
  *                   price, is_free, image_url, image_path,
  *                   learning_outcomes, number_of_subscribers,
- *                   is_published, sort_order, created_at, updated_at)
+ *                   is_published, sort_order, teacher_name, created_at, updated_at)
  *
  * Supabase Storage bucket:
  *   quran-courses  (public)
  */
 
-import { supabase } from '../lib/supabase';
+import { supabase, publicSupabase } from '../lib/supabase';
 
 // ─────────────────────────────────────────────────────────────
 // Constants
@@ -33,6 +33,16 @@ function ensureSupabaseClient() {
     );
   }
   return supabase;
+}
+
+function ensurePublicClient() {
+  const client = publicSupabase ?? supabase;
+  if (!client) {
+    throw new Error(
+      'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.'
+    );
+  }
+  return client;
 }
 
 /** Safe file-extension extraction (guards against missing extensions) */
@@ -68,7 +78,7 @@ function cleanPayload(payload = {}) {
  * Used on the public /quran/courses listing page.
  */
 export async function fetchPublishedCourses() {
-  const client = ensureSupabaseClient();
+  const client = ensurePublicClient();
 
   const { data, error } = await client
     .from('quran_courses')
@@ -89,12 +99,12 @@ export async function fetchPublishedCourses() {
  * Returns null if not found.
  */
 export async function fetchCourseBySlug(slug) {
-  const client = ensureSupabaseClient();
+  const client = ensurePublicClient();
 
   const { data, error } = await client
     .from('quran_courses')
     .select(
-      'id, slug, name, short_description, long_description, price, is_free, image_url, learning_outcomes, sort_order, created_at'
+      'id, slug, name, short_description, long_description, price, is_free, image_url, learning_outcomes, sort_order, created_at, teacher_name'
     )
     .eq('slug', slug)
     .eq('is_published', true)

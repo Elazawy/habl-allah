@@ -15,25 +15,31 @@ export default function CoursesPage() {
   const [myCourseIds, setMyCourseIds] = useState(new Set());
 
   useEffect(() => {
+    let active = true;
     async function loadCourses() {
       try {
         setLoading(true);
         const data = await fetchPublishedCourses();
+        if (!active) return;
         setCourses(data ?? []);
 
         if (user) {
           const subs = await fetchMySubscribedCourses();
+          if (!active) return;
           const activeIds = new Set(subs.map((s) => s.course_id));
           setMyCourseIds(activeIds);
+        } else if (active) {
+          setMyCourseIds(new Set());
         }
       } catch (err) {
         console.warn('Supabase fetch failed:', err);
-        setCourses([]);
+        if (active) setCourses([]);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
     loadCourses();
+    return () => { active = false; };
   }, [user]);
 
   return (
@@ -130,6 +136,13 @@ export default function CoursesPage() {
                             className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/10"
                           >
                             ابدأ الآن
+                          </Link>
+                        ) : myCourseIds.has(course.id) ? (
+                          <Link
+                            to={`/quran/courses/${course.slug}/watch`}
+                            className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/10"
+                          >
+                            صفحة المشاهدة
                           </Link>
                         ) : (
                           <Link

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fetchAllCompetitions, deleteCompetition, updateCompetition } from '../../services/competitionsService';
 import CompetitionFormModal from './CompetitionFormModal';
-import { Plus, Pencil, Trash2, Search, Trophy, Eye, EyeOff, Calendar, Clock, RefreshCcw } from 'lucide-react';
+import CompetitionAdminDetailsModal from './CompetitionAdminDetailsModal';
+import { Plus, Pencil, Trash2, Search, Trophy, Eye, EyeOff, Calendar, Clock, RefreshCcw, Users } from 'lucide-react';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -18,6 +19,7 @@ export default function CompetitionsManagementPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [modalState, setModalState] = useState({ open: false, competition: null });
+  const [detailsState, setDetailsState] = useState({ open: false, competition: null });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -277,6 +279,16 @@ export default function CompetitionsManagementPage() {
                   <td data-label="الإجراءات">
                     <div className="admin-row-actions">
                       <button
+                        id={`details-competition-${c.id}`}
+                        className="admin-icon-btn"
+                        style={{ color: 'var(--admin-accent)' }}
+                        onClick={() => setDetailsState({ open: true, competition: c })}
+                        aria-label={`تفاصيل الطلاب ${c.name}`}
+                        title="تفاصيل المشتركين والطلبات"
+                      >
+                        <Users size={15} />
+                      </button>
+                      <button
                         id={`edit-competition-${c.id}`}
                         className="admin-icon-btn admin-icon-btn--edit"
                         onClick={() => openEdit(c)}
@@ -309,6 +321,14 @@ export default function CompetitionsManagementPage() {
           competition={modalState.competition}
           onClose={closeModal}
           onSaved={handleSaved}
+        />
+      )}
+
+      {/* Details Modal */}
+      {detailsState.open && detailsState.competition && (
+        <CompetitionAdminDetailsModal
+          competition={detailsState.competition}
+          onClose={() => setDetailsState({ open: false, competition: null })}
         />
       )}
 

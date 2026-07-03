@@ -31,6 +31,27 @@ export function phoneToAuthEmail(phone) {
   return `s${digits}@habl-allah.app`;
 }
 
+function normalizePhoneLookup(phone) {
+  return String(phone ?? '').trim().replace(/\D/g, '');
+}
+
+function buildPhoneLookupCandidates(phone) {
+  const normalizedPhone = normalizePhoneLookup(phone);
+  if (!normalizedPhone) return [];
+
+  const candidates = new Set([normalizedPhone]);
+
+  if (normalizedPhone.startsWith('0')) {
+    candidates.add(`2${normalizedPhone}`);
+  }
+
+  if (normalizedPhone.startsWith('20') && normalizedPhone.length > 2) {
+    candidates.add(`0${normalizedPhone.slice(2)}`);
+  }
+
+  return [...candidates];
+}
+
 /**
  * Student login — derives the auth email from the phone number, then signs in.
  * Students only ever see/type their phone number.
@@ -121,6 +142,20 @@ export async function fetchStudentById(studentId) {
     .single();
   if (error) throw error;
   return data;
+}
+
+/** Admin: fetch a student account by phone number if it already exists */
+export async function fetchStudentByPhone(phone) {
+  const phoneCandidates = buildPhoneLookupCandidates(phone);
+  if (phoneCandidates.length === 0) return null;
+
+  const { data, error } = await supabase
+    .from('student_profiles')
+    .select('id, full_name, phone, teacher_id, created_at')
+    .in('phone', phoneCandidates);
+
+  if (error) throw error;
+  return data?.[0] ?? null;
 }
 
 /** Admin: update student's assigned teacher */
