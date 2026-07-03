@@ -31,7 +31,21 @@ import NewsletterSubscribersPage from './pages/admin/NewsletterSubscribersPage';
 import CompetitionsPage from './pages/quran/CompetitionsPage';
 import CompetitionDetailsPage from './pages/quran/CompetitionDetailsPage';
 import CompetitionsManagementPage from './pages/admin/CompetitionsManagementPage';
+import CoursesManagementPage from './pages/admin/CoursesManagementPage';
+import CoursesPage from './pages/quran/CoursesPage';
+import CourseLecturesManagementPage from './pages/admin/CourseLecturesManagementPage';
+import CourseDetailPage from './pages/quran/CourseDetailPage';
+import CourseWatchPage from './pages/quran/CourseWatchPage';
 
+// Student Pages
+import StudentLoginPage from './pages/student/StudentLoginPage';
+import RequireStudent from './components/RequireStudent';
+import StudentDashboard from './pages/student/StudentDashboard';
+import StudentQuranLessons from './pages/student/StudentQuranLessons';
+
+// Admin Users Pages
+import UsersManagementPage from './pages/admin/UsersManagementPage';
+import UserDetailPage from './pages/admin/UserDetailPage';
 
 function HomePage() {
   return (
@@ -76,7 +90,16 @@ export default function App() {
         <Route path="/quran/teachers/:gender/:id" element={<TeacherProfilePage />} />
         <Route path="/quran/competitions" element={<CompetitionsPage />} />
         <Route path="/quran/competition/:slug" element={<CompetitionDetailsPage />} />
+        <Route path="/quran/courses" element={<CoursesPage />} />
+        <Route path="/quran/courses/:slug/watch" element={<CourseWatchPage />} />
+        <Route path="/quran/courses/:slug" element={<CourseDetailPage />} />
 
+        {/* Student auth & pages */}
+        <Route path="/quran/student/login" element={<StudentLoginPage />} />
+        <Route path="/quran/student/signup" element={<Navigate to="/quran/student/login" replace />} />
+        <Route path="/quran/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
+        <Route path="/quran/student/dashbaord" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
+        <Route path="/quran/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />
 
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -94,7 +117,10 @@ export default function App() {
         <Route path="/admin/quran/newsletter" element={<ProtectedAdmin><NewsletterSubscribersPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/faq" element={<ProtectedAdmin><QuranFaqManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/competitions" element={<ProtectedAdmin><CompetitionsManagementPage /></ProtectedAdmin>} />
-
+        <Route path="/admin/quran/courses" element={<ProtectedAdmin><CoursesManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/courses/:id/lectures" element={<ProtectedAdmin><CourseLecturesManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/users" element={<ProtectedAdmin><UsersManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/users/:id" element={<ProtectedAdmin><UserDetailPage /></ProtectedAdmin>} />
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}
         <Route path="/admin/teachers" element={<Navigate to="/admin/quran/teachers" replace />} />

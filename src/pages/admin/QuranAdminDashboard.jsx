@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { fetchAllTeachers, fetchAllQuranReviews } from '../../services/adminService';
 import { fetchAllFaqs } from '../../services/faqService';
 import { supabase } from '../../lib/supabase';
-import { Users, Star, BookOpen, HelpCircle, Image, Phone, User, Trophy } from 'lucide-react';
+import { Users, Star, BookOpen, GraduationCap, HelpCircle, Image, Phone, User, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllCompetitions } from '../../services/competitionsService';
+import { fetchAllCourses } from '../../services/coursesService';
+
 
 export default function QuranAdminDashboard() {
   const [teachers, setTeachers] = useState([]);
@@ -12,7 +14,9 @@ export default function QuranAdminDashboard() {
   const [quranReviewsCount, setQuranReviewsCount] = useState(0);
   const [subscribers, setSubscribers] = useState([]);
   const [competitionsCount, setCompetitionsCount] = useState(0);
+  const [coursesCount, setCoursesCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,12 +45,13 @@ export default function QuranAdminDashboard() {
     };
 
     const loadDashboard = async () => {
-      const [teachersData, faqsData, quranReviewsData, subscribersData, competitionsData] = await Promise.all([
+      const [teachersData, faqsData, quranReviewsData, subscribersData, competitionsData, coursesData] = await Promise.all([
         withFallback(fetchAllTeachers(), []),
         withFallback(fetchAllFaqs('quran'), []),
         withFallback(fetchAllQuranReviews(), []),
         withFallback(fetchNewsletterSubscribers(), []),
         withFallback(fetchAllCompetitions(), []),
+        withFallback(fetchAllCourses(), []),
       ]);
 
       if (!active) return;
@@ -56,8 +61,10 @@ export default function QuranAdminDashboard() {
       setQuranReviewsCount(quranReviewsData.length);
       setSubscribers(subscribersData);
       setCompetitionsCount(competitionsData.length);
+      setCoursesCount(coursesData.length);
       setLoading(false);
     };
+
 
     loadDashboard();
 
@@ -74,12 +81,14 @@ export default function QuranAdminDashboard() {
     { label: 'إجمالي المعلمين', value: teachers.length, icon: Users, color: 'var(--admin-accent)' },
     { label: 'المعلمون', value: maleCount, icon: BookOpen, color: '#10b981' },
     { label: 'المعلمات', value: femaleCount, icon: BookOpen, color: '#f59e0b' },
+    { label: 'دورات القرآن', value: coursesCount, icon: GraduationCap, color: '#047857' },
     { label: 'مراجعات المعلمين', value: reviewCount, icon: Star, color: '#8b5cf6' },
     { label: 'مراجعات صفحة القرآن', value: quranReviewsCount, icon: Image, color: '#0ea5e9' },
     { label: 'الأسئلة الشائعة', value: faqCount, icon: HelpCircle, color: '#06b6d4' },
     { label: 'المسابقات القرآنية', value: competitionsCount, icon: Trophy, color: '#d97706' },
     { label: 'الأرقام المسجلة', value: subscribers.length, icon: Phone, color: '#ec4899' },
   ];
+
 
   // Show last 5 subscribers
   const recentSubscribers = subscribers.slice(0, 5);
@@ -180,6 +189,14 @@ export default function QuranAdminDashboard() {
                 إدارة المعلمين
               </button>
               <button
+                id="admin-goto-quran-courses-btn"
+                className="admin-btn admin-btn--ghost"
+                onClick={() => navigate('/admin/quran/courses')}
+              >
+                <GraduationCap size={16} />
+                إدارة الدورات
+              </button>
+              <button
                 id="admin-goto-quran-reviews-btn"
                 className="admin-btn admin-btn--ghost"
                 onClick={() => navigate('/admin/quran/reviews')}
@@ -187,6 +204,7 @@ export default function QuranAdminDashboard() {
                 <Image size={16} />
                 مراجعات صفحة القرآن
               </button>
+
               <button
                 id="admin-goto-quran-faq-btn"
                 className="admin-btn admin-btn--ghost"

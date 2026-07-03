@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { fetchAllFaqs, createFaq, updateFaq, deleteFaq } from '../../services/faqService';
 import { Plus, Pencil, Trash2, Search, HelpCircle, Eye, EyeOff, X, Loader } from 'lucide-react';
 
@@ -151,15 +151,15 @@ export default function FaqManagementPage({ platform = 'general' }) {
 
   const platformLabel = platform === 'quran' ? 'منصة القرآن' : 'المنصة الرئيسية';
 
-  const loadFaqs = () => {
+  const loadFaqs = useCallback(() => {
     setLoading(true);
     fetchAllFaqs(platform)
       .then(setFaqs)
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [platform]);
 
-  useEffect(() => { loadFaqs(); }, [platform]);
+  useEffect(() => { loadFaqs(); }, [loadFaqs]);
 
   const filtered = faqs.filter((f) => {
     return f.question.includes(search) || f.answer.includes(search);

@@ -138,7 +138,7 @@ export default function QuranFooter() {
           </div>
 
           <p className="text-xs" style={{ color: 'var(--t-footer-text)', opacity: 0.55 }}>
-            © ٢٠٢٤ حبل الله . جميع الحقوق محفوظة.
+            © 2026 حبل الله . جميع الحقوق محفوظة.
           </p>
         </div>
       </div>

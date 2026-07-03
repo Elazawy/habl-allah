@@ -3,7 +3,7 @@ import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   BookOpen, Users, LogOut, LayoutDashboard,
-  HelpCircle, FileText, Menu, X, ArrowLeftRight, Image, Phone, Trophy,
+  HelpCircle, FileText, Menu, X, ArrowLeftRight, Image, Phone, Trophy, User,
 } from 'lucide-react';
 import logoGold from '../../assets/logo-gold.png';
 
@@ -23,10 +23,13 @@ const NAV_LINKS = {
   quran: [
     { to: '/admin/quran', end: true, icon: LayoutDashboard, label: 'الرئيسية', id: 'admin-nav-quran-dashboard' },
     { to: '/admin/quran/teachers', icon: Users, label: 'المعلمون', id: 'admin-nav-quran-teachers' },
+    { to: '/admin/quran/users', icon: User, label: 'حسابات المستخدمين', id: 'admin-nav-quran-users' },
+    { to: '/admin/quran/courses', icon: BookOpen, label: 'الدورات', id: 'admin-nav-quran-courses' },
+    { to: '/admin/quran/competitions', icon: Trophy, label: 'المسابقات', id: 'admin-nav-quran-competitions' },
+
     { to: '/admin/quran/reviews', icon: Image, label: 'مراجعات القرآن', id: 'admin-nav-quran-reviews' },
     { to: '/admin/quran/newsletter', icon: Phone, label: 'الأرقام المسجلة', id: 'admin-nav-quran-newsletter' },
     { to: '/admin/quran/faq', icon: HelpCircle, label: 'الأسئلة الشائعة', id: 'admin-nav-quran-faq' },
-    { to: '/admin/quran/competitions', icon: Trophy, label: 'المسابقات', id: 'admin-nav-quran-competitions' },
     { to: '/quran', icon: BookOpen, label: 'عرض الموقع', id: 'admin-nav-quran-site', external: true },
   ],
 };

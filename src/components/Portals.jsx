@@ -1,4 +1,4 @@
-import { BookOpen, Award, Users, CheckCircle2, ArrowLeft, Smile, Star, BookMarked } from 'lucide-react';
+import { BookOpen, CheckCircle2, ArrowLeft, Smile, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 function FeatureItem({ text, dark = false }) {
@@ -59,7 +59,7 @@ export default function Portals() {
             <div className="relative z-10 flex-1">
               {/* Title */}
               <div className="mb-1">
-                <span className="text-amber-400 text-xs font-semibold tracking-widest uppercase">للبالغين</span>
+                {/* <span className="text-amber-400 text-xs font-semibold tracking-widest uppercase">للبالغين</span> */}
               </div>
               <h3 className="text-3xl font-black text-white mb-3">منصة حبل الله</h3>
               <p className="text-emerald-200/80 text-sm leading-relaxed mb-8">
