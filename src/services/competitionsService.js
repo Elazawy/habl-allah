@@ -186,16 +186,18 @@ export async function deleteCompetition(id) {
 }
 
 export async function submitCompetitionRegistrationRequest(payload) {
-  const client = ensurePublicClient();
-
+  const normalizedStudentId = typeof payload.student_id === 'string' && payload.student_id.trim() !== ''
+    ? payload.student_id.trim()
+    : null;
   const normalizedPhone = normalizePhoneDigits(payload.student_phone);
   const normalizedAge = Number.parseInt(normalizeLocalizedDigits(payload.age), 10);
+  const client = normalizedStudentId ? ensureSupabaseClient() : ensurePublicClient();
 
   const normalizedPayload = {
     competition_id: payload.competition_id,
-    // Competition requests are always stored as plain pending rows.
-    // Admin approval later matches/creates the student account and subscribes it.
-    student_id: null,
+    // Keep the signed-in student link when present so admins can approve
+    // the request directly. Guests still submit anonymous pending rows.
+    student_id: normalizedStudentId,
     student_name: typeof payload.student_name === 'string' ? payload.student_name.trim() : payload.student_name,
     student_phone: normalizedPhone,
     country: typeof payload.country === 'string' ? payload.country.trim() : payload.country,
@@ -227,17 +229,15 @@ export async function submitCompetitionRegistrationRequest(payload) {
     throw new Error('يرجى تحديد المستوى المطلوب.');
   }
 
-  const { data, error } = await client
+  const { error } = await client
     .from('competition_registration_requests')
-    .insert([normalizedPayload])
-    .select('*')
-    .single();
+    .insert([normalizedPayload]);
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return normalizedPayload;
 }
 
 export async function fetchSubscribedStudents(competitionId) {
