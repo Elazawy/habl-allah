@@ -5,6 +5,7 @@ import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 import { fetchCompetitionBySlug } from '../../services/competitionsService';
 import CompetitionRegistrationModal from './CompetitionRegistrationModal';
+import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -35,6 +36,7 @@ export default function CompetitionDetailsPage() {
   const loading = resource.slug !== slug;
   const competition = resource.slug === slug ? resource.competition : null;
   const error = resource.slug === slug ? resource.error : '';
+  const { getCompetitionRegistrationState, markCompetitionRequestPending } = useCompetitionRegistrationStatus();
 
   useEffect(() => {
     let active = true;
@@ -130,6 +132,17 @@ export default function CompetitionDetailsPage() {
       </div>
     );
   }
+
+  const registrationState = getCompetitionRegistrationState(competition);
+  const registrationHint = registrationState.reason === 'subscribed'
+    ? 'تم اعتماد اشتراكك في هذه المسابقة.'
+    : registrationState.reason === 'pending'
+      ? 'تم استلام طلبك وهو بانتظار مراجعة الإدارة.'
+      : registrationState.reason === 'closed'
+        ? 'انتهت فترة التسجيل لهذه المسابقة.'
+        : registrationState.reason === 'loading'
+          ? 'جارٍ التحقق من حالة اشتراكك...'
+          : 'املأ النموذج لإرسال طلب الاشتراك في المسابقة';
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col transition-colors duration-300" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
@@ -245,20 +258,19 @@ export default function CompetitionDetailsPage() {
             <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-6" style={{ borderColor: 'var(--t-border)' }}>
               <div>
                 <h4 className="font-black text-sm mb-1">هل أنت مستعد للمشاركة؟</h4>
-                <p className="text-xs" style={{ color: 'var(--t-text-muted)' }}>املأ النموذج لإرسال طلب الاشتراك في المسابقة</p>
+                <p className="text-xs" style={{ color: 'var(--t-text-muted)' }}>{registrationHint}</p>
               </div>
               <button
                 onClick={() => {
-                  const isClosed = new Date(competition.registration_deadline + 'T23:59:59') < new Date();
-                  if (!isClosed) {
+                  if (!registrationState.disabled) {
                     setModalOpen(true);
                   }
                 }}
-                disabled={new Date(competition.registration_deadline + 'T23:59:59') < new Date()}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-white text-center transition-all duration-300 hover:opacity-95 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: 'var(--t-secondary)' }}
+                disabled={registrationState.disabled}
+                className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-white text-center transition-all duration-300 disabled:cursor-not-allowed ${registrationState.reason === 'available' ? 'hover:opacity-95 hover:shadow-md' : ''} ${registrationState.reason === 'closed' || registrationState.reason === 'loading' ? 'disabled:opacity-50' : ''}`}
+                style={{ backgroundColor: registrationState.reason === 'subscribed' ? 'var(--t-primary)' : 'var(--t-secondary)' }}
               >
-                {new Date(competition.registration_deadline + 'T23:59:59') < new Date() ? 'انتهى التسجيل' : 'سجّل الآن'}
+                {registrationState.label}
               </button>
             </div>
           </div>
@@ -269,6 +281,9 @@ export default function CompetitionDetailsPage() {
       {modalOpen && competition && (
         <CompetitionRegistrationModal
           competition={competition}
+          onSubmitted={() => {
+            markCompetitionRequestPending(competition.id);
+          }}
           onClose={() => setModalOpen(false)}
         />
       )}

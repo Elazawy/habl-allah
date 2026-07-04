@@ -23,7 +23,7 @@ function normalizePhoneDigits(value) {
   return normalizeLocalizedDigits(value).replace(/\D/g, '');
 }
 
-export default function CompetitionRegistrationModal({ competition, onClose }) {
+export default function CompetitionRegistrationModal({ competition, onClose, onSubmitted }) {
   const { user, isStudent, studentProfile } = useAuth();
   
   // States
@@ -46,8 +46,12 @@ export default function CompetitionRegistrationModal({ competition, onClose }) {
 
   // Initialize and default state
   useEffect(() => {
-    if (availableLevels.length > 0) {
-      setSelectedLevelOption(availableLevels[0]);
+    const nextAvailableLevels = Array.isArray(competition.available_levels)
+      ? competition.available_levels.filter((lvl) => typeof lvl === 'string' && lvl.trim() !== '')
+      : [];
+
+    if (nextAvailableLevels.length > 0) {
+      setSelectedLevelOption(nextAvailableLevels[0]);
     } else {
       setSelectedLevelOption('custom');
     }
@@ -127,6 +131,13 @@ export default function CompetitionRegistrationModal({ competition, onClose }) {
       };
 
       await submitCompetitionRegistrationRequest(payload);
+
+      try {
+        onSubmitted?.(payload);
+      } catch (callbackError) {
+        console.error('[competition registration submitted callback failed]', callbackError);
+      }
+
       setSuccess(true);
     } catch (err) {
       console.error(err);
