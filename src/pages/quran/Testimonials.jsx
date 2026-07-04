@@ -16,13 +16,19 @@ export default function Testimonials() {
   });
 
   useEffect(() => {
+    let active = true;
     fetchPublishedQuranReviews()
-      .then((data) => setReviews(data ?? []))
+      .then((data) => {
+        if (active) setReviews(data ?? []);
+      })
       .catch((error) => {
         console.error('[quran reviews fetch failed]', error);
-        setReviews([]);
+        if (active) setReviews([]);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {

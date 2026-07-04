@@ -32,6 +32,7 @@ export default function QuranNav() {
   };
 
   const isStudentLoggedIn = user && !isAdmin;
+  const brandPath = isStudentLoggedIn ? '/quran/student/dashboard' : '/quran';
 
   const navLinks = isStudentLoggedIn
     ? [
@@ -59,7 +60,7 @@ export default function QuranNav() {
     >
       <div className="max-w-6xl mx-auto px-5 md:px-6 h-16 md:h-20 flex items-center justify-between">
         {/* Brand */}
-        <Link to="/quran" className="flex items-center gap-2.5">
+        <Link to={brandPath} className="flex items-center gap-2.5">
           <img src={logoGold} alt="شعار حبل الله" className="w-10 h-10 object-contain" />
           <span className="text-xl font-black" style={{ color: 'var(--t-primary)' }}>
             حبل الله

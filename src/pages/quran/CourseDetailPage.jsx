@@ -21,12 +21,14 @@ export default function CourseDetailPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let active = true;
     async function loadCourse() {
       try {
         setLoading(true);
         setError(null);
 
         const data = await fetchCourseBySlug(slug);
+        if (!active) return;
         if (!data) {
           setError('الدورة المطلوبة غير موجودة.');
           return;
@@ -45,16 +47,18 @@ export default function CourseDetailPage() {
           })(),
         ]);
 
+        if (!active) return;
         setLectures(lects);
         setHasAccess(accessResult);
       } catch (err) {
         console.warn('Supabase fetch failed:', err);
-        setError('تعذر تحميل تفاصيل الدورة حالياً.');
+        if (active) setError('تعذر تحميل تفاصيل الدورة حالياً.');
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
     loadCourse();
+    return () => { active = false; };
   }, [slug, user, isAdmin]);
 
   // Document Title Manager
@@ -154,6 +158,13 @@ export default function CourseDetailPage() {
 
             {/* Course Information Details */}
             <div className="p-6 md:p-10 space-y-10">
+              {course.teacher_name && course.teacher_name.trim() !== '' && (
+                <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>
+                  <span>اسم الشيخ:</span>
+                  <span className="font-bold" style={{ color: 'var(--t-primary)' }}>{course.teacher_name}</span>
+                </div>
+              )}
+
               {/* Short / Long Description */}
               <div className="space-y-4">
                 <p className="text-base md:text-lg font-semibold leading-relaxed" style={{ color: 'var(--t-primary)' }}>
@@ -273,7 +284,7 @@ export default function CourseDetailPage() {
                     )}
 
                     {/* Paid course: show subscribe (WhatsApp) button */}
-                    {!course.is_free && (
+                    {!course.is_free && !hasAccess && (
                       <button
                         onClick={handleSubscribe}
                         className="py-3.5 px-6 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-2 cursor-pointer justify-center shadow-sm shadow-emerald-600/10"

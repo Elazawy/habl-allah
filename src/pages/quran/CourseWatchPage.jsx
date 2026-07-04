@@ -82,7 +82,7 @@ export default function CourseWatchPage() {
 
         // Access check
         if (!user) {
-          setHasAccess(false);
+          setHasAccess(Boolean(data.course.is_free));
         } else if (isAdmin) {
           setHasAccess(true);
         } else if (data.course.is_free) {
@@ -283,7 +283,7 @@ export default function CourseWatchPage() {
   }
 
   // Not logged in screen
-  if (!user) {
+  if (!course.is_free && !user) {
     return (
       <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
         <QuranNav />

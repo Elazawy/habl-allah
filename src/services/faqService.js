@@ -5,11 +5,13 @@
  * Platforms: 'general' | 'quran' | 'islamic_studies'
  */
 
-import { supabase } from '../lib/supabase';
+import { supabase, publicSupabase } from '../lib/supabase';
 
 /** Fetch published FAQs for a given platform (public) */
 export async function fetchFaqs(platform = 'general') {
-  const { data, error } = await supabase
+  const client = publicSupabase ?? supabase;
+  if (!client) return [];
+  const { data, error } = await client
     .from('faqs')
     .select('id, question, answer, sort_order')
     .eq('platform', platform)

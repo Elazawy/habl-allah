@@ -36,10 +36,18 @@ export default function QuranFaqPage() {
   const [openId, setOpenId] = useState(null);
 
   useEffect(() => {
+    let active = true;
     fetchFaqs('quran')
-      .then(setFaqs)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (active) setFaqs(data ?? []);
+      })
+      .catch((err) => {
+        console.error('[faq fetch failed]', err);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {

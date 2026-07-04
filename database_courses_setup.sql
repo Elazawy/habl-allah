@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS public.quran_courses (
   number_of_subscribers integer         NOT NULL DEFAULT 0,            -- reserved; hidden in UI for now
   is_published          boolean         NOT NULL DEFAULT true,
   sort_order            integer         NOT NULL DEFAULT 0,
+  teacher_name          text,
   created_at            timestamptz     NOT NULL DEFAULT now(),
   updated_at            timestamptz     NOT NULL DEFAULT now()
 );

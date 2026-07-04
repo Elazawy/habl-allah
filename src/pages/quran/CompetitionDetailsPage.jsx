@@ -4,7 +4,8 @@ import { Trophy, Calendar, Award, Clock, ShieldCheck, ChevronRight } from 'lucid
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 import { fetchCompetitionBySlug } from '../../services/competitionsService';
-import { getWhatsAppJoinLink } from '../../lib/whatsapp';
+import CompetitionRegistrationModal from './CompetitionRegistrationModal';
+import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -31,9 +32,11 @@ function formatDate(dateStr) {
 export default function CompetitionDetailsPage() {
   const { slug } = useParams();
   const [resource, setResource] = useState({ slug: null, competition: null, error: '' });
+  const [modalOpen, setModalOpen] = useState(false);
   const loading = resource.slug !== slug;
   const competition = resource.slug === slug ? resource.competition : null;
   const error = resource.slug === slug ? resource.error : '';
+  const { getCompetitionRegistrationState, markCompetitionRequestPending } = useCompetitionRegistrationStatus();
 
   useEffect(() => {
     let active = true;
@@ -130,6 +133,17 @@ export default function CompetitionDetailsPage() {
     );
   }
 
+  const registrationState = getCompetitionRegistrationState(competition);
+  const registrationHint = registrationState.reason === 'subscribed'
+    ? 'تم اعتماد اشتراكك في هذه المسابقة.'
+    : registrationState.reason === 'pending'
+      ? 'تم استلام طلبك وهو بانتظار مراجعة الإدارة.'
+      : registrationState.reason === 'closed'
+        ? 'انتهت فترة التسجيل لهذه المسابقة.'
+        : registrationState.reason === 'loading'
+          ? 'جارٍ التحقق من حالة اشتراكك...'
+          : 'املأ النموذج لإرسال طلب الاشتراك في المسابقة';
+
   return (
     <div dir="rtl" className="min-h-screen flex flex-col transition-colors duration-300" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
@@ -190,6 +204,32 @@ export default function CompetitionDetailsPage() {
                 </p>
               </div>
 
+              {/* Competition Levels */}
+              {competition.available_levels && Array.isArray(competition.available_levels) && competition.available_levels.length > 0 && (
+                <div className="p-6 rounded-2xl border" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border-gold)' }}>
+                  <h2 className="text-xl font-black mb-3 flex items-center gap-2" style={{ color: 'var(--t-primary)' }}>
+                    <Trophy size={20} className="text-amber-500" />
+                    <span>المستويات المتاحة في المسابقة</span>
+                  </h2>
+                  <div className="flex flex-wrap gap-2.5 mt-2">
+                    {competition.available_levels.map((level, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs font-bold px-4.5 py-2.5 rounded-xl border transition-all duration-300 hover:scale-105"
+                        style={{
+                          backgroundColor: 'var(--t-bg-card)',
+                          borderColor: 'var(--t-border)',
+                          color: 'var(--t-primary)',
+                          boxShadow: '0 4px 12px var(--t-shadow-card)',
+                        }}
+                      >
+                        {level}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Conditional Awards rendering */}
               {competition.awards_complete_description && (
                 <div className="p-6 rounded-2xl border" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border-gold)' }}>
@@ -218,22 +258,35 @@ export default function CompetitionDetailsPage() {
             <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-6" style={{ borderColor: 'var(--t-border)' }}>
               <div>
                 <h4 className="font-black text-sm mb-1">هل أنت مستعد للمشاركة؟</h4>
-                <p className="text-xs" style={{ color: 'var(--t-text-muted)' }}>اضغط على الزر للتواصل عبر واتساب والبدء بالتسجيل</p>
+                <p className="text-xs" style={{ color: 'var(--t-text-muted)' }}>{registrationHint}</p>
               </div>
-              <a
-                href={getWhatsAppJoinLink(competition)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-white text-center transition-all duration-300 hover:opacity-95 hover:shadow-md"
-                style={{ backgroundColor: 'var(--t-secondary)' }}
+              <button
+                onClick={() => {
+                  if (!registrationState.disabled) {
+                    setModalOpen(true);
+                  }
+                }}
+                disabled={registrationState.disabled}
+                className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-white text-center transition-all duration-300 disabled:cursor-not-allowed ${registrationState.reason === 'available' ? 'hover:opacity-95 hover:shadow-md' : ''} ${registrationState.reason === 'closed' || registrationState.reason === 'loading' ? 'disabled:opacity-50' : ''}`}
+                style={{ backgroundColor: registrationState.reason === 'subscribed' ? 'var(--t-primary)' : 'var(--t-secondary)' }}
               >
-                انضم الآن
-              </a>
+                {registrationState.label}
+              </button>
             </div>
           </div>
 
         </div>
       </main>
+
+      {modalOpen && competition && (
+        <CompetitionRegistrationModal
+          competition={competition}
+          onSubmitted={() => {
+            markCompetitionRequestPending(competition.id);
+          }}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
 
       <QuranFooter />
     </div>

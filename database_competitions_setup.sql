@@ -43,6 +43,7 @@ create table if not exists public.quran_competitions (
   participation_terms text not null,
   sort_order integer not null default 0,
   is_published boolean not null default true,
+  available_levels jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (registration_deadline <= start_date),
@@ -117,6 +118,85 @@ begin
       for delete
       to authenticated
       using (private.is_admin());
+  end if;
+end $$;
+
+-- ──────────────────────────────────────────
+-- Table: competition_registration_requests
+-- ──────────────────────────────────────────
+create table if not exists public.competition_registration_requests (
+  id uuid primary key default gen_random_uuid(),
+  competition_id uuid not null references public.quran_competitions(id) on delete cascade,
+  student_id uuid references public.student_profiles(id) on delete set null,
+  student_name text not null check (char_length(btrim(student_name)) >= 2),
+  student_phone text not null check (student_phone ~ '^\d{10,15}$'),
+  country text not null check (char_length(btrim(country)) >= 2),
+  age integer not null check (age between 3 and 120),
+  level text not null check (char_length(btrim(level)) >= 1),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists crr_competition_idx
+  on public.competition_registration_requests(competition_id);
+
+create index if not exists crr_student_idx
+  on public.competition_registration_requests(student_id);
+
+create index if not exists crr_created_at_idx
+  on public.competition_registration_requests(created_at desc);
+
+alter table public.competition_registration_requests enable row level security;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'competition_registration_requests'
+      and policyname = 'competition_registration_requests_public_insert'
+  ) then
+    create policy competition_registration_requests_public_insert
+      on public.competition_registration_requests
+      for insert
+      to public
+      with check (
+        competition_id is not null
+        and char_length(btrim(student_name)) >= 2
+        and student_phone ~ '^\d{10,15}$'
+        and char_length(btrim(country)) >= 2
+        and age between 3 and 120
+        and char_length(btrim(level)) >= 1
+        and (
+          student_id is null
+          or (auth.uid() is not null and student_id = auth.uid())
+        )
+      );
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'competition_registration_requests'
+      and policyname = 'competition_registration_requests_admin_select'
+  ) then
+    create policy competition_registration_requests_admin_select
+      on public.competition_registration_requests
+      for select
+      to authenticated
+      using ((select private.is_admin()));
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'competition_registration_requests'
+      and policyname = 'competition_registration_requests_admin_delete'
+  ) then
+    create policy competition_registration_requests_admin_delete
+      on public.competition_registration_requests
+      for delete
+      to authenticated
+      using ((select private.is_admin()));
   end if;
 end $$;
 

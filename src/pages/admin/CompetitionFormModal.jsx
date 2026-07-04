@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { X, Loader } from 'lucide-react';
+import { X, Loader, Plus, Trash2 } from 'lucide-react';
 import { createCompetition, updateCompetition } from '../../services/competitionsService';
 
 const EMPTY_FORM = {
@@ -14,6 +14,7 @@ const EMPTY_FORM = {
   participation_terms: '',
   sort_order: 0,
   is_published: true,
+  available_levels: [],
 };
 
 function formatDateForDisplay(value) {
@@ -87,6 +88,7 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
           participation_terms: competition.participation_terms ?? '',
           sort_order: competition.sort_order ?? 0,
           is_published: competition.is_published ?? true,
+          available_levels: Array.isArray(competition.available_levels) ? competition.available_levels : [],
         }
       : EMPTY_FORM
   );
@@ -102,6 +104,29 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
+
+  // Levels handlers (Dynamic array of strings)
+  const addLevel = () => {
+    setForm((prev) => ({
+      ...prev,
+      available_levels: [...(prev.available_levels ?? []), ''],
+    }));
+  };
+
+  const updateLevel = (index, value) => {
+    setForm((prev) => {
+      const nextLevels = [...(prev.available_levels ?? [])];
+      nextLevels[index] = value;
+      return { ...prev, available_levels: nextLevels };
+    });
+  };
+
+  const removeLevel = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      available_levels: (prev.available_levels ?? []).filter((_, idx) => idx !== index),
+    }));
+  };
 
   const handleField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -134,11 +159,17 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
 
     setSaving(true);
     try {
+      const cleanedLevels = (form.available_levels ?? [])
+        .map((x) => x.trim())
+        .filter((x) => x !== '');
+      const uniqueLevels = Array.from(new Set(cleanedLevels));
+
       const payload = {
         ...form,
         start_date: startDateIso,
         registration_deadline: registrationDeadlineIso,
         sort_order: parseInt(form.sort_order) || 0,
+        available_levels: uniqueLevels,
       };
 
       const saved = isEdit
@@ -326,6 +357,50 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
               rows={4}
               required
             />
+          </div>
+
+          {/* Available Levels (Dynamic list) */}
+          <div className="admin-field-group" style={{ gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="admin-label">المستويات المتاحة في المسابقة</label>
+              <button
+                type="button"
+                onClick={addLevel}
+                className="admin-btn admin-btn--ghost admin-btn--sm"
+                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+              >
+                <Plus size={14} />
+                إضافة مستوى
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {(form.available_levels ?? []).map((lvl, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={lvl}
+                    onChange={(e) => updateLevel(idx, e.target.value)}
+                    placeholder="مثال: مستوى حفظ ثلاثة أجزاء..."
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeLevel(idx)}
+                    className="admin-icon-btn admin-icon-btn--delete"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              {(form.available_levels ?? []).length === 0 && (
+                <p className="admin-muted" style={{ fontSize: '0.8rem', textAlign: 'center', padding: '1rem', border: '1px dashed var(--admin-border)', borderRadius: '8px' }}>
+                  إذا لم تُضف مستويات هنا، سيُسمح للطالب بكتابة مستواه يدوياً.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Sort order & Published */}

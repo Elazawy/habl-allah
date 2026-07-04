@@ -184,15 +184,30 @@ export default function TeacherListPage() {
   const [activeTab, setActiveTab] = useState('browse');
   const [teachers,  setTeachers]  = useState([]);
   const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState('');
 
   const genderLabel = GENDER_LABELS[gender] ?? 'المعلمون';
   const isMale      = gender === 'male';
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
+    setError('');
     fetchTeachers(gender)
-      .then(setTeachers)
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (active) setTeachers(data);
+      })
+      .catch((err) => {
+        console.error('[teachers fetch failed]', err);
+        if (active) {
+          setTeachers([]);
+          setError('تعذر تحميل قائمة المعلمين. يرجى تحديث الصفحة.');
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, [gender]);
 
   return (
@@ -270,6 +285,17 @@ export default function TeacherListPage() {
                 {loading ? (
                   <div className="flex justify-center py-24">
                     <Loader2 size={36} className="animate-spin" style={{ color: 'var(--t-primary)' }} />
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-24">
+                    <p className="text-sm font-semibold mb-4" style={{ color: 'var(--t-text-muted)' }}>{error}</p>
+                    <button
+                      onClick={() => { setLoading(true); setError(''); fetchTeachers(gender).then(setTeachers).catch(() => setError('تعذر تحميل قائمة المعلمين.')).finally(() => setLoading(false)); }}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm text-white transition-colors"
+                      style={{ backgroundColor: 'var(--t-primary)' }}
+                    >
+                      إعادة المحاولة
+                    </button>
                   </div>
                 ) : teachers.length === 0 ? (
                   <p className="text-center py-24" style={{ color: 'var(--t-text-subtle)' }}>
