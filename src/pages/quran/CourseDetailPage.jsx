@@ -160,7 +160,7 @@ export default function CourseDetailPage() {
             <div className="p-6 md:p-10 space-y-10">
               {course.teacher_name && course.teacher_name.trim() !== '' && (
                 <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>
-                  <span>اسم الشيخ:</span>
+                  <span>فضيلة الشيخ:</span>
                   <span className="font-bold" style={{ color: 'var(--t-primary)' }}>{course.teacher_name}</span>
                 </div>
               )}

@@ -89,6 +89,28 @@ export async function adminCreateStudent({ phone, password, fullName, teacherId 
   return result.user;
 }
 
+export async function adminDeleteStudent(studentId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Admin session not found');
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const res = await fetch(`${supabaseUrl}/functions/v1/admin-delete-student`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ studentId }),
+  });
+
+  const result = await res.json();
+  if (!res.ok) {
+    throw new Error(result.error ?? 'حدث خطأ أثناء حذف الحساب.');
+  }
+
+  return result.student;
+}
+
 /**
  * Generate a random medium-difficulty password (8-10 chars: letters + digits)
  */
