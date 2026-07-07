@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchMySubscribedCourses } from '../../services/studentsService';
 
 export default function CoursesPage() {
-  const { user } = useAuth();
+  const { user, isStudent } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [myCourseIds, setMyCourseIds] = useState(new Set());
@@ -135,14 +135,14 @@ export default function CoursesPage() {
                             to={`/quran/courses/${course.slug}/watch`}
                             className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/10"
                           >
-                            ابدأ الآن
+                            {isStudent ? 'اكمل تعلمك' : 'ابدأ الآن'}
                           </Link>
                         ) : myCourseIds.has(course.id) ? (
                           <Link
                             to={`/quran/courses/${course.slug}/watch`}
                             className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/10"
                           >
-                            صفحة المشاهدة
+                            اكمل تعلمك
                           </Link>
                         ) : (
                           <Link

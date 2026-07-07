@@ -1,11 +1,13 @@
 /**
  * Students Service Layer
  * ──────────────────────
- * Handles student auth (phone-based UX), profile management,
+ * Handles student auth (phone-based UX), self-signup, profile management,
  * and subscription management.
  *
  * Auth strategy:
  *   - Admin creates students via Edge Function using Admin API
+ *     → admin.createUser({ email: phoneToAuthEmail(phone), email_confirm: true })
+ *   - Students self-sign up via the public `student-self-signup` Edge Function
  *     → admin.createUser({ email: phoneToAuthEmail(phone), email_confirm: true })
  *   - Students log in via signInWithPassword({ email: phoneToAuthEmail(phone), password })
  *   - The email is deterministic and derived from the phone number.
@@ -14,6 +16,44 @@
 import { supabase } from '../lib/supabase';
 
 // ─── Helpers ───────────────────────────────────────────────────
+
+function normalizeLocalizedDigits(value) {
+  return String(value ?? '').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
+    const code = digit.charCodeAt(0);
+
+    if (code >= 0x0660 && code <= 0x0669) {
+      return String(code - 0x0660);
+    }
+
+    if (code >= 0x06F0 && code <= 0x06F9) {
+      return String(code - 0x06F0);
+    }
+
+    return digit;
+  });
+}
+
+/**
+ * Canonical student phone format used across auth + profile storage.
+ * Examples:
+ *   01128472424   → 201128472424
+ *   +201128472424 → 201128472424
+ *   201128472424  → 201128472424
+ */
+export function normalizeStudentPhone(phone) {
+  const rawPhone = normalizeLocalizedDigits(phone).trim();
+  const hadLeadingPlus = rawPhone.startsWith('+');
+  let digits = rawPhone.replace(/\D/g, '');
+
+  if (!digits) return '';
+  if (hadLeadingPlus) return digits;
+  if (digits.startsWith('0')) return `2${digits}`;
+  return digits;
+}
+
+export function isValidStudentPhone(phone) {
+  return /^\d{10,15}$/.test(normalizeStudentPhone(phone));
+}
 
 /**
  * Converts a phone number to a deterministic, valid Supabase auth email.
@@ -25,21 +65,23 @@ import { supabase } from '../lib/supabase';
  * Must match exactly the same logic used in the Edge Function.
  */
 export function phoneToAuthEmail(phone) {
-  let digits = phone.trim().replace(/\s/g, '');
-  if (digits.startsWith('+')) digits = digits.slice(1);       // +201... → 201...
-  else if (digits.startsWith('0')) digits = '2' + digits;     // 01... → 201...
+  const digits = normalizeStudentPhone(phone);
   return `s${digits}@habl-allah.app`;
 }
 
 function normalizePhoneLookup(phone) {
-  return String(phone ?? '').trim().replace(/\D/g, '');
+  return normalizeLocalizedDigits(phone).replace(/\D/g, '');
 }
 
 function buildPhoneLookupCandidates(phone) {
   const normalizedPhone = normalizePhoneLookup(phone);
-  if (!normalizedPhone) return [];
+  const canonicalPhone = normalizeStudentPhone(phone);
+  if (!normalizedPhone && !canonicalPhone) return [];
 
-  const candidates = new Set([normalizedPhone]);
+  const candidates = new Set();
+
+  if (normalizedPhone) candidates.add(normalizedPhone);
+  if (canonicalPhone) candidates.add(canonicalPhone);
 
   if (normalizedPhone.startsWith('0')) {
     candidates.add(`2${normalizedPhone}`);
@@ -50,6 +92,60 @@ function buildPhoneLookupCandidates(phone) {
   }
 
   return [...candidates];
+}
+
+async function getFunctionErrorMessage(error, actionLabel) {
+  const response = error?.context;
+
+  if (response && typeof response.clone === 'function') {
+    try {
+      const responseBody = await response.clone().json();
+      const responseMessage =
+        typeof responseBody?.error === 'string'
+          ? responseBody.error.trim()
+          : typeof responseBody?.message === 'string'
+            ? responseBody.message.trim()
+            : '';
+
+      if (responseMessage) {
+        return responseMessage;
+      }
+    } catch {
+      try {
+        const responseText = (await response.clone().text()).trim();
+        if (responseText) {
+          return responseText;
+        }
+      } catch {
+        // Ignore response parsing errors and fall back to the client error message.
+      }
+    }
+  }
+
+  const message = error?.message ?? '';
+
+  if (/Edge Function|FunctionsFetchError|Failed to send a request to the Edge Function|non-2xx/i.test(message)) {
+    return `خدمة ${actionLabel} غير مفعلة في الخلفية بعد. اربط الدالة المخصصة لها ثم أعد المحاولة.`;
+  }
+
+  return message || `تعذر ${actionLabel} حالياً.`;
+}
+
+export async function signUpStudent({ phone, password, fullName }) {
+  const normalizedPhone = normalizeStudentPhone(phone);
+  const { error } = await supabase.functions.invoke('student-self-signup', {
+    body: {
+      fullName: fullName.trim(),
+      phone: normalizedPhone,
+      password,
+    },
+  });
+
+  if (error) {
+    throw new Error(await getFunctionErrorMessage(error, 'إنشاء الحساب'));
+  }
+
+  return signInStudent({ phone: normalizedPhone, password });
 }
 
 /**
@@ -72,6 +168,7 @@ export async function adminCreateStudent({ phone, password, fullName, teacherId 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Admin session not found');
 
+  const normalizedPhone = normalizeStudentPhone(phone);
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const res = await fetch(`${supabaseUrl}/functions/v1/admin-create-student`, {
     method: 'POST',
@@ -79,7 +176,12 @@ export async function adminCreateStudent({ phone, password, fullName, teacherId 
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({ phone, password, fullName, teacherId: teacherId || null }),
+    body: JSON.stringify({
+      phone: normalizedPhone,
+      password,
+      fullName: fullName.trim(),
+      teacherId: teacherId || null,
+    }),
   });
 
   const result = await res.json();
@@ -95,7 +197,7 @@ export async function adminDeleteStudent(studentId) {
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const res = await fetch(`${supabaseUrl}/functions/v1/admin-delete-student`, {
-    method: 'DELETE',
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.access_token}`,

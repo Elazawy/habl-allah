@@ -7,14 +7,18 @@ import { createAdminClient, requireAdminUser } from '../_shared/supabase.ts';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024 * 1024;
 const UPLOAD_URL_TTL_SECONDS = 10 * 60;
+const DUPLICATE_LECTURE_SLUG_ERROR = 'Lecture slug already exists for this course';
 
 type UploadUrlRequest = {
   courseId: string;
   lectureId: string | null;
+  lectureSlug: string | null;
   fileName: string;
   contentType: string;
   fileSize: number;
 };
+
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function parseRequestBody(payload: unknown): UploadUrlRequest {
   if (!payload || typeof payload !== 'object') {
@@ -24,6 +28,11 @@ function parseRequestBody(payload: unknown): UploadUrlRequest {
   const record = payload as Record<string, unknown>;
   const courseId = typeof record.courseId === 'string' ? record.courseId.trim() : '';
   const lectureId = typeof record.lectureId === 'string' ? record.lectureId.trim() : '';
+  const lectureSlug = typeof record.lectureSlug === 'string'
+    ? record.lectureSlug.trim().toLowerCase()
+    : typeof record.lecture_slug === 'string'
+      ? record.lecture_slug.trim().toLowerCase()
+      : '';
   const fileName = typeof record.fileName === 'string' ? record.fileName.trim() : '';
   const contentType = typeof record.contentType === 'string' ? record.contentType.trim().toLowerCase() : '';
   const fileSize = Number(record.fileSize);
@@ -34,6 +43,10 @@ function parseRequestBody(payload: unknown): UploadUrlRequest {
 
   if (lectureId && !UUID_RE.test(lectureId)) {
     throw new HttpError(400, 'lectureId must be a valid UUID when provided');
+  }
+
+  if (lectureSlug && !SLUG_RE.test(lectureSlug)) {
+    throw new HttpError(400, 'lectureSlug must contain lowercase letters, numbers, and hyphens only');
   }
 
   if (!fileName || !fileName.toLowerCase().endsWith('.mp4')) {
@@ -51,6 +64,7 @@ function parseRequestBody(payload: unknown): UploadUrlRequest {
   return {
     courseId,
     lectureId: lectureId || null,
+    lectureSlug: lectureSlug || null,
     fileName,
     contentType,
     fileSize,
@@ -91,6 +105,8 @@ Deno.serve(async (req: Request) => {
       throw new HttpError(400, 'Upload URLs are only available for paid courses');
     }
 
+    let resolvedLectureSlug = payload.lectureSlug;
+
     if (payload.lectureId) {
       const { data: lecture, error: lectureError } = await adminClient
         .from('quran_course_lectures')
@@ -105,9 +121,35 @@ Deno.serve(async (req: Request) => {
       if (!lecture || lecture.course_id !== payload.courseId) {
         throw new HttpError(404, 'Lecture not found for this course');
       }
+
+      resolvedLectureSlug = payload.lectureSlug ?? lecture.slug;
     }
 
-    const objectKey = buildPaidLectureObjectKey(payload.courseId);
+    if (!resolvedLectureSlug) {
+      throw new HttpError(400, 'lectureSlug is required before uploading a paid lecture video');
+    }
+
+    const { data: conflictingLecture, error: conflictingLectureError } = await adminClient
+      .from('quran_course_lectures')
+      .select('id')
+      .eq('course_id', payload.courseId)
+      .eq('slug', resolvedLectureSlug)
+      .maybeSingle();
+
+    if (conflictingLectureError) {
+      throw conflictingLectureError;
+    }
+
+    if (conflictingLecture && conflictingLecture.id !== payload.lectureId) {
+      throw new HttpError(409, DUPLICATE_LECTURE_SLUG_ERROR);
+    }
+
+    // Keep each upload on its own object key so a failed save cannot overwrite another lecture asset.
+    const objectKey = buildPaidLectureObjectKey(
+      course.slug,
+      resolvedLectureSlug,
+      `source-${crypto.randomUUID()}.mp4`
+    );
     const { url, requiredHeaders } = await createPresignedR2Url({
       method: 'PUT',
       objectKey,

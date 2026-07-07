@@ -38,7 +38,7 @@ const publicAppOrigin = Deno.env.get('PUBLIC_APP_ORIGIN')?.trim() || '*';
 const corsHeaders = {
   'Access-Control-Allow-Origin': publicAppOrigin,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
   'Access-Control-Max-Age': '86400',
 };
 
@@ -102,7 +102,7 @@ Deno.serve(async (req: Request) => {
   if (corsResponse) return corsResponse;
 
   try {
-    if (req.method !== 'DELETE') {
+    if (req.method !== 'POST' && req.method !== 'DELETE') {
       return json({ error: 'Method not allowed' }, { status: 405 });
     }
 

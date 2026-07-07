@@ -25,7 +25,7 @@ export default function FloatingWhatsApp() {
   }
 
   // Hide on course watch pages to avoid covering UI elements
-  if (location.pathname.endsWith('/watch')) {
+  if (location.pathname.endsWith('/watch') || location.pathname.includes('/watch/')) {
     return null;
   }
 

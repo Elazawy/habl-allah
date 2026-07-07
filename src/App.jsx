@@ -39,6 +39,7 @@ import CourseWatchPage from './pages/quran/CourseWatchPage';
 
 // Student Pages
 import StudentLoginPage from './pages/student/StudentLoginPage';
+import StudentSignupPage from './pages/student/StudentSignupPage';
 import RequireStudent from './components/RequireStudent';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentQuranLessons from './pages/student/StudentQuranLessons';
@@ -91,12 +92,13 @@ export default function App() {
         <Route path="/quran/competitions" element={<CompetitionsPage />} />
         <Route path="/quran/competition/:slug" element={<CompetitionDetailsPage />} />
         <Route path="/quran/courses" element={<CoursesPage />} />
-        <Route path="/quran/courses/:slug/watch" element={<CourseWatchPage />} />
+        <Route path="/quran/courses/:courseSlug/watch/:lectureSlug" element={<CourseWatchPage />} />
+        <Route path="/quran/courses/:courseSlug/watch" element={<CourseWatchPage />} />
         <Route path="/quran/courses/:slug" element={<CourseDetailPage />} />
 
         {/* Student auth & pages */}
         <Route path="/quran/student/login" element={<StudentLoginPage />} />
-        <Route path="/quran/student/signup" element={<Navigate to="/quran/student/login" replace />} />
+        <Route path="/quran/student/signup" element={<StudentSignupPage />} />
         <Route path="/quran/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
         <Route path="/quran/student/dashbaord" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
         <Route path="/quran/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />

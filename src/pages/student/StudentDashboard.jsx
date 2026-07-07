@@ -77,14 +77,14 @@ export default function StudentDashboard() {
         <div className="max-w-6xl mx-auto space-y-10">
           
           {/* Welcome Banner */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-emerald-950/20 backdrop-blur-md border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-6 md:p-8 shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border rounded-3xl p-6 md:p-8 shadow-sm" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}>
             <div>
-              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 block mb-1">أهلاً بك يا قارئ القرآن</span>
-              <h1 className="text-2xl md:text-3xl font-black text-emerald-900 dark:text-emerald-300">
+              <span className="text-xs font-bold block mb-1" style={{ color: 'var(--t-primary)' }}>أهلاً بك يا قارئ القرآن</span>
+              <h1 className="text-2xl md:text-3xl font-black" style={{ color: 'var(--t-text)' }}>
                 مرحباً، {studentProfile?.full_name}
               </h1>
               {studentProfile?.teachers?.name && (
-                <p className="text-xs md:text-sm text-emerald-800/60 dark:text-emerald-200/60 mt-1 font-semibold">
+                <p className="text-xs md:text-sm mt-1 font-semibold" style={{ color: 'var(--t-text-muted)' }}>
                   الشيخ المتابع: {studentProfile.teachers.name}
                 </p>
               )}
@@ -99,8 +99,8 @@ export default function StudentDashboard() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-600 rounded-full animate-spin" />
-              <p className="text-sm font-semibold text-emerald-800/60 dark:text-emerald-200/60">جاري تحميل بيانات لوحة التحكم...</p>
+              <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: 'var(--t-primary-light)', borderTopColor: 'var(--t-primary)' }} />
+              <p className="text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>جاري تحميل بيانات لوحة التحكم...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -110,15 +110,16 @@ export default function StudentDashboard() {
                 
                 {/* 1. Teacher Assignment Check */}
                 {!studentProfile?.teachers && (
-                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-6 text-center space-y-4">
-                    <User className="w-12 h-12 text-amber-500 mx-auto opacity-70" />
-                    <h2 className="text-lg font-bold text-amber-800 dark:text-amber-400">أنت غير مشترك مع معلم حالياً</h2>
-                    <p className="text-xs max-w-md mx-auto text-amber-700/80 dark:text-amber-300/80">
+                  <div className="rounded-3xl p-6 text-center space-y-4 border" style={{ backgroundColor: 'rgba(217, 119, 6, 0.1)', borderColor: 'rgba(217, 119, 6, 0.2)' }}>
+                    <User className="w-12 h-12 mx-auto opacity-70" style={{ color: 'var(--t-secondary)' }} />
+                    <h2 className="text-lg font-bold" style={{ color: 'var(--t-secondary)' }}>أنت غير مشترك مع معلم حالياً</h2>
+                    <p className="text-xs max-w-md mx-auto" style={{ color: 'var(--t-text-muted)' }}>
                       لتبدأ حلقات الحفظ والتسميع المباشرة ومتابعة ورقة تقييم القرآن الخاصة بك، يرجى اختيار المعلم المناسب لك والاشتراك معه.
                     </p>
                     <Link
                       to="/quran/teachers"
-                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-700 text-white transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-bold text-xs text-white transition-all cursor-pointer hover:opacity-90"
+                      style={{ backgroundColor: 'var(--t-secondary)' }}
                     >
                       تصفح قائمة المعلمين والاشتراك
                     </Link>
@@ -129,14 +130,15 @@ export default function StudentDashboard() {
                 {studentProfile?.teachers && (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <h2 className="text-lg font-black text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-emerald-700" />
+                      <h2 className="text-lg font-black flex items-center gap-2" style={{ color: 'var(--t-text)' }}>
+                        <Calendar className="w-5 h-5" style={{ color: 'var(--t-primary)' }} />
                         آخر تقرير لدرس القرآن
                       </h2>
                       {lessons.length > 0 && (
                         <Link
                           to="/quran/student/lessons"
-                          className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
+                          className="text-xs font-bold hover:underline flex items-center gap-1"
+                          style={{ color: 'var(--t-primary)' }}
                         >
                           عرض كل التقارير ({lessons.length})
                           <ArrowLeft className="w-3.5 h-3.5" />
@@ -145,24 +147,24 @@ export default function StudentDashboard() {
                     </div>
 
                     {!latestLesson ? (
-                      <div className="bg-white dark:bg-emerald-950/20 border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-8 text-center text-emerald-800/60 dark:text-emerald-200/60">
-                        <Calendar className="w-12 h-12 mx-auto mb-2 opacity-30 text-emerald-600" />
+                      <div className="border rounded-3xl p-8 text-center text-xs" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', color: 'var(--t-text-muted)' }}>
+                        <Calendar className="w-12 h-12 mx-auto mb-2 opacity-30" style={{ color: 'var(--t-primary)' }} />
                         <p className="text-xs">لم يتم تسجيل أي تقارير قرآن لك بعد من قبل الشيخ المتابع.</p>
                       </div>
                     ) : (
                       /* Quran Lesson Sheet format */
-                      <div className="bg-white dark:bg-emerald-950/20 border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 relative">
+                      <div className="border rounded-3xl p-6 md:p-8 shadow-sm space-y-6 relative" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}>
                         {/* Hijri Date and Gregorian Date */}
-                        <div className="flex justify-between items-start border-b border-emerald-600/10 dark:border-emerald-400/10 pb-4 flex-wrap gap-2">
+                        <div className="flex justify-between items-start border-b pb-4 flex-wrap gap-2" style={{ borderColor: 'var(--t-border)' }}>
                           <div>
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">تاريخ تقييم اليوم</span>
-                            <span className="text-sm font-bold text-emerald-950 dark:text-emerald-200">
+                            <span className="text-[10px] font-bold block mb-0.5" style={{ color: 'var(--t-primary)' }}>تاريخ تقييم اليوم</span>
+                            <span className="text-sm font-bold" style={{ color: 'var(--t-text)' }}>
                               {new Date(latestLesson.lesson_date).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             </span>
                           </div>
                           {latestLesson.hijri_date && (
-                            <div className="text-left sm:text-right bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
-                              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">📜 {latestLesson.hijri_date}</span>
+                            <div className="text-left sm:text-right px-3 py-1.5 rounded-xl border" style={{ backgroundColor: 'var(--t-primary-light)', borderColor: 'var(--t-border)' }}>
+                              <span className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>📜 {latestLesson.hijri_date}</span>
                             </div>
                           )}
                         </div>
@@ -171,34 +173,34 @@ export default function StudentDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Right Column: Recitation (تسميع) */}
                           <div className="space-y-4">
-                            <h3 className="text-xs font-black text-emerald-700 dark:text-emerald-400 border-b border-emerald-600/5 pb-1">📌 تسميع اليوم</h3>
+                            <h3 className="text-xs font-black border-b pb-1" style={{ color: 'var(--t-primary)', borderColor: 'var(--t-border)' }}>📌 تسميع اليوم</h3>
                             
                             {latestLesson.recitation_today_surah ? (
                               <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-emerald-800/60 dark:text-emerald-200/60 font-semibold">الحاضر:</span>
-                                  <span className="font-bold text-emerald-950 dark:text-emerald-200">
+                                  <span className="font-semibold" style={{ color: 'var(--t-text-muted)' }}>الحاضر:</span>
+                                  <span className="font-bold" style={{ color: 'var(--t-text)' }}>
                                     سورة {latestLesson.recitation_today_surah} (من {latestLesson.recitation_today_from || '١'} إلى {latestLesson.recitation_today_to || 'الآخر'})
                                   </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-emerald-800/60 dark:text-emerald-200/60 font-semibold">مستوى الحفظ:</span>
-                                  <span className="font-black text-emerald-700 dark:text-emerald-400">{latestLesson.recitation_today_level}</span>
+                                  <span className="font-semibold" style={{ color: 'var(--t-text-muted)' }}>مستوى الحفظ:</span>
+                                  <span className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.recitation_today_level}</span>
                                 </div>
                               </div>
                             ) : (
-                              <p className="text-xs text-emerald-800/40">لا يوجد تسميع حاضر اليوم.</p>
+                              <p className="text-xs" style={{ color: 'var(--t-text-subtle)' }}>لا يوجد تسميع حاضر اليوم.</p>
                             )}
 
                             {latestLesson.recitation_past_surah && (
-                              <div className="space-y-2 pt-2 border-t border-emerald-600/5">
+                              <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--t-border)' }}>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-emerald-800/60 dark:text-emerald-200/60 font-semibold">الماضي:</span>
-                                  <span className="font-bold text-emerald-950 dark:text-emerald-200">سورة {latestLesson.recitation_past_surah}</span>
+                                  <span className="font-semibold" style={{ color: 'var(--t-text-muted)' }}>الماضي:</span>
+                                  <span className="font-bold" style={{ color: 'var(--t-text)' }}>سورة {latestLesson.recitation_past_surah}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-emerald-800/60 dark:text-emerald-200/60 font-semibold">مستوى الماضي:</span>
-                                  <span className="font-black text-emerald-700 dark:text-emerald-400">{latestLesson.recitation_past_level}</span>
+                                  <span className="font-semibold" style={{ color: 'var(--t-text-muted)' }}>مستوى الماضي:</span>
+                                  <span className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.recitation_past_level}</span>
                                 </div>
                               </div>
                             )}
@@ -206,45 +208,45 @@ export default function StudentDashboard() {
 
                           {/* Left Column: Reading & Tajweed */}
                           <div className="space-y-4">
-                            <h3 className="text-xs font-black text-emerald-700 dark:text-emerald-400 border-b border-emerald-600/5 pb-1">📌 القراءة والتجويد</h3>
+                            <h3 className="text-xs font-black border-b pb-1" style={{ color: 'var(--t-primary)', borderColor: 'var(--t-border)' }}>📌 القراءة والتجويد</h3>
                             
                             {latestLesson.reading_surah ? (
                               <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-emerald-800/60 dark:text-emerald-200/60 font-semibold">القراءة:</span>
-                                  <span className="font-bold text-emerald-950 dark:text-emerald-200">
+                                  <span className="font-semibold" style={{ color: 'var(--t-text-muted)' }}>القراءة:</span>
+                                  <span className="font-bold" style={{ color: 'var(--t-text)' }}>
                                     سورة {latestLesson.reading_surah} (من {latestLesson.reading_from || '١'} إلى {latestLesson.reading_to || 'الآخر'})
                                   </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-emerald-800/60 dark:text-emerald-200/60 font-semibold">مستوى القراءة:</span>
-                                  <span className="font-black text-emerald-700 dark:text-emerald-400">{latestLesson.reading_level}</span>
+                                  <span className="font-semibold" style={{ color: 'var(--t-text-muted)' }}>مستوى القراءة:</span>
+                                  <span className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.reading_level}</span>
                                 </div>
                               </div>
                             ) : (
-                              <p className="text-xs text-emerald-800/40">لا يوجد درس قراءة اليوم.</p>
+                              <p className="text-xs" style={{ color: 'var(--t-text-subtle)' }}>لا يوجد درس قراءة اليوم.</p>
                             )}
 
                             {latestLesson.tajweed_lesson && (
-                              <div className="flex justify-between text-sm pt-2 border-t border-emerald-600/5">
-                                <span className="text-emerald-800/60 dark:text-emerald-200/60 font-semibold">التجويد:</span>
-                                <span className="font-bold text-emerald-950 dark:text-emerald-200">{latestLesson.tajweed_lesson}</span>
+                              <div className="flex justify-between text-sm pt-2 border-t" style={{ borderColor: 'var(--t-border)' }}>
+                                <span className="font-semibold" style={{ color: 'var(--t-text-muted)' }}>التجويد:</span>
+                                <span className="font-bold" style={{ color: 'var(--t-text)' }}>{latestLesson.tajweed_lesson}</span>
                               </div>
                             )}
                           </div>
                         </div>
 
                         {/* General details: notes and interaction */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-600/5 rounded-2xl p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border rounded-2xl p-4" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border)' }}>
                           {latestLesson.interaction_level && (
                             <div className="flex justify-between text-xs sm:text-sm">
-                              <span className="text-emerald-800/60 dark:text-emerald-200/60 font-bold">📌 التفاعل والنشاط:</span>
-                              <span className="font-black text-emerald-800 dark:text-emerald-300">{latestLesson.interaction_level}</span>
+                              <span className="font-bold" style={{ color: 'var(--t-text-muted)' }}>📌 التفاعل والنشاط:</span>
+                              <span className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.interaction_level}</span>
                             </div>
                           )}
                           {latestLesson.general_notes && (
-                            <div className="text-xs leading-relaxed text-emerald-900/80 dark:text-emerald-100/80 col-span-2 mt-2 pt-2 border-t border-emerald-600/5">
-                              <span className="font-bold block text-emerald-700 dark:text-emerald-400 mb-0.5">📌 ملاحظات المعلم العامة:</span>
+                            <div className="text-xs leading-relaxed col-span-2 mt-2 pt-2 border-t" style={{ borderColor: 'var(--t-border)', color: 'var(--t-text)' }}>
+                              <span className="font-bold block mb-0.5" style={{ color: 'var(--t-primary)' }}>📌 ملاحظات المعلم العامة:</span>
                               <p className="italic">"{latestLesson.general_notes}"</p>
                             </div>
                           )}
@@ -252,21 +254,21 @@ export default function StudentDashboard() {
 
                         {/* Homework section */}
                         {(latestLesson.homework_today_surah || latestLesson.homework_past_surah) && (
-                          <div className="border-t border-emerald-600/10 dark:border-emerald-400/10 pt-4 space-y-3">
-                            <h3 className="text-xs font-black text-emerald-700 dark:text-emerald-400">📌 الواجبات والتحضير للمرة القادمة</h3>
+                          <div className="border-t pt-4 space-y-3" style={{ borderColor: 'var(--t-border)' }}>
+                            <h3 className="text-xs font-black" style={{ color: 'var(--t-primary)' }}>📌 الواجبات والتحضير للمرة القادمة</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {latestLesson.homework_today_surah && (
                                 <div className="text-xs">
-                                  <span className="font-bold text-emerald-800/60 dark:text-emerald-200/60">واجب الحاضر:</span>
-                                  <p className="font-bold mt-0.5 text-emerald-950 dark:text-emerald-200">
+                                  <span className="font-bold" style={{ color: 'var(--t-text-muted)' }}>واجب الحاضر:</span>
+                                  <p className="font-bold mt-0.5" style={{ color: 'var(--t-text)' }}>
                                     سورة {latestLesson.homework_today_surah} (من {latestLesson.homework_today_from || '١'} إلى {latestLesson.homework_today_to || 'الآخر'})
                                   </p>
                                 </div>
                               )}
                               {latestLesson.homework_past_surah && (
                                 <div className="text-xs">
-                                  <span className="font-bold text-emerald-800/60 dark:text-emerald-200/60">واجب الماضي:</span>
-                                  <p className="font-bold mt-0.5 text-emerald-950 dark:text-emerald-200">
+                                  <span className="font-bold" style={{ color: 'var(--t-text-muted)' }}>واجب الماضي:</span>
+                                  <p className="font-bold mt-0.5" style={{ color: 'var(--t-text)' }}>
                                     سورة {latestLesson.homework_past_surah}
                                   </p>
                                 </div>
@@ -287,13 +289,13 @@ export default function StudentDashboard() {
                 
                 {/* 1. Courses Section */}
                 <div className="space-y-4">
-                  <h2 className="text-lg font-black text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-emerald-700" />
+                  <h2 className="text-lg font-black flex items-center gap-2" style={{ color: 'var(--t-text)' }}>
+                    <BookOpen className="w-5 h-5" style={{ color: 'var(--t-primary)' }} />
                     دوراتي التدريبية
                   </h2>
 
                   {myCourses.length === 0 ? (
-                    <div className="bg-white dark:bg-emerald-950/20 border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-5 text-center text-emerald-800/60 dark:text-emerald-200/60 text-xs">
+                    <div className="border rounded-3xl p-5 text-center text-xs" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', color: 'var(--t-text-muted)' }}>
                       أنت غير مشترك في أي دورة تعليمية حالياً.
                     </div>
                   ) : (
@@ -302,16 +304,17 @@ export default function StudentDashboard() {
                         <Link
                           key={sub.id}
                           to={`/quran/courses/${sub.quran_courses.slug}/watch`}
-                          className="block bg-white dark:bg-emerald-950/20 border border-emerald-600/10 dark:border-emerald-400/10 rounded-2xl p-4 shadow-sm hover:border-emerald-600 dark:hover:border-emerald-400 hover:shadow-md transition-all group"
+                          className="block border rounded-2xl p-4 shadow-sm transition-all group hover:shadow-md hover:border-[var(--t-primary)]"
+                          style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 block mb-1">دورة مفعلة</span>
-                              <h3 className="font-bold text-sm text-emerald-900 dark:text-emerald-200 group-hover:text-emerald-700 transition-colors">
+                              <span className="text-[9px] font-bold block mb-1" style={{ color: 'var(--t-primary)' }}>دورة مفعلة</span>
+                              <h3 className="font-bold text-sm transition-colors group-hover:text-[var(--t-primary)]" style={{ color: 'var(--t-text)' }}>
                                 {sub.quran_courses.name}
                               </h3>
                             </div>
-                            <span className="text-[10px] font-bold text-white bg-emerald-600 px-2 py-0.5 rounded-full shrink-0">مشاهدة</span>
+                            <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--t-primary)' }}>مشاهدة</span>
                           </div>
                         </Link>
                       ))}
@@ -321,20 +324,22 @@ export default function StudentDashboard() {
                   {/* Suggest Other Courses */}
                   {otherCourses.length > 0 && (
                     <div className="pt-3 space-y-2">
-                      <span className="text-xs font-bold text-emerald-800/60 dark:text-emerald-200/60 block">دورات مقترحة لك:</span>
+                      <span className="text-xs font-bold block" style={{ color: 'var(--t-text-muted)' }}>دورات مقترحة لك:</span>
                       <div className="space-y-2">
                         {otherCourses.slice(0, 2).map((course) => (
                           <div
                             key={course.id}
-                            className="bg-emerald-50/40 dark:bg-emerald-950/10 rounded-xl p-3 border border-emerald-600/5 flex justify-between items-center"
+                            className="rounded-xl p-3 border flex justify-between items-center"
+                            style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border)' }}
                           >
                             <div className="min-w-0 flex-1 pl-2">
-                              <h4 className="text-xs font-bold text-emerald-900 dark:text-emerald-300 truncate">{course.name}</h4>
-                              <span className="text-[10px] text-emerald-800/60 dark:text-emerald-400/60">{course.is_free ? 'مجانية' : 'مدفوعة'}</span>
+                              <h4 className="text-xs font-bold truncate" style={{ color: 'var(--t-text)' }}>{course.name}</h4>
+                              <span className="text-[10px]" style={{ color: 'var(--t-text-muted)' }}>{course.is_free ? 'مجانية' : 'مدفوعة'}</span>
                             </div>
                             <Link
                               to={`/quran/courses/${course.slug}`}
-                              className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline shrink-0"
+                              className="text-[10px] font-bold hover:underline shrink-0"
+                              style={{ color: 'var(--t-primary)' }}
                             >
                               التفاصيل ←
                             </Link>
@@ -347,13 +352,13 @@ export default function StudentDashboard() {
 
                 {/* 2. Competitions Section */}
                 <div className="space-y-4">
-                  <h2 className="text-lg font-black text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-emerald-700" />
+                  <h2 className="text-lg font-black flex items-center gap-2" style={{ color: 'var(--t-text)' }}>
+                    <Trophy className="w-5 h-5" style={{ color: 'var(--t-primary)' }} />
                     المسابقات والفعاليات
                   </h2>
 
                   {myCompetitions.length === 0 ? (
-                    <div className="bg-white dark:bg-emerald-950/20 border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-5 text-center text-emerald-800/60 dark:text-emerald-200/60 text-xs">
+                    <div className="border rounded-3xl p-5 text-center text-xs" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)', color: 'var(--t-text-muted)' }}>
                       أنت غير مسجل في أي مسابقة قرأنية حالياً.
                     </div>
                   ) : (
@@ -362,16 +367,17 @@ export default function StudentDashboard() {
                         <Link
                           key={sub.id}
                           to={`/quran/competition/${sub.quran_competitions.slug}`}
-                          className="block bg-white dark:bg-emerald-950/20 border border-emerald-600/10 dark:border-emerald-400/10 rounded-2xl p-4 shadow-sm hover:border-emerald-600 dark:hover:border-emerald-400 hover:shadow-md transition-all group"
+                          className="block border rounded-2xl p-4 shadow-sm transition-all group hover:shadow-md hover:border-[var(--t-primary)]"
+                          style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 block mb-1">أنت مشترك</span>
-                              <h3 className="font-bold text-sm text-emerald-900 dark:text-emerald-200 group-hover:text-emerald-700 transition-colors">
+                              <span className="text-[9px] font-bold block mb-1" style={{ color: 'var(--t-secondary)' }}>أنت مشترك</span>
+                              <h3 className="font-bold text-sm transition-colors group-hover:text-[var(--t-primary)]" style={{ color: 'var(--t-text)' }}>
                                 {sub.quran_competitions.name}
                               </h3>
                             </div>
-                            <span className="text-[10px] font-bold text-white bg-amber-600 px-2 py-0.5 rounded-full shrink-0">تفاصيل</span>
+                            <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--t-secondary)' }}>تفاصيل</span>
                           </div>
                         </Link>
                       ))}
@@ -381,20 +387,22 @@ export default function StudentDashboard() {
                   {/* Suggest Other Competitions */}
                   {otherCompetitions.length > 0 && (
                     <div className="pt-3 space-y-2">
-                      <span className="text-xs font-bold text-emerald-800/60 dark:text-emerald-200/60 block">مسابقات متاحة للتسجيل:</span>
+                      <span className="text-xs font-bold block" style={{ color: 'var(--t-text-muted)' }}>مسابقات متاحة للتسجيل:</span>
                       <div className="space-y-2">
                         {otherCompetitions.slice(0, 2).map((comp) => (
                           <div
                             key={comp.id}
-                            className="bg-emerald-50/40 dark:bg-emerald-950/10 rounded-xl p-3 border border-emerald-600/5 flex justify-between items-center"
+                            className="rounded-xl p-3 border flex justify-between items-center"
+                            style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border)' }}
                           >
                             <div className="min-w-0 flex-1 pl-2">
-                              <h4 className="text-xs font-bold text-emerald-900 dark:text-emerald-300 truncate">{comp.name}</h4>
-                              <span className="text-[10px] text-amber-700 dark:text-amber-400">انقر للتسجيل</span>
+                              <h4 className="text-xs font-bold truncate" style={{ color: 'var(--t-text)' }}>{comp.name}</h4>
+                              <span className="text-[10px]" style={{ color: 'var(--t-secondary)' }}>انقر للتسجيل</span>
                             </div>
                             <Link
                               to={`/quran/competition/${comp.slug}`}
-                              className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline shrink-0"
+                              className="text-[10px] font-bold hover:underline shrink-0"
+                              style={{ color: 'var(--t-primary)' }}
                             >
                               التفاصيل ←
                             </Link>

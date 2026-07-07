@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signUpStudent } from '../../services/studentsService';
+import { isValidStudentPhone, normalizeStudentPhone, signUpStudent } from '../../services/studentsService';
 import { useAuth } from '../../context/AuthContext';
 import logoGold from '../../assets/logo-gold.png';
 
@@ -19,6 +19,7 @@ export default function StudentSignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    const normalizedPhone = normalizeStudentPhone(phone);
 
     // Validations
     if (fullName.trim().length < 2) {
@@ -26,7 +27,7 @@ export default function StudentSignupPage() {
       return;
     }
 
-    if (!/^\d{10,15}$/.test(phone.trim())) {
+    if (!isValidStudentPhone(phone)) {
       setError('يرجى كتابة رقم هاتف صحيح يتكون من 10 إلى 15 رقماً.');
       return;
     }
@@ -45,7 +46,7 @@ export default function StudentSignupPage() {
     try {
       // Sign up student
       const authData = await signUpStudent({
-        phone: phone.trim(),
+        phone: normalizedPhone,
         password,
         fullName: fullName.trim(),
       });
@@ -58,7 +59,11 @@ export default function StudentSignupPage() {
       navigate('/quran/student/dashboard', { replace: true });
     } catch (err) {
       console.error(err);
-      if (err.message?.includes('unique') || err.message?.includes('already exists')) {
+      if (
+        err.message?.includes('unique') ||
+        err.message?.includes('already exists') ||
+        err.message?.includes('مسجل بالفعل')
+      ) {
         setError('رقم الهاتف هذا مسجل بالفعل. يرجى تسجيل الدخول بدلاً من ذلك.');
       } else {
         setError(err.message ?? 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.');
@@ -118,7 +123,7 @@ export default function StudentSignupPage() {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="01xxxxxxxxx"
+              placeholder="01xxxxxxxxx أو +201xxxxxxxxx"
               required
               className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 placeholder-emerald-800/40 dark:placeholder-emerald-200/40 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
               dir="ltr"

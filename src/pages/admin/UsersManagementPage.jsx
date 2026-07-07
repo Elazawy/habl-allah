@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { fetchAllStudents, adminCreateStudent, adminDeleteStudent, generatePassword } from '../../services/studentsService';
+import {
+  fetchAllStudents,
+  adminCreateStudent,
+  adminDeleteStudent,
+  generatePassword,
+  isValidStudentPhone,
+  normalizeStudentPhone,
+} from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
 import { Plus, Search, User, Loader, ChevronLeft, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -57,13 +64,14 @@ export default function UsersManagementPage() {
   const handleCreateStudent = async (e) => {
     e.preventDefault();
     setError('');
+    const normalizedPhone = normalizeStudentPhone(phone);
 
     if (fullName.trim().length < 2) {
       setError('الاسم الكامل يجب أن يكون ثنائياً على الأقل.');
       return;
     }
 
-    if (!/^\d{10,15}$/.test(phone.trim())) {
+    if (!isValidStudentPhone(phone)) {
       setError('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
       return;
     }
@@ -77,7 +85,7 @@ export default function UsersManagementPage() {
     try {
       await adminCreateStudent({
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: normalizedPhone,
         password,
         teacherId: teacherId || null,
       });
@@ -191,7 +199,7 @@ export default function UsersManagementPage() {
                         {student.teachers.name}
                       </span>
                     ) : (
-                      <span className="admin-muted">لا يوجد معلم</span>
+                      <span className="admin-muted">--بدون معلم</span>
                     )}
                   </td>
                   <td>
@@ -277,12 +285,12 @@ export default function UsersManagementPage() {
                   id="student-phone"
                   type="tel"
                   required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="01xxxxxxxxx"
-                  className="admin-input"
-                  dir="ltr"
-                />
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="01xxxxxxxxx أو +201xxxxxxxxx"
+                    className="admin-input"
+                    dir="ltr"
+                  />
               </div>
 
               <div className="admin-field-group">
@@ -320,7 +328,7 @@ export default function UsersManagementPage() {
                   onChange={(e) => setTeacherId(e.target.value)}
                   className="admin-input admin-select"
                 >
-                  <option value="">— بدون معلم حالياً —</option>
+                  <option value="">--بدون معلم</option>
                   {teachers.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} ({t.gender === 'male' ? 'معلم' : 'معلمة'})

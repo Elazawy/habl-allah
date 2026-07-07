@@ -260,7 +260,7 @@ export default function UserDetailPage() {
                 value={teacherId}
                 onChange={(e) => setTeacherId(e.target.value)}
               >
-                <option value="">— بدون معلم —</option>
+                <option value="">--بدون معلم</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}

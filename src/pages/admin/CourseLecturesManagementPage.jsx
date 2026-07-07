@@ -182,13 +182,13 @@ export default function CourseLecturesManagementPage() {
     setDeleting(true);
 
     try {
-      const removed = await deleteCourseLecture(deleteTarget.id);
+      if (!course?.is_free) {
+        await maybeDeleteCourseLectureVideoAsset(deleteTarget);
+      }
+
+      await deleteCourseLecture(deleteTarget.id);
       setLectures((prev) => prev.filter((lecture) => lecture.id !== deleteTarget.id));
       setDeleteTarget(null);
-
-      maybeDeleteCourseLectureVideoAsset(removed).catch((cleanupError) => {
-        console.error('[cleanup course lecture video failed]', cleanupError);
-      });
     } catch (deleteError) {
       console.error(deleteError);
       alert(`فشل الحذف: ${deleteError.message}`);
@@ -200,6 +200,12 @@ export default function CourseLecturesManagementPage() {
   const openAdd = () => setModalState({ open: true, lecture: null });
   const openEdit = (lecture) => setModalState({ open: true, lecture });
   const closeModal = () => setModalState({ open: false, lecture: null });
+
+  const watchPageHref = course
+    ? lectures[0]?.slug
+      ? `/quran/courses/${course.slug}/watch/${lectures[0].slug}`
+      : `/quran/courses/${course.slug}/watch`
+    : '#';
 
   return (
     <div className="admin-page">
@@ -252,7 +258,7 @@ export default function CourseLecturesManagementPage() {
                 {course.is_free ? 'مجانية / YouTube' : 'مدفوعة / MP4 + R2'}
               </span>
               <Link
-                to={`/quran/courses/${course.slug}/watch`}
+                to={watchPageHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="admin-btn admin-btn--ghost"

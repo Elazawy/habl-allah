@@ -64,13 +64,12 @@ function buildObjectUrl(config: R2Config, objectKey: string) {
   );
 }
 
-export function buildPaidLectureObjectKey(courseId: string, assetId = crypto.randomUUID()) {
-  return `courses/${courseId}/lectures/${assetId}/source.mp4`;
+function buildBucketUrl(config: R2Config) {
+  return new URL(`https://${config.bucketName}.${config.accountId}.r2.cloudflarestorage.com/`);
 }
 
-export async function createPresignedR2Url(options: PresignOptions): Promise<PresignResult> {
-  const config = getR2Config();
-  const aws = new AwsClient({
+function createAwsR2Client(config: R2Config) {
+  return new AwsClient({
     accessKeyId: config.accessKeyId,
     secretAccessKey: config.secretAccessKey,
     sessionToken: config.sessionToken,
@@ -78,6 +77,34 @@ export async function createPresignedR2Url(options: PresignOptions): Promise<Pre
     region: 'auto',
     retries: 0,
   });
+}
+
+function xmlUnescape(value: string) {
+  return value
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+function normalizePathSegment(value: string) {
+  return value.trim().replace(/^\/+|\/+$/g, '');
+}
+
+export function buildPaidCoursePrefix(courseSlug: string) {
+  return `courses/${normalizePathSegment(courseSlug)}/`;
+}
+
+export function buildPaidLectureObjectKey(courseSlug: string, lectureSlug: string, objectName = 'source.mp4') {
+  const normalizedObjectName = normalizePathSegment(objectName) || 'source.mp4';
+
+  return `${buildPaidCoursePrefix(courseSlug)}${normalizePathSegment(lectureSlug)}/${normalizedObjectName}`;
+}
+
+export async function createPresignedR2Url(options: PresignOptions): Promise<PresignResult> {
+  const config = getR2Config();
+  const aws = createAwsR2Client(config);
 
   const url = buildObjectUrl(config, options.objectKey);
   url.searchParams.set('X-Amz-Expires', String(options.expiresIn));
@@ -112,4 +139,69 @@ export async function createPresignedR2Url(options: PresignOptions): Promise<Pre
     url: request.url,
     requiredHeaders,
   };
+}
+
+export async function deleteR2Object(objectKey: string) {
+  const config = getR2Config();
+  const aws = createAwsR2Client(config);
+  const response = await aws.fetch(buildObjectUrl(config, objectKey).toString(), {
+    method: 'DELETE',
+  });
+
+  if (!response.ok && response.status !== 404) {
+    throw new Error(`Failed to delete R2 object ${objectKey} (HTTP ${response.status})`);
+  }
+}
+
+export async function deleteR2Objects(objectKeys: string[]) {
+  const uniqueKeys = [...new Set(objectKeys.map((key) => key.trim()).filter(Boolean))];
+
+  for (const objectKey of uniqueKeys) {
+    await deleteR2Object(objectKey);
+  }
+
+  return uniqueKeys;
+}
+
+export async function listR2ObjectKeys(prefix: string) {
+  const normalizedPrefix = prefix.trim();
+  if (!normalizedPrefix) {
+    return [];
+  }
+
+  const config = getR2Config();
+  const aws = createAwsR2Client(config);
+  const objectKeys: string[] = [];
+  let continuationToken = '';
+
+  while (true) {
+    const url = buildBucketUrl(config);
+    url.searchParams.set('list-type', '2');
+    url.searchParams.set('prefix', normalizedPrefix);
+
+    if (continuationToken) {
+      url.searchParams.set('continuation-token', continuationToken);
+    }
+
+    const response = await aws.fetch(url.toString(), { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`Failed to list R2 objects for prefix ${normalizedPrefix} (HTTP ${response.status})`);
+    }
+
+    const body = await response.text();
+    const matches = body.matchAll(/<Key>([\s\S]*?)<\/Key>/g);
+
+    for (const match of matches) {
+      objectKeys.push(xmlUnescape(match[1] ?? ''));
+    }
+
+    const nextTokenMatch = body.match(/<NextContinuationToken>([\s\S]*?)<\/NextContinuationToken>/);
+    continuationToken = xmlUnescape(nextTokenMatch?.[1] ?? '').trim();
+
+    if (!continuationToken) {
+      break;
+    }
+  }
+
+  return objectKeys;
 }
