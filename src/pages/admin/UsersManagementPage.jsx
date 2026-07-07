@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
-import { fetchAllStudents, adminCreateStudent, generatePassword } from '../../services/studentsService';
+import {
+  fetchAllStudents,
+  adminCreateStudent,
+  adminDeleteStudent,
+  generatePassword,
+  isValidStudentPhone,
+  normalizeStudentPhone,
+} from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
-import { Plus, Search, User, Loader, ChevronLeft } from 'lucide-react';
+import { Plus, Search, User, Loader, ChevronLeft, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function UsersManagementPage() {
@@ -18,6 +25,8 @@ export default function UsersManagementPage() {
   const [teacherId, setTeacherId] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -55,13 +64,14 @@ export default function UsersManagementPage() {
   const handleCreateStudent = async (e) => {
     e.preventDefault();
     setError('');
+    const normalizedPhone = normalizeStudentPhone(phone);
 
     if (fullName.trim().length < 2) {
       setError('الاسم الكامل يجب أن يكون ثنائياً على الأقل.');
       return;
     }
 
-    if (!/^\d{10,15}$/.test(phone.trim())) {
+    if (!isValidStudentPhone(phone)) {
       setError('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
       return;
     }
@@ -75,7 +85,7 @@ export default function UsersManagementPage() {
     try {
       await adminCreateStudent({
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: normalizedPhone,
         password,
         teacherId: teacherId || null,
       });
@@ -101,6 +111,22 @@ export default function UsersManagementPage() {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteStudent = async () => {
+    if (!deleteTarget) return;
+
+    setDeleting(true);
+    try {
+      await adminDeleteStudent(deleteTarget.id);
+      setStudents((prev) => prev.filter((student) => student.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error(err);
+      alert('فشل حذف الحساب: ' + (err.message ?? 'حدث خطأ غير متوقع.'));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -173,7 +199,7 @@ export default function UsersManagementPage() {
                         {student.teachers.name}
                       </span>
                     ) : (
-                      <span className="admin-muted">لا يوجد معلم</span>
+                      <span className="admin-muted">--بدون معلم</span>
                     )}
                   </td>
                   <td>
@@ -190,15 +216,26 @@ export default function UsersManagementPage() {
                     {new Date(student.created_at).toLocaleDateString('ar-EG')}
                   </td>
                   <td>
-                    <button
-                      id={`view-student-${student.id}`}
-                      className="admin-icon-btn admin-icon-btn--edit"
-                      onClick={() => navigate(`/admin/quran/users/${student.id}`)}
-                      title="عرض التفاصيل وإدارة الاشتراكات والدروس"
-                      aria-label={`عرض تفاصيل ${student.full_name}`}
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
+                    <div className="admin-row-actions">
+                      <button
+                        id={`view-student-${student.id}`}
+                        className="admin-icon-btn admin-icon-btn--edit"
+                        onClick={() => navigate(`/admin/quran/users/${student.id}`)}
+                        title="عرض التفاصيل وإدارة الاشتراكات والدروس"
+                        aria-label={`عرض تفاصيل ${student.full_name}`}
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <button
+                        id={`delete-student-${student.id}`}
+                        className="admin-icon-btn admin-icon-btn--delete"
+                        onClick={() => setDeleteTarget(student)}
+                        title="حذف حساب الطالب"
+                        aria-label={`حذف حساب ${student.full_name}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -248,12 +285,12 @@ export default function UsersManagementPage() {
                   id="student-phone"
                   type="tel"
                   required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="01xxxxxxxxx"
-                  className="admin-input"
-                  dir="ltr"
-                />
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="01xxxxxxxxx أو +201xxxxxxxxx"
+                    className="admin-input"
+                    dir="ltr"
+                  />
               </div>
 
               <div className="admin-field-group">
@@ -291,7 +328,7 @@ export default function UsersManagementPage() {
                   onChange={(e) => setTeacherId(e.target.value)}
                   className="admin-input admin-select"
                 >
-                  <option value="">— بدون معلم حالياً —</option>
+                  <option value="">--بدون معلم</option>
                   {teachers.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} ({t.gender === 'male' ? 'معلم' : 'معلمة'})
@@ -325,6 +362,43 @@ export default function UsersManagementPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div
+          className="admin-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="تأكيد حذف حساب الطالب"
+        >
+          <div className="admin-confirm-dialog">
+            <div className="admin-confirm-icon">🗑️</div>
+            <h3 className="admin-confirm-title">تأكيد حذف حساب الطالب</h3>
+            <p className="admin-confirm-text">
+              هل أنت متأكد من حذف حساب <strong>{deleteTarget.full_name}</strong>؟
+              <br />
+              سيتم حذف بيانات الدخول والاشتراكات والدروس المرتبطة به نهائياً.
+            </p>
+            <div className="admin-modal-actions">
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                className="admin-btn admin-btn--danger"
+                onClick={handleDeleteStudent}
+                disabled={deleting}
+              >
+                {deleting ? 'جارٍ الحذف…' : 'نعم، احذف الحساب'}
+              </button>
+            </div>
           </div>
         </div>
       )}

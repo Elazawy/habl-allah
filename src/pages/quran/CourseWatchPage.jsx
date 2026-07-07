@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
 } from 'lucide-react';
@@ -7,23 +7,96 @@ import QuranNav from './QuranNav';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import {
   fetchCourseWatchPageBySlug,
+  fetchMyCompletedCourseLectureIds,
+  markCourseLectureCompleted,
+  markCourseLectureIncomplete,
   requestCourseLecturePlaybackUrl,
+  syncMyCompletedCourseLectures,
 } from '../../services/courseLecturesService';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import WatchFocusLayout from './watch/WatchFocusLayout';
 import { useAuth } from '../../context/AuthContext';
 import { checkMyCourseAccess } from '../../services/studentsService';
 
+function getCompletedLecturesStorageKey(courseId) {
+  return courseId ? `completed_lectures_${courseId}` : '';
+}
+
+function readCompletedLecturesFromStorage(courseId) {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  const storageKey = getCompletedLecturesStorageKey(courseId);
+  if (!storageKey) {
+    return [];
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(storageKey);
+    if (!rawValue) {
+      return [];
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+    if (!Array.isArray(parsedValue)) {
+      return [];
+    }
+
+    return [...new Set(parsedValue.filter((lectureId) => typeof lectureId === 'string' && lectureId.trim() !== ''))];
+  } catch (error) {
+    console.error('[read completed lectures from storage failed]', error);
+    return [];
+  }
+}
+
+function writeCompletedLecturesToStorage(courseId, completedLectures) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const storageKey = getCompletedLecturesStorageKey(courseId);
+  if (!storageKey) {
+    return;
+  }
+
+  const lectureIds = Array.from(completedLectures ?? []).filter(
+    (lectureId) => typeof lectureId === 'string' && lectureId.trim() !== ''
+  );
+
+  if (lectureIds.length === 0) {
+    window.localStorage.removeItem(storageKey);
+    return;
+  }
+
+  window.localStorage.setItem(storageKey, JSON.stringify(lectureIds));
+}
+
+function clearCompletedLecturesFromStorage(courseId) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const storageKey = getCompletedLecturesStorageKey(courseId);
+  if (!storageKey) {
+    return;
+  }
+
+  window.localStorage.removeItem(storageKey);
+}
+
 export default function CourseWatchPage() {
-  const { slug } = useParams();
+  const { courseSlug, lectureSlug } = useParams();
+  const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { user, isAdmin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { user, isAdmin, isStudent } = useAuth();
   const [course, setCourse] = useState(null);
   const [lectures, setLectures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [accessLoading, setAccessLoading] = useState(true);
+  const [progressLoading, setProgressLoading] = useState(true);
   const [error, setError] = useState('');
   const [playbackRefreshKey, setPlaybackRefreshKey] = useState(0);
   const [playbackState, setPlaybackState] = useState({
@@ -37,12 +110,21 @@ export default function CourseWatchPage() {
   const [completedLectures, setCompletedLectures] = useState(new Set());
   const [notes, setNotes] = useState({});
 
-  const lectureParam = searchParams.get('lecture') || location.state?.lectureId || null;
+  const legacyLectureId = searchParams.get('lecture') || location.state?.lectureId || null;
 
   const selectedLecture = useMemo(() => {
     if (!lectures.length) return null;
-    return lectures.find((lecture) => lecture.id === lectureParam) ?? lectures[0];
-  }, [lectureParam, lectures]);
+
+    if (lectureSlug) {
+      return lectures.find((lecture) => lecture.slug === lectureSlug) ?? lectures[0];
+    }
+
+    if (legacyLectureId) {
+      return lectures.find((lecture) => lecture.id === legacyLectureId) ?? lectures[0];
+    }
+
+    return lectures[0];
+  }, [lectureSlug, legacyLectureId, lectures]);
 
   const selectedLectureIndex = useMemo(() => {
     if (!selectedLecture) return -1;
@@ -56,6 +138,11 @@ export default function CourseWatchPage() {
 
   const isFreeCourse = Boolean(course?.is_free);
   const selectedLectureId = selectedLecture?.id ?? null;
+  const courseLectureIds = useMemo(
+    () => lectures.map((lecture) => lecture.id).filter(Boolean),
+    [lectures]
+  );
+  const isSignedInStudent = Boolean(user && isStudent && !isAdmin);
 
   // Load course and lectures
   useEffect(() => {
@@ -67,7 +154,7 @@ export default function CourseWatchPage() {
         setError('');
         setAccessLoading(true);
 
-        const data = await fetchCourseWatchPageBySlug(slug);
+        const data = await fetchCourseWatchPageBySlug(courseSlug);
         if (!active) return;
 
         if (!data.course) {
@@ -113,34 +200,99 @@ export default function CourseWatchPage() {
     return () => {
       active = false;
     };
-  }, [slug, user, isAdmin]);
+  }, [courseSlug, user, isAdmin]);
 
-  // Load user progress and notes once course details are fetched
+  // Load completed lectures from Supabase for signed-in students, with guest localStorage as fallback.
   useEffect(() => {
-    if (course) {
-      // Completed lectures list
-      const savedCompleted = localStorage.getItem(`completed_lectures_${course.id}`);
-      if (savedCompleted) {
-        try {
-          setCompletedLectures(new Set(JSON.parse(savedCompleted)));
-        } catch (e) {
-          console.error(e);
-        }
-      } else {
+    let active = true;
+
+    const loadProgress = async () => {
+      if (!course) {
         setCompletedLectures(new Set());
+        setProgressLoading(false);
+        return;
       }
 
-      // Notes object
-      const savedNotes = localStorage.getItem(`notes_${course.id}`);
-      if (savedNotes) {
-        try {
-          setNotes(JSON.parse(savedNotes));
-        } catch (e) {
-          console.error(e);
+      setProgressLoading(true);
+
+      const guestCompletedLectureIds = readCompletedLecturesFromStorage(course.id);
+
+      if (!isSignedInStudent) {
+        if (active) {
+          setCompletedLectures(new Set(guestCompletedLectureIds));
+          setProgressLoading(false);
         }
-      } else {
+        return;
+      }
+
+      if (!course.is_free && !hasAccess) {
+        if (active) {
+          setCompletedLectures(new Set());
+          setProgressLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const remoteCompletedLectureIds = await fetchMyCompletedCourseLectureIds(courseLectureIds);
+        if (!active) return;
+
+        const remoteCompletedLectureSet = new Set(remoteCompletedLectureIds);
+        const lectureIdSet = new Set(courseLectureIds);
+        const guestLectureIdsToSync = guestCompletedLectureIds.filter(
+          (lectureId) => lectureIdSet.has(lectureId) && !remoteCompletedLectureSet.has(lectureId)
+        );
+
+        if (guestLectureIdsToSync.length > 0) {
+          await syncMyCompletedCourseLectures(guestLectureIdsToSync);
+          if (!active) return;
+
+          guestLectureIdsToSync.forEach((lectureId) => {
+            remoteCompletedLectureSet.add(lectureId);
+          });
+        }
+
+        if (guestCompletedLectureIds.length > 0) {
+          clearCompletedLecturesFromStorage(course.id);
+        }
+
+        setCompletedLectures(remoteCompletedLectureSet);
+      } catch (progressError) {
+        console.error('[course progress load failed]', progressError);
+        if (!active) return;
+
+        setCompletedLectures(new Set(guestCompletedLectureIds));
+      } finally {
+        if (active) {
+          setProgressLoading(false);
+        }
+      }
+    };
+
+    loadProgress();
+
+    return () => {
+      active = false;
+    };
+  }, [course, courseLectureIds, hasAccess, isSignedInStudent]);
+
+  // Load user notes once course details are fetched.
+  useEffect(() => {
+    if (!course) {
+      setNotes({});
+      return;
+    }
+
+    const savedNotes = localStorage.getItem(`notes_${course.id}`);
+    if (savedNotes) {
+      try {
+        setNotes(JSON.parse(savedNotes));
+      } catch (storageError) {
+        console.error(storageError);
         setNotes({});
       }
+    } else {
+      setNotes({});
     }
   }, [course]);
 
@@ -154,17 +306,19 @@ export default function CourseWatchPage() {
     document.title = 'صفحة المشاهدة - حبل الله';
   }, [course]);
 
-  // Update Search Params on Lecture change
+  // Keep the watch URL canonical with the lecture slug in the pathname.
   useEffect(() => {
-    if (!selectedLecture) return;
+    if (!course || !selectedLecture) return;
 
-    const currentLectureParam = searchParams.get('lecture');
-    if (currentLectureParam === selectedLecture.id) return;
+    const canonicalPath = `/quran/courses/${course.slug}/watch/${selectedLecture.slug}`;
+    const hasLegacyLectureQuery = searchParams.has('lecture');
 
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.set('lecture', selectedLecture.id);
-    setSearchParams(nextParams, { replace: true });
-  }, [searchParams, selectedLecture, setSearchParams]);
+    if (location.pathname === canonicalPath && !hasLegacyLectureQuery) {
+      return;
+    }
+
+    navigate(canonicalPath, { replace: true });
+  }, [course, lectureSlug, location.pathname, navigate, searchParams, selectedLecture]);
 
   // Load Playback URL for secure MP4 files
   useEffect(() => {
@@ -210,10 +364,9 @@ export default function CourseWatchPage() {
   }, [course, isFreeCourse, selectedLectureId, playbackRefreshKey, hasAccess]);
 
   // Event handlers
-  const handleSelectLecture = (lectureId) => {
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.set('lecture', lectureId);
-    setSearchParams(nextParams, { replace: false });
+  const handleSelectLecture = (nextLectureSlug) => {
+    if (!course || !nextLectureSlug) return;
+    navigate(`/quran/courses/${course.slug}/watch/${nextLectureSlug}`);
   };
 
   const handleSubscribe = () => {
@@ -224,18 +377,46 @@ export default function CourseWatchPage() {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const toggleCompleteLecture = (lectureId) => {
-    if (!course) return;
-    setCompletedLectures((prev) => {
-      const next = new Set(prev);
-      if (next.has(lectureId)) {
-        next.delete(lectureId);
+  const toggleCompleteLecture = async (lectureId) => {
+    if (!course || typeof lectureId !== 'string' || lectureId.trim() === '') return;
+
+    const next = new Set(completedLectures);
+    const wasCompleted = next.has(lectureId);
+
+    if (wasCompleted) {
+      next.delete(lectureId);
+    } else {
+      next.add(lectureId);
+    }
+
+    setCompletedLectures(next);
+
+    if (!isSignedInStudent) {
+      writeCompletedLecturesToStorage(course.id, next);
+      return;
+    }
+
+    try {
+      if (wasCompleted) {
+        await markCourseLectureIncomplete(lectureId);
       } else {
-        next.add(lectureId);
+        await markCourseLectureCompleted(lectureId);
       }
-      localStorage.setItem(`completed_lectures_${course.id}`, JSON.stringify(Array.from(next)));
-      return next;
-    });
+
+      clearCompletedLecturesFromStorage(course.id);
+    } catch (progressError) {
+      console.error('[course progress toggle failed]', progressError);
+
+      const reverted = new Set(next);
+      if (wasCompleted) {
+        reverted.add(lectureId);
+      } else {
+        reverted.delete(lectureId);
+      }
+
+      setCompletedLectures(reverted);
+      window.alert('تعذر حفظ تقدمك حالياً. حاول مرة أخرى.');
+    }
   };
 
   const saveNote = (lectureId, text) => {
@@ -248,7 +429,7 @@ export default function CourseWatchPage() {
   };
 
   // Loading indicator screen
-  if (loading || accessLoading) {
+  if (loading || accessLoading || progressLoading) {
     return (
       <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
         <QuranNav />

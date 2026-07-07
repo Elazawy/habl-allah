@@ -22,14 +22,39 @@ function createAdminClient() {
 }
 
 // ─── Phone → Email helper ─────────────────────────────────────────────────────
+function normalizeLocalizedDigits(value: string): string {
+  return String(value).replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
+    const code = digit.charCodeAt(0);
+
+    if (code >= 0x0660 && code <= 0x0669) {
+      return String(code - 0x0660);
+    }
+
+    if (code >= 0x06F0 && code <= 0x06F9) {
+      return String(code - 0x06F0);
+    }
+
+    return digit;
+  });
+}
+
+function normalizeStudentPhone(phone: string): string {
+  const rawPhone = normalizeLocalizedDigits(phone).trim();
+  const hadLeadingPlus = rawPhone.startsWith('+');
+  let digits = rawPhone.replace(/\D/g, '');
+
+  if (!digits) return '';
+  if (hadLeadingPlus) return digits;
+  if (digits.startsWith('0')) return `2${digits}`;
+  return digits;
+}
+
 // Generates a deterministic, valid RFC-5321 email from a phone number.
 // E.g. 01128472424 → s201128472424@habl-allah.app
 // The 's' prefix ensures the local-part starts with a letter (Supabase requirement).
 // Must match exactly the same logic used in studentsService.js → phoneToAuthEmail().
 function phoneToAuthEmail(phone: string): string {
-  let digits = phone.trim().replace(/\s/g, '');
-  if (digits.startsWith('+')) digits = digits.slice(1); // +201... → 201...
-  else if (digits.startsWith('0')) digits = '2' + digits; // 01... → 201...
+  const digits = normalizeStudentPhone(phone);
   return `s${digits}@habl-allah.app`;
 }
 
@@ -117,15 +142,29 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'phone, password, and fullName are required' }, { status: 400 });
     }
 
+    const normalizedPhone = normalizeStudentPhone(phone);
+    if (!/^\d{10,15}$/.test(normalizedPhone)) {
+      return json({ error: 'رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.' }, { status: 400 });
+    }
+
+    if (fullName.trim().length < 2) {
+      return json({ error: 'الاسم الكامل يجب أن يكون ثنائياً على الأقل.' }, { status: 400 });
+    }
+
     // Derive a deterministic valid email from the phone number.
     // Admin API accepts this format without triggering email-validation errors.
     // Login uses the same email derivation in the frontend service.
-    const email = phoneToAuthEmail(phone);
+    const email = phoneToAuthEmail(normalizedPhone);
 
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true, // confirmed immediately — no email OTP sent to student
+      user_metadata: {
+        full_name: fullName.trim(),
+        phone: normalizedPhone,
+        teacher_id: null,
+      },
     });
 
     if (authError) {
@@ -140,21 +179,28 @@ Deno.serve(async (req: Request) => {
 
     const userId = authData.user.id;
 
-    const profilePayload: Record<string, unknown> = {
-      id: userId,
-      full_name: fullName.trim(),
-      phone: phone.trim(), // store original local format for display
-    };
-    if (teacherId) profilePayload.teacher_id = teacherId;
-
-    const { error: profileError } = await adminClient
+    const { data: studentProfile, error: profileLookupError } = await adminClient
       .from('student_profiles')
-      .insert([profilePayload]);
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
 
-    if (profileError) {
-      // Roll back auth user to avoid orphans
+    if (profileLookupError || !studentProfile) {
       await adminClient.auth.admin.deleteUser(userId);
-      return json({ error: profileError.message }, { status: 500 });
+      return json({ error: profileLookupError?.message ?? 'تعذر إنشاء ملف الطالب تلقائياً.' }, { status: 500 });
+    }
+
+    if (teacherId) {
+      const { error: teacherError } = await adminClient
+        .from('student_profiles')
+        .update({ teacher_id: teacherId })
+        .eq('id', userId);
+
+      if (teacherError) {
+        // Roll back auth user to avoid orphans
+        await adminClient.auth.admin.deleteUser(userId);
+        return json({ error: teacherError.message }, { status: 500 });
+      }
     }
 
     return json({ user: { id: userId, email } }, { status: 201 });

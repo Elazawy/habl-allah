@@ -3,11 +3,13 @@ import { fetchCourseBySlug } from './coursesService';
 
 const LECTURES_TABLE = import.meta.env.VITE_QURAN_COURSE_LECTURES_TABLE || 'quran_course_lectures';
 const PUBLIC_LECTURES_VIEW = import.meta.env.VITE_QURAN_COURSE_PUBLIC_LECTURES_VIEW || 'published_quran_course_lectures';
+const LECTURE_COMPLETIONS_TABLE =
+  import.meta.env.VITE_STUDENT_COURSE_LECTURE_COMPLETIONS_TABLE || 'student_course_lecture_completions';
 
 // Function names stay env-configurable until the backend contract is finalized.
 const LECTURE_UPLOAD_FUNCTION = import.meta.env.VITE_COURSE_LECTURE_UPLOAD_FUNCTION || 'course-lecture-upload-url';
 const LECTURE_PLAYBACK_FUNCTION = import.meta.env.VITE_COURSE_LECTURE_PLAYBACK_FUNCTION || 'course-lecture-playback-url';
-const LECTURE_DELETE_VIDEO_FUNCTION = import.meta.env.VITE_COURSE_LECTURE_DELETE_FUNCTION || '';
+const LECTURE_DELETE_VIDEO_FUNCTION = import.meta.env.VITE_COURSE_LECTURE_DELETE_FUNCTION || 'course-lecture-delete-asset';
 
 function ensureSupabaseClient() {
   if (!supabase) {
@@ -23,6 +25,18 @@ function cleanPayload(payload = {}) {
   return Object.fromEntries(
     Object.entries(payload).filter(([, value]) => value !== undefined)
   );
+}
+
+async function getCurrentUserId(client = ensureSupabaseClient()) {
+  const { data: { user }, error } = await client.auth.getUser();
+
+  if (error) throw error;
+
+  return user?.id ?? null;
+}
+
+function normalizeLectureIds(lectureIds = []) {
+  return [...new Set(lectureIds.filter((lectureId) => typeof lectureId === 'string' && lectureId.trim() !== ''))];
 }
 
 function normalizeLecture(lecture) {
@@ -68,7 +82,34 @@ function normalizeLecturePayload(payload = {}) {
   return cleanPayload(next);
 }
 
-function getFunctionErrorMessage(error, featureLabel) {
+async function getFunctionErrorMessage(error, featureLabel) {
+  const response = error?.context;
+
+  if (response && typeof response.clone === 'function') {
+    try {
+      const responseBody = await response.clone().json();
+      const responseMessage =
+        typeof responseBody?.error === 'string'
+          ? responseBody.error.trim()
+          : typeof responseBody?.message === 'string'
+            ? responseBody.message.trim()
+            : '';
+
+      if (responseMessage) {
+        return responseMessage;
+      }
+    } catch {
+      try {
+        const responseText = (await response.clone().text()).trim();
+        if (responseText) {
+          return responseText;
+        }
+      } catch {
+        // Ignore response parsing errors and fall back to the client error message.
+      }
+    }
+  }
+
   const message = error?.message ?? '';
 
   if (
@@ -272,6 +313,96 @@ export async function fetchCourseWatchPageBySlug(slug) {
   return { course, lectures };
 }
 
+export async function fetchMyCompletedCourseLectureIds(lectureIds = []) {
+  const client = ensureSupabaseClient();
+  const userId = await getCurrentUserId(client);
+  const normalizedLectureIds = normalizeLectureIds(lectureIds);
+
+  if (!userId || normalizedLectureIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await client
+    .from(LECTURE_COMPLETIONS_TABLE)
+    .select('lecture_id')
+    .eq('student_id', userId)
+    .in('lecture_id', normalizedLectureIds);
+
+  if (error) throw error;
+
+  return normalizeLectureIds((data ?? []).map((record) => record.lecture_id));
+}
+
+export async function syncMyCompletedCourseLectures(lectureIds = []) {
+  const client = ensureSupabaseClient();
+  const userId = await getCurrentUserId(client);
+  const normalizedLectureIds = normalizeLectureIds(lectureIds);
+
+  if (!userId || normalizedLectureIds.length === 0) {
+    return;
+  }
+
+  const completedAt = new Date().toISOString();
+  const { error } = await client
+    .from(LECTURE_COMPLETIONS_TABLE)
+    .upsert(
+      normalizedLectureIds.map((lectureId) => ({
+        student_id: userId,
+        lecture_id: lectureId,
+        completed_at: completedAt,
+      })),
+      { onConflict: 'student_id,lecture_id' }
+    );
+
+  if (error) throw error;
+}
+
+export async function markCourseLectureCompleted(lectureId) {
+  return syncMyCompletedCourseLectures([lectureId]);
+}
+
+export async function markCourseLectureIncomplete(lectureId) {
+  const client = ensureSupabaseClient();
+  const userId = await getCurrentUserId(client);
+
+  if (!userId || typeof lectureId !== 'string' || lectureId.trim() === '') {
+    return;
+  }
+
+  const { error } = await client
+    .from(LECTURE_COMPLETIONS_TABLE)
+    .delete()
+    .eq('student_id', userId)
+    .eq('lecture_id', lectureId);
+
+  if (error) throw error;
+}
+
+export async function isCourseLectureSlugTaken(courseId, slug, { excludeLectureId } = {}) {
+  const client = ensureSupabaseClient();
+  const normalizedSlug = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
+
+  if (!courseId || !normalizedSlug) {
+    return false;
+  }
+
+  let query = client
+    .from(LECTURES_TABLE)
+    .select('id', { count: 'exact', head: true })
+    .eq('course_id', courseId)
+    .eq('slug', normalizedSlug);
+
+  if (excludeLectureId) {
+    query = query.neq('id', excludeLectureId);
+  }
+
+  const { count, error } = await query;
+
+  if (error) throw error;
+
+  return (count ?? 0) > 0;
+}
+
 export async function createCourseLecture(payload) {
   const client = ensureSupabaseClient();
 
@@ -319,7 +450,7 @@ export async function deleteCourseLecture(id) {
   return normalizeLecture(data);
 }
 
-export async function uploadCourseLectureVideo({ courseId, lectureId, file, onProgress }) {
+export async function uploadCourseLectureVideo({ courseId, lectureId, lectureSlug, file, onProgress }) {
   const client = ensureSupabaseClient();
 
   if (!file) {
@@ -335,6 +466,7 @@ export async function uploadCourseLectureVideo({ courseId, lectureId, file, onPr
     body: cleanPayload({
       courseId,
       lectureId: lectureId ?? undefined,
+      lectureSlug: lectureSlug ?? undefined,
       fileName: file.name,
       contentType: file.type || 'video/mp4',
       fileSize: file.size,
@@ -342,7 +474,7 @@ export async function uploadCourseLectureVideo({ courseId, lectureId, file, onPr
   });
 
   if (error) {
-    throw new Error(getFunctionErrorMessage(error, 'رفع الفيديو'));
+    throw new Error(await getFunctionErrorMessage(error, 'رفع الفيديو'));
   }
 
   const uploadUrl = data?.uploadUrl ?? data?.signedUrl ?? data?.url;
@@ -387,7 +519,7 @@ export async function requestCourseLecturePlaybackUrl(lectureId) {
   });
 
   if (error) {
-    throw new Error(getFunctionErrorMessage(error, 'تشغيل الفيديو'));
+    throw new Error(await getFunctionErrorMessage(error, 'تشغيل الفيديو'));
   }
 
   const url = data?.playbackUrl ?? data?.signedUrl ?? data?.url;
@@ -421,6 +553,29 @@ export async function maybeDeleteCourseLectureVideoAsset(record) {
   });
 
   if (error) {
-    throw new Error(getFunctionErrorMessage(error, 'حذف ملف الفيديو'));
+    throw new Error(await getFunctionErrorMessage(error, 'حذف ملف الفيديو'));
+  }
+}
+
+export async function deleteCourseLectureVideoAssets(records = [], { coursePrefix } = {}) {
+  if (!LECTURE_DELETE_VIDEO_FUNCTION) {
+    return;
+  }
+
+  const assetKeys = [...new Set(records.map((record) => getVideoAssetKey(record)).filter(Boolean))];
+  if (!assetKeys.length && !coursePrefix) {
+    return;
+  }
+
+  const client = ensureSupabaseClient();
+  const { error } = await client.functions.invoke(LECTURE_DELETE_VIDEO_FUNCTION, {
+    body: cleanPayload({
+      assetKeys: assetKeys.length ? assetKeys : undefined,
+      coursePrefix,
+    }),
+  });
+
+  if (error) {
+    throw new Error(await getFunctionErrorMessage(error, 'حذف ملفات الفيديو'));
   }
 }

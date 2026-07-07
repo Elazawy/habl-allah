@@ -24,12 +24,10 @@ import {
   adminCreateStudent,
   fetchStudentByPhone,
   generatePassword,
+  isValidStudentPhone,
+  normalizeStudentPhone,
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
-
-function normalizePhone(value) {
-  return String(value ?? '').trim().replace(/\D/g, '');
-}
 
 export default function CompetitionAdminDetailsModal({ competition, onClose }) {
   const [activeTab, setActiveTab] = useState('subscribers');
@@ -160,7 +158,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
       setAccountModal({
         request,
         fullName: request.student_name ?? '',
-        phone: normalizePhone(request.student_phone),
+        phone: normalizeStudentPhone(request.student_phone),
         password: generatePassword(9),
         teacherId: '',
         error: '',
@@ -204,14 +202,14 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
     if (!accountModal?.request) return;
 
     const trimmedName = accountModal.fullName.trim();
-    const normalizedPhone = normalizePhone(accountModal.phone);
+    const normalizedPhone = normalizeStudentPhone(accountModal.phone);
 
     if (trimmedName.length < 2) {
       setAccountModalError('الاسم الكامل يجب أن يحتوي على حرفين على الأقل.');
       return;
     }
 
-    if (!/^\d{10,15}$/.test(normalizedPhone)) {
+    if (!isValidStudentPhone(accountModal.phone)) {
       setAccountModalError('رقم الهاتف يجب أن يتكوّن من 10 إلى 15 رقماً.');
       return;
     }
@@ -684,7 +682,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                   onChange={(event) => handleAccountField('teacherId', event.target.value)}
                   disabled={accountModal.saving || loadingTeachers}
                 >
-                  <option value="">— بدون معلم حالياً —</option>
+                  <option value="">--بدون معلم</option>
                   {teachers.map((teacher) => (
                     <option key={teacher.id} value={teacher.id}>
                       {teacher.name} ({teacher.gender === 'male' ? 'معلم' : 'معلمة'})

@@ -109,10 +109,19 @@ export default function StudentLoginPage() {
           </button>
         </form>
 
-        {/* Admin creates accounts info */}
+        {/* Signup / support */}
         <div className="mt-8 text-center border-t border-emerald-600/10 dark:border-emerald-400/10 pt-6">
-          <p className="text-xs font-bold text-emerald-900/60 dark:text-emerald-100/60">
-            لا تمتلك حساباً؟ تواصل مع الإدارة لإنشاء حسابك.
+          <p className="text-sm font-extrabold text-emerald-900 dark:text-emerald-100">
+            لا تمتلك حساباً؟{' '}
+            <Link
+              to="/quran/student/signup"
+              className="text-emerald-700 dark:text-emerald-300 underline decoration-2 underline-offset-2 hover:text-emerald-600 dark:hover:text-emerald-200"
+            >
+              أنشئ حسابك الآن
+            </Link>
+          </p>
+          <p className="mt-2 text-xs font-semibold text-emerald-900/60 dark:text-emerald-200/60">
+            بعد إنشاء الحساب يبدأ الطالب بحالة <span dir="ltr">--بدون معلم</span>، وتقوم الإدارة بإسناد المعلم لاحقاً عند الحاجة.
           </p>
         </div>
 

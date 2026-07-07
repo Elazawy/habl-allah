@@ -3,6 +3,7 @@ import { X, Upload, Loader } from 'lucide-react';
 import {
   createCourseLecture,
   hasLectureUploadedVideo,
+  isCourseLectureSlugTaken,
   maybeDeleteCourseLectureVideoAsset,
   updateCourseLecture,
   uploadCourseLectureVideo,
@@ -18,6 +19,9 @@ const EMPTY_FORM = {
   sort_order: 0,
   is_published: true,
 };
+
+const DUPLICATE_LECTURE_SLUG_ERROR =
+  'الرابط المختصر للمحاضرة مستخدم بالفعل داخل هذه الدورة. اختر رابطاً مختلفاً ثم أعد الحفظ.';
 
 function formatFileSize(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) return 'غير معروف';
@@ -136,7 +140,19 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         }
 
         payload.youtube_url = form.youtube_url.trim();
-      } else if (videoFile) {
+      } else if (!videoFile && !hasExistingVideo) {
+        throw new Error('يرجى اختيار ملف MP4 قبل حفظ المحاضرة المدفوعة.');
+      }
+
+      const slugTaken = await isCourseLectureSlugTaken(course.id, payload.slug, {
+        excludeLectureId: lecture?.id,
+      });
+
+      if (slugTaken) {
+        throw new Error(DUPLICATE_LECTURE_SLUG_ERROR);
+      }
+
+      if (!isFreeCourse && videoFile) {
         setUploadingVideo(true);
         setUploadProgress(0);
         setUploadMessage('جارٍ رفع ملف الفيديو...');
@@ -144,6 +160,7 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         uploadedVideo = await uploadCourseLectureVideo({
           courseId: course.id,
           lectureId: lecture?.id,
+          lectureSlug: payload.slug,
           file: videoFile,
           onProgress: (progress) => {
             setUploadProgress(progress);
@@ -154,8 +171,6 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         Object.assign(payload, uploadedVideo);
         setUploadProgress(100);
         setUploadMessage('تم رفع ملف الفيديو وسيتم الآن حفظ بيانات المحاضرة.');
-      } else if (!hasExistingVideo) {
-        throw new Error('يرجى اختيار ملف MP4 قبل حفظ المحاضرة المدفوعة.');
       }
 
       const saved = isEdit
@@ -193,9 +208,11 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
       console.error(saveError);
       if (
         saveError?.message?.includes('quran_course_lectures_course_slug_key') ||
-        saveError?.message?.includes('duplicate key value violates unique constraint')
+        saveError?.message?.includes('duplicate key value violates unique constraint') ||
+        saveError?.message?.includes('Lecture slug already exists for this course') ||
+        saveError?.message === DUPLICATE_LECTURE_SLUG_ERROR
       ) {
-        setError('الرابط المختصر للمحاضرة مستخدم بالفعل داخل هذه الدورة. اختر رابطاً مختلفاً ثم أعد الحفظ.');
+        setError(DUPLICATE_LECTURE_SLUG_ERROR);
       } else {
         setError(saveError.message ?? 'حدث خطأ أثناء حفظ المحاضرة.');
       }

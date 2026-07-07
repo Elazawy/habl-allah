@@ -217,13 +217,13 @@ export default function WatchFocusLayout({
 
   const handlePrevLecture = () => {
     if (selectedLectureIndex > 0) {
-      handleSelectLecture(lectures[selectedLectureIndex - 1].id);
+      handleSelectLecture(lectures[selectedLectureIndex - 1].slug);
     }
   };
 
   const handleNextLecture = () => {
     if (selectedLectureIndex < lectures.length - 1) {
-      handleSelectLecture(lectures[selectedLectureIndex + 1].id);
+      handleSelectLecture(lectures[selectedLectureIndex + 1].slug);
     }
   };
 
@@ -315,7 +315,7 @@ export default function WatchFocusLayout({
                       }`}
                     >
                       <button
-                        onClick={() => handleSelectLecture(lecture.id)}
+                        onClick={() => handleSelectLecture(lecture.slug)}
                         className="flex-1 text-right min-w-0 cursor-pointer group"
                       >
                         <span className="text-[9px] font-bold text-[var(--t-secondary)] block mb-0.5">
@@ -571,7 +571,7 @@ export default function WatchFocusLayout({
                             {/* Info button to click lecture */}
                             <button
                               onClick={() => {
-                                handleSelectLecture(lecture.id);
+                                handleSelectLecture(lecture.slug);
                                 setActiveTab('content');
                               }}
                               className="flex-1 text-right min-w-0 cursor-pointer group"

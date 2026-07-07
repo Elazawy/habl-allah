@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllCourses, deleteCourse, updateCourse, deleteCourseImage } from '../../services/coursesService';
-import { fetchCourseLecturesAdmin, deleteCourseLecture, maybeDeleteCourseLectureVideoAsset } from '../../services/courseLecturesService';
+import { fetchCourseLecturesAdmin, deleteCourseLectureVideoAssets } from '../../services/courseLecturesService';
 import CourseFormModal from './CourseFormModal';
 import { Plus, Pencil, Trash2, Search, BookOpen, Eye, EyeOff, PlayCircle, RefreshCcw } from 'lucide-react';
 
@@ -90,18 +90,13 @@ export default function CoursesManagementPage() {
       if (deleteTarget.image_path) {
         await deleteCourseImage(deleteTarget.image_path);
       }
-      // 2. Clean up lectures (R2 assets + DB rows)
-      try {
+
+      // 2. Delete paid lecture assets from Cloudflare R2 before the course row cascades lectures.
+      if (!deleteTarget.is_free) {
         const lectures = await fetchCourseLecturesAdmin(deleteTarget.id);
-        for (const lecture of lectures) {
-          if (!deleteTarget.is_free) {
-            await maybeDeleteCourseLectureVideoAsset(lecture);
-          }
-          await deleteCourseLecture(lecture.id);
-        }
-      } catch (lectureErr) {
-        console.warn('Failed to clean up course lectures:', lectureErr);
+        await deleteCourseLectureVideoAssets(lectures);
       }
+
       // 3. Delete row from DB
       await deleteCourse(deleteTarget.id);
       setCourses((prev) => prev.filter((c) => c.id !== deleteTarget.id));

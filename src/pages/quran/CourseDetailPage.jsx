@@ -12,7 +12,7 @@ import quranHero from '../../assets/quran-hero.png';
 
 export default function CourseDetailPage() {
   const { slug } = useParams();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isStudent } = useAuth();
 
   const [course, setCourse] = useState(null);
   const [lectures, setLectures] = useState([]);
@@ -113,6 +113,12 @@ export default function CourseDetailPage() {
   }
 
   const lectureNumberFormatter = new Intl.NumberFormat('ar-EG');
+  const isSignedInStudent = Boolean(user && isStudent && !isAdmin);
+  const isEnrolledFreeCourse = course.is_free && isSignedInStudent;
+  const isEnrolledPaidCourse = !course.is_free && hasAccess;
+  const watchHref = lectures[0]?.slug
+    ? `/quran/courses/${course.slug}/watch/${lectures[0].slug}`
+    : `/quran/courses/${course.slug}/watch`;
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
@@ -160,7 +166,7 @@ export default function CourseDetailPage() {
             <div className="p-6 md:p-10 space-y-10">
               {course.teacher_name && course.teacher_name.trim() !== '' && (
                 <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>
-                  <span>اسم الشيخ:</span>
+                  <span>فضيلة الشيخ:</span>
                   <span className="font-bold" style={{ color: 'var(--t-primary)' }}>{course.teacher_name}</span>
                 </div>
               )}
@@ -239,9 +245,15 @@ export default function CourseDetailPage() {
               <div className="border-t pt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6" style={{ borderColor: 'var(--t-border)' }}>
                 <div>
                   <h4 className="font-bold text-base mb-1" style={{ color: 'var(--t-text)' }}>
-                    {course.is_free ? 'انضم للمبادرة مجاناً' : 'اشترك وابدأ التعلم الآن'}
+                    {course.is_free
+                      ? isEnrolledFreeCourse
+                        ? 'اكمل تعلمك'
+                        : 'انضم للمبادرة مجاناً'
+                      : isEnrolledPaidCourse
+                        ? 'اكمل تعلمك'
+                        : 'اشترك وابدأ التعلم الآن'}
                   </h4>
-                  {!course.is_free && (
+                  {!course.is_free && !isEnrolledPaidCourse && (
                     <p className="text-xs" style={{ color: 'var(--t-text-muted)' }}>
                       التسجيل سهل ومباشر عبر المحادثة المباشرة مع منسقي الأكاديمية
                     </p>
@@ -250,7 +262,7 @@ export default function CourseDetailPage() {
 
                 <div className="flex flex-col items-stretch md:items-end gap-3 w-full md:w-auto shrink-0">
                   {/* Price row — hidden for free courses */}
-                  {!course.is_free && (
+                  {!course.is_free && !isEnrolledPaidCourse && (
                     <div className="flex items-center justify-between md:justify-end gap-4">
                       <span className="text-sm font-bold" style={{ color: 'var(--t-text-muted)' }}>سعر الاشتراك:</span>
                       <span className="text-2xl font-black" style={{ color: 'var(--t-secondary)' }}>
@@ -263,23 +275,23 @@ export default function CourseDetailPage() {
                     {/* Free course: direct watch button always shown */}
                     {course.is_free && (
                       <Link
-                        to={`/quran/courses/${course.slug}/watch`}
+                        to={watchHref}
                         className="py-3.5 px-6 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-2 justify-center shadow-sm shadow-emerald-600/10"
                       >
                         <PlayCircle className="w-4 h-4" />
-                        ابدأ المشاهدة
+                        {isEnrolledFreeCourse ? 'اكمل تعلمك' : 'ابدأ المشاهدة'}
                       </Link>
                     )}
 
                     {/* Paid course: show watch button ONLY if user is logged in AND subscribed (or admin) */}
                     {!course.is_free && hasAccess && (
                       <Link
-                        to={`/quran/courses/${course.slug}/watch`}
+                        to={watchHref}
                         className="py-3.5 px-6 rounded-xl font-bold text-sm border hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-2 justify-center"
                         style={{ borderColor: 'var(--t-border)', color: 'var(--t-primary)' }}
                       >
                         <PlayCircle className="w-4 h-4" />
-                        صفحة المشاهدة
+                        اكمل تعلمك
                       </Link>
                     )}
 
