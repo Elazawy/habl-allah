@@ -62,7 +62,8 @@ export default function StudentSignupPage() {
       if (
         err.message?.includes('unique') ||
         err.message?.includes('already exists') ||
-        err.message?.includes('مسجل بالفعل')
+        err.message?.includes('مسجل بالفعل') ||
+        err.message?.includes('has already been registered')
       ) {
         setError('رقم الهاتف هذا مسجل بالفعل. يرجى تسجيل الدخول بدلاً من ذلك.');
       } else {
