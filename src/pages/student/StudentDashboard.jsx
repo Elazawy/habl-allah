@@ -372,7 +372,29 @@ export default function StudentDashboard() {
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <span className="text-[9px] font-bold block mb-1" style={{ color: 'var(--t-secondary)' }}>أنت مشترك</span>
+                              <span className="text-[9px] font-bold block mb-1 flex items-center gap-1" style={{ color: 'var(--t-secondary)' }}>
+                                أنت مشترك
+                                {sub.student_stage_assignments && (Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments) && (
+                                  <>
+                                    <span className="opacity-50 mx-1">|</span>
+                                    {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).status === 'active' && (
+                                      <span style={{ color: 'var(--t-primary)' }}>
+                                        المرحلة: {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).competition_stages?.name || 'الحالية'}
+                                      </span>
+                                    )}
+                                    {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).status === 'completed' && (
+                                      <span className="text-emerald-500 font-bold">
+                                        اجتاز المسابقة ✓
+                                      </span>
+                                    )}
+                                    {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).status === 'failed' && (
+                                      <span className="text-red-500 font-bold">
+                                        لم يجتاز
+                                      </span>
+                                    )}
+                                  </>
+                                )}
+                              </span>
                               <h3 className="font-bold text-sm transition-colors group-hover:text-[var(--t-primary)]" style={{ color: 'var(--t-text)' }}>
                                 {sub.quran_competitions.name}
                               </h3>

@@ -160,55 +160,88 @@ export async function signInStudent({ phone, password }) {
 }
 
 /**
+ * Calls a protected admin Edge Function with the current admin session.
+ *
+ * The `apikey` header is what `supabase.functions.invoke()` sends for us; raw
+ * fetch has to add it explicitly or the API gateway rejects the request before
+ * the function ever boots.
+ *
+ * Error bodies come in two shapes: our functions return `{ error }`, while
+ * gateway / edge-runtime failures (missing key, boot error, function not found)
+ * return `{ code, message }` or plain text. Surface both, otherwise every
+ * infrastructure failure looks like the same opaque fallback message.
+ */
+async function invokeAdminFunction(functionName, payload, fallbackMessage) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Admin session not found');
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: supabaseKey,
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawBody = await res.text();
+  let parsedBody = null;
+  try {
+    parsedBody = rawBody ? JSON.parse(rawBody) : null;
+  } catch {
+    // Non-JSON body (HTML error page, plain text) — keep the raw text below.
+  }
+
+  if (!res.ok) {
+    // A message our own function authored is already user-facing.
+    if (typeof parsedBody?.error === 'string' && parsedBody.error.trim()) {
+      throw new Error(parsedBody.error.trim());
+    }
+
+    const detail = [parsedBody?.message, parsedBody?.msg, parsedBody?.code, rawBody]
+      .map((value) => (typeof value === 'string' ? value.trim() : ''))
+      .find(Boolean);
+
+    throw new Error(
+      detail
+        ? `${fallbackMessage} (${res.status}: ${detail})`
+        : `${fallbackMessage} (${res.status})`
+    );
+  }
+
+  return parsedBody ?? {};
+}
+
+/**
  * Admin creates a student account.
  * Calls the protected Edge Function `admin-create-student` which uses
  * admin.createUser({ email: phoneToAuthEmail(phone), email_confirm: true }).
  */
 export async function adminCreateStudent({ phone, password, fullName, teacherId }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Admin session not found');
-
-  const normalizedPhone = normalizeStudentPhone(phone);
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const res = await fetch(`${supabaseUrl}/functions/v1/admin-create-student`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({
-      phone: normalizedPhone,
+  const result = await invokeAdminFunction(
+    'admin-create-student',
+    {
+      phone: normalizeStudentPhone(phone),
       password,
       fullName: fullName.trim(),
       teacherId: teacherId || null,
-    }),
-  });
+    },
+    'حدث خطأ أثناء إنشاء الحساب.'
+  );
 
-  const result = await res.json();
-  if (!res.ok) {
-    throw new Error(result.error ?? 'حدث خطأ أثناء إنشاء الحساب.');
-  }
   return result.user;
 }
 
 export async function adminDeleteStudent(studentId) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Admin session not found');
-
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const res = await fetch(`${supabaseUrl}/functions/v1/admin-delete-student`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({ studentId }),
-  });
-
-  const result = await res.json();
-  if (!res.ok) {
-    throw new Error(result.error ?? 'حدث خطأ أثناء حذف الحساب.');
-  }
+  const result = await invokeAdminFunction(
+    'admin-delete-student',
+    { studentId },
+    'حدث خطأ أثناء حذف الحساب.'
+  );
 
   return result.student;
 }
@@ -393,11 +426,30 @@ export async function fetchMySubscribedCompetitions() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data, error } = await supabase
-    .from('student_competition_subscriptions')
-    .select('*, quran_competitions(id, slug, name, short_description, start_date)')
-    .eq('student_id', user.id)
-    .eq('is_active', true);
-  if (error) throw error;
-  return data ?? [];
+  const [subsRes, assignmentsRes] = await Promise.all([
+    supabase
+      .from('student_competition_subscriptions')
+      .select('*, quran_competitions(id, slug, name, short_description, start_date)')
+      .eq('student_id', user.id)
+      .eq('is_active', true),
+    supabase
+      .from('student_stage_assignments')
+      .select('status, level, current_stage_id, final_rank, competition_id, competition_stages(name)')
+      .eq('student_id', user.id)
+  ]);
+
+  if (subsRes.error) throw subsRes.error;
+  if (assignmentsRes.error) {
+    console.error('Error fetching stage assignments:', assignmentsRes.error);
+  }
+
+  const assignmentsByCompId = new Map();
+  (assignmentsRes.data || []).forEach((a) => {
+    assignmentsByCompId.set(a.competition_id, a);
+  });
+
+  return (subsRes.data || []).map((sub) => ({
+    ...sub,
+    student_stage_assignments: assignmentsByCompId.get(sub.competition_id) || null,
+  }));
 }

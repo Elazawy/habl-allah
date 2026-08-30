@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Calendar, Award, Clock, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Trophy, Calendar, Award, Clock, ShieldCheck, ChevronRight, XCircle, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
-import { fetchCompetitionBySlug } from '../../services/competitionsService';
+import { fetchCompetitionBySlug, fetchCompetitionStages, fetchMyStageAssignment, fetchMyRejectedRequest } from '../../services/competitionsService';
 import CompetitionRegistrationModal from './CompetitionRegistrationModal';
 import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
+import { useAuth } from '../../context/AuthContext';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -33,10 +34,18 @@ export default function CompetitionDetailsPage() {
   const { slug } = useParams();
   const [resource, setResource] = useState({ slug: null, competition: null, error: '' });
   const [modalOpen, setModalOpen] = useState(false);
+  
+  // Student data states
+  const { user, isStudent } = useAuth();
+  const [stages, setStages] = useState([]);
+  const [stageAssignment, setStageAssignment] = useState(null);
+  const [rejectedRequest, setRejectedRequest] = useState(null);
+  const [studentDataLoading, setStudentDataLoading] = useState(false);
+
   const loading = resource.slug !== slug;
   const competition = resource.slug === slug ? resource.competition : null;
   const error = resource.slug === slug ? resource.error : '';
-  const { getCompetitionRegistrationState, markCompetitionRequestPending } = useCompetitionRegistrationStatus();
+  const { getCompetitionRegistrationState, markCompetitionRequestPending, loadingSubscriptions } = useCompetitionRegistrationStatus();
 
   useEffect(() => {
     let active = true;
@@ -61,6 +70,50 @@ export default function CompetitionDetailsPage() {
       active = false;
     };
   }, [slug]);
+
+  // Fetch student personalized data if they are subscribed
+  useEffect(() => {
+    let active = true;
+    
+    async function loadPersonalizedData() {
+      if (!competition?.id) return;
+
+      try {
+        // Fetch stages unconditionally if competition is loaded
+        const stagesData = await fetchCompetitionStages(competition.id);
+        if (!active) return;
+        setStages(stagesData || []);
+      } catch (err) {
+        console.error('Failed to load stages', err);
+      }
+
+      if (!isStudent || loadingSubscriptions) return;
+
+      const regState = getCompetitionRegistrationState(competition);
+      
+      // If they are subscribed or pending, they might have an assignment or rejected request
+      if (regState.reason === 'subscribed' || regState.reason === 'pending') {
+        setStudentDataLoading(true);
+        try {
+          const [assignmentData, rejectedData] = await Promise.all([
+            fetchMyStageAssignment(competition.id),
+            fetchMyRejectedRequest(competition.id)
+          ]);
+          
+          if (!active) return;
+          setStageAssignment(assignmentData);
+          setRejectedRequest(rejectedData);
+        } catch (err) {
+          console.error('Failed to load student competition data', err);
+        } finally {
+          if (active) setStudentDataLoading(false);
+        }
+      }
+    }
+
+    loadPersonalizedData();
+    return () => { active = false; };
+  }, [competition?.id, isStudent, loadingSubscriptions]);
 
   // Set Document Title
   useEffect(() => {
@@ -143,6 +196,129 @@ export default function CompetitionDetailsPage() {
         : registrationState.reason === 'loading'
           ? 'جارٍ التحقق من حالة اشتراكك...'
           : 'املأ النموذج لإرسال طلب الاشتراك في المسابقة';
+  const renderStatusCard = () => {
+    if (!isStudent || studentDataLoading) return null;
+
+    const regState = getCompetitionRegistrationState(competition);
+    if (regState.reason !== 'subscribed' && regState.reason !== 'pending') {
+      return null;
+    }
+
+    if (rejectedRequest) {
+      return (
+        <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: '#fffbeb', borderColor: '#fde68a' }}>
+          <AlertTriangle className="text-amber-500 mt-1 shrink-0" size={28} />
+          <div>
+            <h3 className="font-bold text-amber-800 text-lg mb-1">طلب مرفوض</h3>
+            <p className="text-amber-700 text-sm leading-relaxed">
+              لقد فحصنا طلبك ووجدنا ان مستواك غير مناسب للاشتراك في هذه المسابقة، ننصحك بفحص باقي المسابقات ومتابعة التحديثات
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (regState.reason === 'pending' && !stageAssignment) {
+      return (
+        <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border-gold)' }}>
+          <Clock className="text-amber-500 mt-1 shrink-0" size={28} />
+          <div>
+            <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--t-primary)' }}>طلب الاشتراك قيد المراجعة</h3>
+            <p className="text-sm" style={{ color: 'var(--t-text-muted)' }}>
+              تم إرسال طلب الاشتراك
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (stageAssignment) {
+      if (stageAssignment.status === 'failed') {
+        return (
+          <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}>
+            <XCircle className="text-red-500 mt-1 shrink-0" size={28} />
+            <div>
+              <h3 className="font-bold text-red-800 text-lg mb-1">لم يجتاز</h3>
+              <p className="text-red-700 text-sm leading-relaxed">
+                للأسف، لم تجتاز هذه المرحلة، استعد جيدا للمسابقات القادمة
+              </p>
+            </div>
+          </div>
+        );
+      }
+
+      if (stageAssignment.status === 'completed') {
+        const getRankLabel = (rank) => {
+          if (rank === 1) return '🥇 المركز الأول';
+          if (rank === 2) return '🥈 المركز الثاني';
+          if (rank === 3) return '🥉 المركز الثالث';
+          return `المركز ${rank}`;
+        };
+
+        return (
+          <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' }}>
+            <Trophy className="text-emerald-500 mt-1 shrink-0" size={28} />
+            <div>
+              <h3 className="font-bold text-emerald-800 text-lg mb-1">مبروك! لقد اجتزت المسابقة بنجاح</h3>
+              {stageAssignment.final_rank && (
+                <p className="text-emerald-700 font-bold text-md mt-2 flex items-center gap-2">
+                  <Award size={18} />
+                  {getRankLabel(stageAssignment.final_rank)}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // Active
+      if (stageAssignment.status === 'active') {
+        const currentStageIndex = stages.findIndex(s => s.id === stageAssignment.current_stage_id);
+        const stageNum = currentStageIndex >= 0 ? currentStageIndex + 1 : 1;
+        const totalStages = stages.length > 0 ? stages.length : 1;
+        
+        return (
+          <div className="mb-8 p-6 rounded-2xl border shadow-sm relative overflow-hidden" style={{ backgroundColor: 'var(--t-primary-light)', borderColor: 'var(--t-primary)' }}>
+            <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: 'var(--t-primary)' }}></div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <BookOpen className="mt-1 shrink-0" style={{ color: 'var(--t-primary)' }} size={28} />
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-lg" style={{ color: 'var(--t-primary)' }}>أنت مشارك في المسابقة</h3>
+                    {stageAssignment.level && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--t-primary)', color: 'white' }}>
+                        مستوى: {stageAssignment.level}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--t-primary)' }}>
+                    المرحلة الحالية: {stageAssignment.competition_stages?.name || '---'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-white/50 px-4 py-2 rounded-xl">
+                <div className="flex gap-1.5" dir="ltr">
+                  {Array.from({ length: totalStages }).map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`w-3 h-3 rounded-full ${idx < stageNum ? 'bg-[var(--t-primary)]' : 'bg-[var(--t-primary)]/20'}`}
+                    ></div>
+                  ))}
+                </div>
+                <span className="text-xs font-bold mr-2" style={{ color: 'var(--t-primary)' }}>
+                  المرحلة {stageNum} من {totalStages}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }
+    
+    return null;
+  };
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col transition-colors duration-300" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
@@ -194,6 +370,9 @@ export default function CompetitionDetailsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Status Card */}
+            {renderStatusCard()}
 
             {/* Descriptions & Details */}
             <div className="space-y-8">
