@@ -31,6 +31,7 @@ import NewsletterSubscribersPage from './pages/admin/NewsletterSubscribersPage';
 import CompetitionsPage from './pages/quran/CompetitionsPage';
 import CompetitionDetailsPage from './pages/quran/CompetitionDetailsPage';
 import CompetitionsManagementPage from './pages/admin/CompetitionsManagementPage';
+import CompetitionStudentsPage from './pages/admin/CompetitionStudentsPage';
 import CoursesManagementPage from './pages/admin/CoursesManagementPage';
 import CoursesPage from './pages/quran/CoursesPage';
 import CourseLecturesManagementPage from './pages/admin/CourseLecturesManagementPage';
@@ -119,6 +120,7 @@ export default function App() {
         <Route path="/admin/quran/newsletter" element={<ProtectedAdmin><NewsletterSubscribersPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/faq" element={<ProtectedAdmin><QuranFaqManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/competitions" element={<ProtectedAdmin><CompetitionsManagementPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/competitions/:slug/students" element={<ProtectedAdmin><CompetitionStudentsPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/courses" element={<ProtectedAdmin><CoursesManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/courses/:id/lectures" element={<ProtectedAdmin><CourseLecturesManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/users" element={<ProtectedAdmin><UsersManagementPage /></ProtectedAdmin>} />

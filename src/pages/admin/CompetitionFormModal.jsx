@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
-import { X, Loader, Plus, Trash2 } from 'lucide-react';
-import { createCompetition, updateCompetition } from '../../services/competitionsService';
+import { X, Loader, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { 
+  createCompetition, 
+  updateCompetition,
+  fetchCompetitionStages,
+  createCompetitionStage,
+  updateCompetitionStage,
+  deleteCompetitionStage,
+  checkStageHasStudents
+} from '../../services/competitionsService';
 
 const EMPTY_FORM = {
   name: '',
@@ -95,6 +103,25 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  
+  // Stages state
+  const [stages, setStages] = useState([]);
+  const [loadingStages, setLoadingStages] = useState(isEdit);
+  const [deletedStageIds, setDeletedStageIds] = useState([]);
+
+  useEffect(() => {
+    if (isEdit) {
+      fetchCompetitionStages(competition.id)
+        .then(data => {
+          setStages(data.map(stg => ({
+            ...stg,
+            deadline: formatDateForDisplay(stg.deadline)
+          })));
+        })
+        .catch(console.error)
+        .finally(() => setLoadingStages(false));
+    }
+  }, [isEdit, competition]);
 
   // Handle escape key to close
   useEffect(() => {
@@ -126,6 +153,50 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
       ...prev,
       available_levels: (prev.available_levels ?? []).filter((_, idx) => idx !== index),
     }));
+  };
+  
+  // Stages handlers
+  const addStage = () => {
+    setStages(prev => [...prev, { name: '', description: '', deadline: '' }]);
+  };
+
+  const updateStage = (index, field, value) => {
+    setStages(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  const removeStage = async (index) => {
+    const stage = stages[index];
+    if (stage.id) {
+       try {
+         const hasStudents = await checkStageHasStudents(stage.id);
+         if (hasStudents) {
+           alert('لا يمكن حذف هذه المرحلة لأن هناك طلاباً مسجلين فيها.');
+           return;
+         }
+       } catch (err) {
+         console.error(err);
+         alert('حدث خطأ أثناء التحقق من الطلاب المرتبطين بالمرحلة.');
+         return;
+       }
+       setDeletedStageIds(prev => [...prev, stage.id]);
+    }
+    setStages(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const moveStage = (index, direction) => {
+    if (direction === -1 && index === 0) return;
+    if (direction === 1 && index === stages.length - 1) return;
+    setStages(prev => {
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[index + direction];
+      next[index + direction] = temp;
+      return next;
+    });
   };
 
   const handleField = (field, value) => {
@@ -175,6 +246,31 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
       const saved = isEdit
         ? await updateCompetition(competition.id, payload)
         : await createCompetition(payload);
+        
+      // Save stages
+      if (isEdit) {
+        for (const id of deletedStageIds) {
+          await deleteCompetitionStage(id);
+        }
+      }
+
+      for (let i = 0; i < stages.length; i++) {
+         const stage = stages[i];
+         const parsedDeadline = stage.deadline ? parseDisplayDate(stage.deadline) : null;
+         
+         const stagePayload = {
+            competition_id: saved.id,
+            name: stage.name,
+            description: stage.description,
+            deadline: parsedDeadline,
+            sort_order: i
+         };
+         if (stage.id) {
+            await updateCompetitionStage(stage.id, stagePayload);
+         } else {
+            await createCompetitionStage(stagePayload);
+         }
+      }
 
       onSaved(saved);
       onClose();
@@ -403,8 +499,60 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
             </div>
           </div>
 
+          {/* Stages (Dynamic list) */}
+          <div className="admin-field-group" style={{ gap: '0.75rem', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="admin-label">المراحل (Stages)</label>
+              <button
+                type="button"
+                onClick={addStage}
+                className="admin-btn admin-btn--ghost admin-btn--sm"
+                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+              >
+                <Plus size={14} />
+                إضافة مرحلة
+              </button>
+            </div>
+
+            {loadingStages ? (
+               <div style={{ textAlign: 'center', padding: '1rem' }}><Loader className="admin-spin" size={20} /></div>
+            ) : (
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                 {stages.map((stage, idx) => (
+                   <div key={stage.id || idx} style={{ border: '1px solid var(--admin-border)', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                         <span style={{ fontWeight: 'bold' }}>مرحلة {idx + 1}</span>
+                         <div style={{ display: 'flex', gap: '0.25rem' }}>
+                            <button type="button" onClick={() => moveStage(idx, -1)} disabled={idx === 0} className="admin-icon-btn" aria-label="تحريك لأعلى"><ArrowUp size={16} /></button>
+                            <button type="button" onClick={() => moveStage(idx, 1)} disabled={idx === stages.length - 1} className="admin-icon-btn" aria-label="تحريك لأسفل"><ArrowDown size={16} /></button>
+                            <button type="button" onClick={() => removeStage(idx)} className="admin-icon-btn admin-icon-btn--delete" aria-label="حذف المرحلة"><Trash2 size={16} /></button>
+                         </div>
+                      </div>
+                      <div className="admin-field-group">
+                         <label className="admin-label">اسم المرحلة *</label>
+                         <input type="text" className="admin-input" value={stage.name} onChange={e => updateStage(idx, 'name', e.target.value)} required placeholder="مثال: التصفيات الأولى" />
+                      </div>
+                      <div className="admin-field-group">
+                         <label className="admin-label">وصف المرحلة (اختياري)</label>
+                         <textarea className="admin-input admin-textarea" rows={2} value={stage.description || ''} onChange={e => updateStage(idx, 'description', e.target.value)} placeholder="وصف قصير للمرحلة..." />
+                      </div>
+                      <div className="admin-field-group">
+                         <label className="admin-label">آخر موعد للمرحلة (اختياري)</label>
+                         <input type="text" className="admin-input" value={stage.deadline || ''} onChange={e => updateStage(idx, 'deadline', normalizeDateInput(e.target.value))} placeholder="dd/mm/yyyy" inputMode="numeric" dir="ltr" />
+                      </div>
+                   </div>
+                 ))}
+                 {stages.length === 0 && (
+                   <p className="admin-muted" style={{ fontSize: '0.8rem', textAlign: 'center', padding: '1rem', border: '1px dashed var(--admin-border)', borderRadius: '8px' }}>
+                     إذا لم تُضف مراحل، ستعمل المسابقة بدون نظام تصفية.
+                   </p>
+                 )}
+               </div>
+            )}
+          </div>
+
           {/* Sort order & Published */}
-          <div className="admin-field-row">
+          <div className="admin-field-row" style={{ marginTop: '1rem' }}>
             <div className="admin-field-group" style={{ flex: 1 }}>
               <label htmlFor="competition-sort" className="admin-label">الترتيب</label>
               <input
@@ -460,3 +608,4 @@ export default function CompetitionFormModal({ competition, onClose, onSaved }) 
     </div>
   );
 }
+

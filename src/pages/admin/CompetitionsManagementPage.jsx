@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchAllCompetitions, deleteCompetition, updateCompetition } from '../../services/competitionsService';
 import CompetitionFormModal from './CompetitionFormModal';
-import CompetitionAdminDetailsModal from './CompetitionAdminDetailsModal';
 import { Plus, Pencil, Trash2, Search, Trophy, Eye, EyeOff, Calendar, Clock, RefreshCcw, Users } from 'lucide-react';
 
 function getLoadErrorMessage(error) {
@@ -13,13 +13,13 @@ function getLoadErrorMessage(error) {
 }
 
 export default function CompetitionsManagementPage() {
+  const navigate = useNavigate();
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [modalState, setModalState] = useState({ open: false, competition: null });
-  const [detailsState, setDetailsState] = useState({ open: false, competition: null });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -282,9 +282,9 @@ export default function CompetitionsManagementPage() {
                         id={`details-competition-${c.id}`}
                         className="admin-icon-btn"
                         style={{ color: 'var(--admin-accent)' }}
-                        onClick={() => setDetailsState({ open: true, competition: c })}
+                        onClick={() => navigate(`/admin/quran/competitions/${c.slug}/students`)}
                         aria-label={`تفاصيل الطلاب ${c.name}`}
-                        title="تفاصيل المشتركين والطلبات"
+                        title="تفاصيل المشتركين والمراحل والطلبات"
                       >
                         <Users size={15} />
                       </button>
@@ -321,14 +321,6 @@ export default function CompetitionsManagementPage() {
           competition={modalState.competition}
           onClose={closeModal}
           onSaved={handleSaved}
-        />
-      )}
-
-      {/* Details Modal */}
-      {detailsState.open && detailsState.competition && (
-        <CompetitionAdminDetailsModal
-          competition={detailsState.competition}
-          onClose={() => setDetailsState({ open: false, competition: null })}
         />
       )}
 

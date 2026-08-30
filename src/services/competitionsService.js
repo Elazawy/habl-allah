@@ -300,3 +300,357 @@ export async function subscribeStudentToCompetition(studentId, competitionId) {
 
   return data;
 }
+
+// ──────────────────────────────────────────
+// Competition Stages — CRUD
+// ──────────────────────────────────────────
+
+export async function fetchCompetitionStages(competitionId) {
+  const client = ensurePublicClient();
+  const { data, error } = await client
+    .from('competition_stages')
+    .select('*')
+    .eq('competition_id', competitionId)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function createCompetitionStage(payload) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_stages')
+    .insert([{
+      competition_id: payload.competition_id,
+      name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
+      description: normalizeOptionalText(payload.description),
+      deadline: payload.deadline || null,
+      sort_order: payload.sort_order ?? 0,
+    }])
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function updateCompetitionStage(id, payload) {
+  const client = ensureSupabaseClient();
+  const updates = {};
+
+  if (payload.name !== undefined) {
+    updates.name = typeof payload.name === 'string' ? payload.name.trim() : payload.name;
+  }
+  if (payload.description !== undefined) {
+    updates.description = normalizeOptionalText(payload.description);
+  }
+  if (payload.deadline !== undefined) {
+    updates.deadline = payload.deadline || null;
+  }
+  if (payload.sort_order !== undefined) {
+    updates.sort_order = payload.sort_order;
+  }
+
+  const { data, error } = await client
+    .from('competition_stages')
+    .update(updates)
+    .eq('id', id)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function deleteCompetitionStage(id) {
+  const client = ensureSupabaseClient();
+  const { error } = await client
+    .from('competition_stages')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function checkStageHasStudents(stageId) {
+  const client = ensureSupabaseClient();
+  const { count, error } = await client
+    .from('student_stage_assignments')
+    .select('id', { count: 'exact', head: true })
+    .eq('current_stage_id', stageId);
+
+  if (error) {
+    throw error;
+  }
+
+  return (count ?? 0) > 0;
+}
+
+// ──────────────────────────────────────────
+// Student Stage Assignments
+// ──────────────────────────────────────────
+
+export async function fetchStudentStageAssignments(competitionId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .select('*, student_profiles(id, full_name, phone), competition_stages(id, name, sort_order)')
+    .eq('competition_id', competitionId)
+    .order('assigned_at', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function assignStudentToStage(studentId, competitionId, stageId, level) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .upsert(
+      [{
+        student_id: studentId,
+        competition_id: competitionId,
+        current_stage_id: stageId,
+        status: 'active',
+        level: typeof level === 'string' ? level.trim() : level,
+        assigned_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }],
+      { onConflict: 'student_id,competition_id' }
+    )
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function moveStudentToNextStage(studentId, competitionId, nextStageId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .update({
+      current_stage_id: nextStageId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('student_id', studentId)
+    .eq('competition_id', competitionId)
+    .eq('status', 'active')
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function markStudentFailed(studentId, competitionId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .update({
+      status: 'failed',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('student_id', studentId)
+    .eq('competition_id', competitionId)
+    .eq('status', 'active')
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function markStudentCompleted(studentId, competitionId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .update({
+      status: 'completed',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('student_id', studentId)
+    .eq('competition_id', competitionId)
+    .eq('status', 'active')
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function updateStudentLevel(studentId, competitionId, newLevel) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .update({
+      level: typeof newLevel === 'string' ? newLevel.trim() : newLevel,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('student_id', studentId)
+    .eq('competition_id', competitionId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function bulkUpdateFinalRanks(competitionId, rankedStudents) {
+  const client = ensureSupabaseClient();
+  const errors = [];
+
+  for (let i = 0; i < rankedStudents.length; i++) {
+    const { student_id } = rankedStudents[i];
+    const { error } = await client
+      .from('student_stage_assignments')
+      .update({
+        final_rank: i + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('student_id', student_id)
+      .eq('competition_id', competitionId)
+      .eq('status', 'completed');
+
+    if (error) {
+      errors.push(error);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw errors[0];
+  }
+}
+
+// ──────────────────────────────────────────
+// Registration Request — Rejection (update status instead of delete)
+// ──────────────────────────────────────────
+
+export async function rejectRegistrationRequest(requestId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_registration_requests')
+    .update({ status: 'rejected' })
+    .eq('id', requestId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+// ──────────────────────────────────────────
+// Student — Own Stage Assignment
+// ──────────────────────────────────────────
+
+export async function fetchMyStageAssignment(competitionId) {
+  const client = ensureSupabaseClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .select('*, competition_stages(id, name, sort_order)')
+    .eq('student_id', user.id)
+    .eq('competition_id', competitionId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function fetchMyRejectedRequest(competitionId) {
+  const client = ensureSupabaseClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await client
+    .from('competition_registration_requests')
+    .select('id, status')
+    .eq('competition_id', competitionId)
+    .eq('student_id', user.id)
+    .eq('status', 'rejected')
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+// ──────────────────────────────────────────
+// Admin — Fetch competition by slug (includes unpublished)
+// ──────────────────────────────────────────
+
+export async function fetchCompetitionBySlugAdmin(slug) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('quran_competitions')
+    .select('*')
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+// ──────────────────────────────────────────
+// Admin — Fetch pending registration requests only
+// ──────────────────────────────────────────
+
+export async function fetchPendingRegistrationRequests(competitionId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_registration_requests')
+    .select('*')
+    .eq('competition_id', competitionId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
