@@ -20,6 +20,8 @@ import {
   GripVertical,
   Save,
   Award,
+  RotateCcw,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   fetchCompetitionBySlugAdmin,
@@ -34,6 +36,7 @@ import {
   markStudentFailed,
   markStudentCompleted,
   updateStudentLevel,
+  updateStudentAssignment,
   bulkUpdateFinalRanks,
   fetchSubscribedStudents,
 } from '../../services/competitionsService';
@@ -62,6 +65,16 @@ function formatDateTime(dateStr) {
   }
 }
 
+const ASSIGNMENT_STATUS_OPTIONS = [
+  { value: 'active', label: 'مشارك في المرحلة', hint: 'الطالب ما زال في المسابقة ويتابع المرحلة المحددة.' },
+  { value: 'failed', label: 'لم يجتاز المرحلة', hint: 'الطالب خرج من المسابقة عند المرحلة المحددة.' },
+  { value: 'completed', label: 'اجتاز المسابقة', hint: 'الطالب أكمل المسابقة ويظهر في تبويب النتائج والترتيب.' },
+];
+
+function getAssignmentStatusLabel(status) {
+  return ASSIGNMENT_STATUS_OPTIONS.find((option) => option.value === status)?.label ?? status;
+}
+
 export default function CompetitionStudentsPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -77,6 +90,7 @@ export default function CompetitionStudentsPage() {
   const [processingId, setProcessingId] = useState(null);
   const [levelFilter, setLevelFilter] = useState('');
   const [accountModal, setAccountModal] = useState(null);
+  const [assignmentModal, setAssignmentModal] = useState(null);
   const [teachers, setTeachers] = useState([]);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
 
@@ -163,6 +177,12 @@ export default function CompetitionStudentsPage() {
     const currentIndex = stages.findIndex((s) => s.id === currentStageId);
     if (currentIndex < 0 || currentIndex >= stages.length - 1) return null;
     return stages[currentIndex + 1];
+  };
+
+  const getPreviousStage = (currentStageId) => {
+    const currentIndex = stages.findIndex((s) => s.id === currentStageId);
+    if (currentIndex <= 0) return null;
+    return stages[currentIndex - 1];
   };
 
   const isLastStage = (stageId) => {
@@ -374,7 +394,9 @@ export default function CompetitionStudentsPage() {
 
   const handleMarkFailed = async (assignment) => {
     const studentName = assignment.student_profiles?.full_name || 'الطالب';
-    if (!window.confirm(`هل أنت متأكد أن ${studentName} لم يجتاز هذه المرحلة؟ هذا الإجراء نهائي.`)) return;
+    const stageName =
+      stages.find((s) => s.id === assignment.current_stage_id)?.name || 'هذه المرحلة';
+    if (!window.confirm(`هل أنت متأكد أن ${studentName} لم يجتاز ${stageName}؟ يمكنك التراجع عن ذلك لاحقاً من زر "تعديل الحالة".`)) return;
 
     setProcessingId(assignment.id);
     try {
@@ -414,6 +436,130 @@ export default function CompetitionStudentsPage() {
     } catch (err) {
       console.error(err);
       alert(`فشل تعديل المستوى: ${err.message}`);
+    }
+  };
+
+  // ── Undo / Correction Handlers ──
+  // Ranks are stored per completed student, so pulling one out of the results
+  // list would leave a gap (1, 3, 4…). Re-number whoever is left behind.
+  const renumberRemainingRanks = async (removedStudentId) => {
+    const remaining = rankedStudents.filter((a) => a.student_id !== removedStudentId);
+    if (remaining.length === 0) return;
+    await bulkUpdateFinalRanks(
+      competition.id,
+      remaining.map((a) => ({ student_id: a.student_id }))
+    );
+  };
+
+  const openAssignmentModal = (assignment) => {
+    setAssignmentModal({
+      assignment,
+      stageId: assignment.current_stage_id,
+      status: assignment.status,
+      error: '',
+      saving: false,
+    });
+  };
+
+  const closeAssignmentModal = () => setAssignmentModal(null);
+
+  const handleAssignmentField = (field, value) => {
+    setAssignmentModal((prev) => (prev ? { ...prev, [field]: value, error: '' } : prev));
+  };
+
+  const applyAssignmentChange = async ({ assignment, stageId, status }) => {
+    const stageChanged = stageId !== undefined && stageId !== assignment.current_stage_id;
+    const statusChanged = status !== undefined && status !== assignment.status;
+
+    if (!stageChanged && !statusChanged) {
+      return { changed: false };
+    }
+
+    await updateStudentAssignment(assignment.student_id, competition.id, {
+      ...(stageChanged ? { stageId } : {}),
+      ...(statusChanged ? { status } : {}),
+    });
+
+    // Leaving the completed list frees up a rank position.
+    if (assignment.status === 'completed' && statusChanged) {
+      await renumberRemainingRanks(assignment.student_id);
+    }
+
+    await loadData();
+    return { changed: true };
+  };
+
+  const handleSaveAssignment = async (event) => {
+    event.preventDefault();
+    if (!assignmentModal) return;
+
+    const { assignment, stageId, status } = assignmentModal;
+
+    if (!stageId) {
+      handleAssignmentField('error', 'يجب تحديد المرحلة.');
+      return;
+    }
+
+    setAssignmentModal((prev) => (prev ? { ...prev, saving: true, error: '' } : prev));
+
+    try {
+      const { changed } = await applyAssignmentChange({ assignment, stageId, status });
+      if (!changed) {
+        handleAssignmentField('error', 'لم تقم بتغيير أي شيء.');
+        setAssignmentModal((prev) => (prev ? { ...prev, saving: false } : prev));
+        return;
+      }
+      closeAssignmentModal();
+    } catch (err) {
+      console.error(err);
+      setAssignmentModal((prev) =>
+        prev ? { ...prev, saving: false, error: err.message ?? 'فشل تحديث حالة الطالب.' } : prev
+      );
+    }
+  };
+
+  // One-click undo for the two mistakes admins make most often.
+  const handleQuickRestoreToActive = async (assignment) => {
+    const studentName = assignment.student_profiles?.full_name || 'الطالب';
+    const stageName =
+      stages.find((s) => s.id === assignment.current_stage_id)?.name || 'المرحلة الحالية';
+    const question =
+      assignment.status === 'completed'
+        ? `هل تريد التراجع عن اجتياز ${studentName} للمسابقة وإعادته كمشارك في ${stageName}؟ سيتم حذف ترتيبه النهائي.`
+        : `هل تريد التراجع وإعادة ${studentName} كمشارك في ${stageName}؟`;
+
+    if (!window.confirm(question)) return;
+
+    setProcessingId(assignment.id);
+    try {
+      await applyAssignmentChange({ assignment, status: 'active' });
+    } catch (err) {
+      console.error(err);
+      alert(`فشل التراجع عن حالة الطالب: ${err.message}`);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleMoveToPreviousStage = async (assignment) => {
+    const previousStage = getPreviousStage(assignment.current_stage_id);
+    if (!previousStage) return;
+
+    const studentName = assignment.student_profiles?.full_name || 'الطالب';
+    if (!window.confirm(`هل تريد إرجاع ${studentName} إلى ${previousStage.name}؟`)) return;
+
+    setProcessingId(assignment.id);
+    try {
+      await applyAssignmentChange({
+        assignment,
+        stageId: previousStage.id,
+        status: 'active',
+      });
+    } catch (err) {
+      console.error(err);
+      alert(`فشل إرجاع الطالب: ${err.message}`);
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -754,6 +900,7 @@ export default function CompetitionStudentsPage() {
           const failedStudents = getFailedForStage(stage.id);
           const isLast = isLastStage(stage.id);
           const nextStage = getNextStage(stage.id);
+          const previousStage = getPreviousStage(stage.id);
 
           return (
             <div key={stage.id}>
@@ -870,24 +1017,69 @@ export default function CompetitionStudentsPage() {
                                   <XCircle size={12} />
                                   لم يجتاز
                                 </button>
+                                {previousStage && (
+                                  <button
+                                    className="admin-btn admin-btn--ghost admin-btn--sm"
+                                    onClick={() => handleMoveToPreviousStage(assignment)}
+                                    disabled={processingId !== null}
+                                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
+                                    title={`إرجاع إلى ${previousStage.name}`}
+                                  >
+                                    {isBusy ? <Loader size={12} className="admin-spin" /> : <RotateCcw size={12} />}
+                                    إرجاع للمرحلة السابقة
+                                  </button>
+                                )}
+                                <button
+                                  className="admin-icon-btn"
+                                  onClick={() => openAssignmentModal(assignment)}
+                                  disabled={processingId !== null}
+                                  title="تعديل الحالة أو نقل الطالب إلى أي مرحلة"
+                                  aria-label="تعديل الحالة والمرحلة"
+                                >
+                                  <SlidersHorizontal size={14} />
+                                </button>
                               </div>
                             </td>
                           </tr>
                         );
                       })}
-                      {/* Failed students shown greyed out */}
-                      {failedStudents.map((assignment) => (
-                        <tr key={assignment.id} style={{ opacity: 0.5 }}>
-                          <td><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
-                          <td dir="ltr" style={{ textAlign: 'right' }}>{assignment.student_profiles?.phone || '—'}</td>
-                          <td><span style={{ fontSize: '0.85rem' }}>{assignment.level || '—'}</span></td>
-                          <td>
-                            <span className="admin-badge" style={{ fontSize: '0.7rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
-                              <XCircle size={10} /> لم يجتاز
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {/* Failed students: greyed out, but still correctable */}
+                      {failedStudents.map((assignment) => {
+                        const isBusy = processingId === assignment.id;
+                        return (
+                          <tr key={assignment.id}>
+                            <td style={{ opacity: 0.5 }}><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
+                            <td dir="ltr" style={{ textAlign: 'right', opacity: 0.5 }}>{assignment.student_profiles?.phone || '—'}</td>
+                            <td style={{ opacity: 0.5 }}><span style={{ fontSize: '0.85rem' }}>{assignment.level || '—'}</span></td>
+                            <td>
+                              <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
+                                <span className="admin-badge" style={{ fontSize: '0.7rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                                  <XCircle size={10} /> لم يجتاز
+                                </span>
+                                <button
+                                  className="admin-btn admin-btn--ghost admin-btn--sm"
+                                  onClick={() => handleQuickRestoreToActive(assignment)}
+                                  disabled={processingId !== null}
+                                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
+                                  title="التراجع وإعادة الطالب كمشارك في هذه المرحلة"
+                                >
+                                  {isBusy ? <Loader size={12} className="admin-spin" /> : <RotateCcw size={12} />}
+                                  تراجع
+                                </button>
+                                <button
+                                  className="admin-icon-btn"
+                                  onClick={() => openAssignmentModal(assignment)}
+                                  disabled={processingId !== null}
+                                  title="تعديل الحالة أو نقل الطالب إلى أي مرحلة"
+                                  aria-label="تعديل الحالة والمرحلة"
+                                >
+                                  <SlidersHorizontal size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -930,6 +1122,7 @@ export default function CompetitionStudentsPage() {
                         <th>الاسم</th>
                         <th>الرقم</th>
                         <th>المستوى</th>
+                        <th>الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -954,6 +1147,29 @@ export default function CompetitionStudentsPage() {
                           <td><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
                           <td dir="ltr" style={{ textAlign: 'right' }}>{assignment.student_profiles?.phone || '—'}</td>
                           <td><span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{assignment.level || '—'}</span></td>
+                          <td>
+                            <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
+                              <button
+                                className="admin-btn admin-btn--ghost admin-btn--sm"
+                                onClick={() => handleQuickRestoreToActive(assignment)}
+                                disabled={processingId !== null}
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
+                                title="التراجع عن اجتياز المسابقة وإعادة الطالب كمشارك"
+                              >
+                                {processingId === assignment.id ? <Loader size={12} className="admin-spin" /> : <RotateCcw size={12} />}
+                                تراجع
+                              </button>
+                              <button
+                                className="admin-icon-btn"
+                                onClick={() => openAssignmentModal(assignment)}
+                                disabled={processingId !== null}
+                                title="تعديل الحالة أو نقل الطالب إلى أي مرحلة"
+                                aria-label="تعديل الحالة والمرحلة"
+                              >
+                                <SlidersHorizontal size={14} />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -964,6 +1180,141 @@ export default function CompetitionStudentsPage() {
           </>
         )}
       </div>
+
+      {/* ──── Undo / Correct Assignment Modal ──── */}
+      {assignmentModal && (
+        <div
+          className="admin-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="تعديل حالة الطالب ومرحلته"
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !assignmentModal.saving) {
+              closeAssignmentModal();
+            }
+          }}
+        >
+          <div className="admin-modal" style={{ maxWidth: '520px' }}>
+            <div className="admin-modal-header">
+              <div>
+                <h2 className="admin-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <SlidersHorizontal size={18} />
+                  <span>تعديل حالة الطالب ومرحلته</span>
+                </h2>
+                <p style={{ fontSize: '0.8rem', color: 'var(--admin-text-muted)', marginTop: '0.25rem' }}>
+                  {assignmentModal.assignment.student_profiles?.full_name || 'طالب غير معروف'}
+                  {' — '}
+                  الحالة الحالية: {getAssignmentStatusLabel(assignmentModal.assignment.status)}
+                  {' في '}
+                  {stages.find((s) => s.id === assignmentModal.assignment.current_stage_id)?.name || 'مرحلة غير معروفة'}
+                </p>
+              </div>
+              <button
+                className="admin-modal-close"
+                onClick={closeAssignmentModal}
+                disabled={assignmentModal.saving}
+                aria-label="إغلاق"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveAssignment} className="admin-modal-body" style={{ display: 'grid', gap: '1rem' }}>
+              <div className="admin-field-group">
+                <label htmlFor="csp-assignment-stage" className="admin-label">المرحلة</label>
+                <select
+                  id="csp-assignment-stage"
+                  className="admin-input admin-select"
+                  value={assignmentModal.stageId}
+                  onChange={(event) => handleAssignmentField('stageId', event.target.value)}
+                  disabled={assignmentModal.saving}
+                >
+                  {stages.map((stage, index) => (
+                    <option key={stage.id} value={stage.id}>
+                      {index + 1}. {stage.name}
+                    </option>
+                  ))}
+                </select>
+                <p style={{ fontSize: '0.75rem', color: 'var(--admin-muted)', marginTop: '0.2rem' }}>
+                  يمكنك نقل الطالب إلى أي مرحلة، سابقة أو لاحقة.
+                </p>
+              </div>
+
+              <div className="admin-field-group">
+                <span className="admin-label">الحالة</span>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {ASSIGNMENT_STATUS_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.5rem',
+                        padding: '0.6rem 0.75rem',
+                        borderRadius: 'var(--admin-radius)',
+                        border: `1px solid ${assignmentModal.status === option.value ? 'var(--admin-accent)' : 'var(--admin-border)'}`,
+                        background: assignmentModal.status === option.value ? 'var(--admin-bg-light)' : 'transparent',
+                        cursor: assignmentModal.saving ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="csp-assignment-status"
+                        value={option.value}
+                        checked={assignmentModal.status === option.value}
+                        onChange={() => handleAssignmentField('status', option.value)}
+                        disabled={assignmentModal.saving}
+                        style={{ marginTop: '0.2rem' }}
+                      />
+                      <span>
+                        <strong style={{ fontSize: '0.85rem' }}>{option.label}</strong>
+                        <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--admin-text-muted)' }}>
+                          {option.hint}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {assignmentModal.assignment.status === 'completed' && assignmentModal.status !== 'completed' && (
+                <div
+                  role="note"
+                  style={{
+                    fontSize: '0.78rem',
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: 'var(--admin-radius)',
+                    background: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    color: '#92400e',
+                  }}
+                >
+                  سيتم حذف الترتيب النهائي لهذا الطالب وإعادة ترقيم بقية الفائزين تلقائياً.
+                </div>
+              )}
+
+              {assignmentModal.error && (
+                <div className="admin-error-banner" role="alert">
+                  {assignmentModal.error}
+                </div>
+              )}
+
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={closeAssignmentModal}
+                  disabled={assignmentModal.saving}
+                >
+                  إلغاء
+                </button>
+                <button type="submit" className="admin-btn admin-btn--primary" disabled={assignmentModal.saving}>
+                  {assignmentModal.saving ? <Loader size={16} className="admin-spin" /> : <Save size={16} />}
+                  {assignmentModal.saving ? 'جارٍ الحفظ...' : 'حفظ التعديل'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ──── Guest Account Creation Modal ──── */}
       {accountModal && (

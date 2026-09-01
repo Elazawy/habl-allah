@@ -363,7 +363,13 @@ export default function StudentDashboard() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {myCompetitions.map((sub) => (
+                      {myCompetitions.map((sub) => {
+                        const assignment = Array.isArray(sub.student_stage_assignments)
+                          ? sub.student_stage_assignments[0]
+                          : sub.student_stage_assignments;
+                        const stageName = assignment?.competition_stages?.name;
+
+                        return (
                         <Link
                           key={sub.id}
                           to={`/quran/competition/${sub.quran_competitions.slug}`}
@@ -374,22 +380,22 @@ export default function StudentDashboard() {
                             <div>
                               <span className="text-[9px] font-bold block mb-1 flex items-center gap-1" style={{ color: 'var(--t-secondary)' }}>
                                 أنت مشترك
-                                {sub.student_stage_assignments && (Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments) && (
+                                {assignment && (
                                   <>
                                     <span className="opacity-50 mx-1">|</span>
-                                    {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).status === 'active' && (
+                                    {assignment.status === 'active' && (
                                       <span style={{ color: 'var(--t-primary)' }}>
-                                        المرحلة: {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).competition_stages?.name || 'الحالية'}
+                                        المرحلة: {stageName || 'الحالية'}
                                       </span>
                                     )}
-                                    {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).status === 'completed' && (
+                                    {assignment.status === 'completed' && (
                                       <span className="text-emerald-500 font-bold">
                                         اجتاز المسابقة ✓
                                       </span>
                                     )}
-                                    {(Array.isArray(sub.student_stage_assignments) ? sub.student_stage_assignments[0] : sub.student_stage_assignments).status === 'failed' && (
+                                    {assignment.status === 'failed' && (
                                       <span className="text-red-500 font-bold">
-                                        لم يجتاز
+                                        لم يجتاز {stageName || 'المرحلة الحالية'}
                                       </span>
                                     )}
                                   </>
@@ -402,7 +408,8 @@ export default function StudentDashboard() {
                             <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--t-secondary)' }}>تفاصيل</span>
                           </div>
                         </Link>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 

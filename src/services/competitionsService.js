@@ -507,6 +507,53 @@ export async function markStudentCompleted(studentId, competitionId) {
   return data;
 }
 
+export const STUDENT_ASSIGNMENT_STATUSES = ['active', 'failed', 'completed'];
+
+// Admin correction path: unlike the mark*/move* helpers above, this one is not
+// restricted to `status = 'active'`, so a wrongly failed or wrongly promoted
+// student can be sent back to any stage or status.
+export async function updateStudentAssignment(studentId, competitionId, { stageId, status } = {}) {
+  const client = ensureSupabaseClient();
+  const updates = { updated_at: new Date().toISOString() };
+
+  if (stageId !== undefined) {
+    if (!stageId) {
+      throw new Error('يجب تحديد المرحلة المطلوب نقل الطالب إليها.');
+    }
+    updates.current_stage_id = stageId;
+  }
+
+  if (status !== undefined) {
+    if (!STUDENT_ASSIGNMENT_STATUSES.includes(status)) {
+      throw new Error('حالة الطالب غير صحيحة.');
+    }
+    updates.status = status;
+    // The final ranking only means anything for students who finished the
+    // competition, so undoing a completion has to drop the stored rank.
+    if (status !== 'completed') {
+      updates.final_rank = null;
+    }
+  }
+
+  if (stageId === undefined && status === undefined) {
+    throw new Error('لا يوجد تغيير مطلوب.');
+  }
+
+  const { data, error } = await client
+    .from('student_stage_assignments')
+    .update(updates)
+    .eq('student_id', studentId)
+    .eq('competition_id', competitionId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function updateStudentLevel(studentId, competitionId, newLevel) {
   const client = ensureSupabaseClient();
   const { data, error } = await client

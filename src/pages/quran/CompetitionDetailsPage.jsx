@@ -234,11 +234,20 @@ export default function CompetitionDetailsPage() {
 
     if (stageAssignment) {
       if (stageAssignment.status === 'failed') {
+        // The stage the student was in when they were marked failed is kept on the
+        // assignment, so we can name it instead of showing a generic message.
+        const failedStageName =
+          stageAssignment.competition_stages?.name
+          || stages.find((s) => s.id === stageAssignment.current_stage_id)?.name
+          || '';
+
         return (
           <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}>
             <XCircle className="text-red-500 mt-1 shrink-0" size={28} />
             <div>
-              <h3 className="font-bold text-red-800 text-lg mb-1">لم يجتاز</h3>
+              <h3 className="font-bold text-red-800 text-lg mb-1">
+                {failedStageName ? `لم تجتاز ${failedStageName}` : 'لم يجتاز'}
+              </h3>
               <p className="text-red-700 text-sm leading-relaxed">
                 للأسف، لم تجتاز هذه المرحلة، استعد جيدا للمسابقات القادمة
               </p>
