@@ -7,6 +7,7 @@ import { fetchCompetitionBySlug, fetchCompetitionStages, fetchMyStageAssignment,
 import CompetitionRegistrationModal from './CompetitionRegistrationModal';
 import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
 import { useAuth } from '../../context/AuthContext';
+import StudentCompetitionCelebration from '../../components/StudentCompetitionCelebration';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -36,7 +37,8 @@ export default function CompetitionDetailsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   
   // Student data states
-  const { user, isStudent } = useAuth();
+  const { user, isStudent, studentProfile } = useAuth();
+
   const [stages, setStages] = useState([]);
   const [stageAssignment, setStageAssignment] = useState(null);
   const [rejectedRequest, setRejectedRequest] = useState(null);
@@ -257,28 +259,21 @@ export default function CompetitionDetailsPage() {
       }
 
       if (stageAssignment.status === 'completed') {
-        const getRankLabel = (rank) => {
-          if (rank === 1) return '🥇 المركز الأول';
-          if (rank === 2) return '🥈 المركز الثاني';
-          if (rank === 3) return '🥉 المركز الثالث';
-          return `المركز ${rank}`;
-        };
-
         return (
-          <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' }}>
-            <Trophy className="text-emerald-500 mt-1 shrink-0" size={28} />
-            <div>
-              <h3 className="font-bold text-emerald-800 text-lg mb-1">مبروك! لقد اجتزت المسابقة بنجاح</h3>
-              {stageAssignment.final_rank && (
-                <p className="text-emerald-700 font-bold text-md mt-2 flex items-center gap-2">
-                  <Award size={18} />
-                  {getRankLabel(stageAssignment.final_rank)}
-                </p>
-              )}
-            </div>
+          <div className="mb-8">
+            <StudentCompetitionCelebration
+              studentName={studentProfile?.full_name || 'طالب القرآن الكريم'}
+              competitionName={competition?.name || 'المسابقة القرآنية'}
+              level={stageAssignment.level || 'المستوى العام'}
+              finalRank={stageAssignment.final_rank || 1}
+              stagesCount={stages?.length || 3}
+              completionDate={stageAssignment.updated_at || competition?.end_date || null}
+              teacherName={studentProfile?.teachers?.name || ''}
+            />
           </div>
         );
       }
+
 
       // Active
       if (stageAssignment.status === 'active') {

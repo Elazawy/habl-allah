@@ -249,6 +249,60 @@ body {
   to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
+/* ── Authentic Celebration Decorative Utilities ── */
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-5px); }
+}
+.animate-float-gentle {
+  animation: floatGentle 3.5s ease-in-out infinite;
+}
+
+@keyframes ribbonShimmer {
+  0%   { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+.ribbon-gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(207, 167, 103, 0.9) 0%,
+    rgba(255, 235, 180, 1) 50%,
+    rgba(207, 167, 103, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: ribbonShimmer 5s ease-in-out infinite;
+}
+
+/* Delicate filigree divider with central diamond */
+.filigree-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.filigree-divider::before,
+.filigree-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(207, 167, 103, 0.35), transparent);
+}
+[dir="rtl"] .filigree-divider::before {
+  background: linear-gradient(to left, rgba(207, 167, 103, 0.35), transparent);
+}
+[dir="rtl"] .filigree-divider::after {
+  background: linear-gradient(to right, rgba(207, 167, 103, 0.35), transparent);
+}
+
+/* Islamic Arch silhouette outline */
+.andalusian-arch {
+  border-top-left-radius: 9999px;
+  border-top-right-radius: 9999px;
+}
+
+
+
 /* ═══════════════════════════════════════════════════════════════════════
    ADMIN DESIGN SYSTEM
    ═══════════════════════════════════════════════════════════════════════ */
