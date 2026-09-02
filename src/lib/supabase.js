@@ -19,14 +19,20 @@ function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  // Respect any signal the caller already set (e.g. Supabase internal)
-  const existingSignal = options.signal;
-  if (existingSignal) {
-    existingSignal.addEventListener('abort', () => controller.abort());
+  // Mirror any signal the caller already set (e.g. Supabase internal) onto
+  // ours, and tear the bridge down with the request — the caller's signal can
+  // outlive this call, so a listener left behind is a leak.
+  const callerSignal = options.signal;
+  const abortFromCaller = () => controller.abort(callerSignal?.reason);
+
+  if (callerSignal) {
+    if (callerSignal.aborted) abortFromCaller();
+    else callerSignal.addEventListener('abort', abortFromCaller, { once: true });
   }
 
   return fetch(url, { ...options, signal: controller.signal }).finally(() => {
     clearTimeout(timeoutId);
+    callerSignal?.removeEventListener('abort', abortFromCaller);
   });
 }
 

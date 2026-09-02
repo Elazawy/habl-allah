@@ -257,14 +257,20 @@ export function generatePassword(length = 9) {
 
 
 /** Fetch own profile (for logged-in student) */
-export async function fetchMyStudentProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+export async function fetchMyStudentProfile(userId) {
+  let id = userId;
+  if (!id) {
+    // Costs a network round-trip — prefer passing the id from the session you
+    // already have (see the note in `context/AuthContext.jsx`).
+    const { data: { user } } = await supabase.auth.getUser();
+    id = user?.id;
+  }
+  if (!id) return null;
 
   const { data, error } = await supabase
     .from('student_profiles')
     .select('*, teachers(id, name, photo_url)')
-    .eq('id', user.id)
+    .eq('id', id)
     .maybeSingle();
   if (error) throw error;
   return data;

@@ -61,18 +61,28 @@ async function uploadImageToBucket({ bucket, folder, file }) {
   };
 }
 
-export async function isCurrentUserAdmin() {
+/**
+ * Check whether a user is an active admin.
+ *
+ * Pass `userId` whenever you already hold a session — `auth.getUser()` costs a
+ * network round-trip, and calling it from an auth-state callback deadlocks the
+ * Supabase client (see the note in `context/AuthContext.jsx`).
+ */
+export async function isCurrentUserAdmin(userId) {
   if (!supabase) return false;
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
-  const user = userData?.user;
-  if (!user) return false;
+  let id = userId;
+  if (!id) {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    id = userData?.user?.id;
+  }
+  if (!id) return false;
 
   const { count, error } = await supabase
     .from('admin_users')
     .select('id', { count: 'exact', head: true })
-    .eq('id', user.id)
+    .eq('id', id)
     .eq('is_active', true);
 
   if (error) throw error;
