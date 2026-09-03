@@ -258,6 +258,22 @@ body {
   animation: floatGentle 3.5s ease-in-out infinite;
 }
 
+@keyframes balloonFloatRight {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%      { transform: translateY(-6px) rotate(1.8deg); }
+}
+.animate-balloon-float-right {
+  animation: balloonFloatRight 3.6s ease-in-out infinite;
+}
+
+@keyframes balloonFloatLeft {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%      { transform: translateY(-6px) rotate(-1.8deg); }
+}
+.animate-balloon-float-left {
+  animation: balloonFloatLeft 4.2s ease-in-out infinite 0.7s;
+}
+
 @keyframes ribbonShimmer {
   0%   { background-position: -150% 0; }
   100% { background-position: 250% 0; }

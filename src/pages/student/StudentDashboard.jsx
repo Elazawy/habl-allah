@@ -392,7 +392,7 @@ export default function StudentDashboard() {
                                     )}
                                     {assignment.status === 'completed' && (
                                       <span className="text-emerald-500 dark:text-emerald-400 font-black flex items-center gap-1">
-                                        🏆 فائز بالمسابقة {assignment.final_rank ? `(المركز ${assignment.final_rank})` : '✓'}
+                                        🏆 فائز بالمسابقة
                                       </span>
                                     )}
 

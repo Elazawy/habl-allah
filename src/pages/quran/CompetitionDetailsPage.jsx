@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Calendar, Award, Clock, ShieldCheck, ChevronRight, XCircle, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
+import { Trophy, Calendar, Award, Clock, ShieldCheck, ChevronRight, XCircle, AlertTriangle, BookOpen } from 'lucide-react';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 import { fetchCompetitionBySlug, fetchCompetitionStages, fetchMyStageAssignment, fetchMyRejectedRequest } from '../../services/competitionsService';
@@ -28,6 +28,16 @@ function formatDate(dateStr) {
     });
   } catch {
     return dateStr;
+  }
+}
+
+function hasCompetitionStarted(dateStr) {
+  if (!dateStr) return false;
+  try {
+    const date = dateStr.includes('T') ? new Date(dateStr) : new Date(dateStr + 'T00:00:00');
+    return date <= new Date();
+  } catch {
+    return false;
   }
 }
 
@@ -189,7 +199,19 @@ export default function CompetitionDetailsPage() {
   }
 
   const registrationState = getCompetitionRegistrationState(competition);
-  const registrationHint = registrationState.reason === 'subscribed'
+  const isStudentSubscribed = Boolean(
+    isStudent && (registrationState.reason === 'subscribed' || stageAssignment)
+  );
+  const isCompetitionStarted = hasCompetitionStarted(competition.start_date);
+  const hideDates = isCompetitionStarted && isStudentSubscribed;
+
+  const hasRequestedOrAccepted = !rejectedRequest && (
+    registrationState.reason === 'pending' ||
+    registrationState.reason === 'subscribed' ||
+    Boolean(stageAssignment)
+  );
+
+  const registrationHint = (registrationState.reason === 'subscribed' || Boolean(stageAssignment))
     ? 'تم اعتماد اشتراكك في هذه المسابقة.'
     : registrationState.reason === 'pending'
       ? 'تم استلام طلبك وهو بانتظار مراجعة الإدارة.'
@@ -266,8 +288,6 @@ export default function CompetitionDetailsPage() {
               competitionName={competition?.name || 'المسابقة القرآنية'}
               level={stageAssignment.level || 'المستوى العام'}
               finalRank={stageAssignment.final_rank || 1}
-              stagesCount={stages?.length || 3}
-              completionDate={stageAssignment.updated_at || competition?.end_date || null}
               teacherName={studentProfile?.teachers?.name || ''}
             />
           </div>
@@ -354,25 +374,23 @@ export default function CompetitionDetailsPage() {
             
             {/* Header */}
             <div className="border-b pb-8 mb-8" style={{ borderColor: 'var(--t-border)' }}>
-              <span className="text-xs font-black uppercase px-3.5 py-1.5 rounded-full inline-block mb-4"
-                style={{ backgroundColor: 'var(--t-primary-light)', color: 'var(--t-primary)' }}>
-                مسابقات حبل الله
-              </span>
-              <h1 className="text-3xl md:text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
+              <h1 className={`text-3xl md:text-4xl font-black ${hideDates ? 'mb-0' : 'mb-4'}`} style={{ color: 'var(--t-primary)' }}>
                 {competition.name}
               </h1>
               
               {/* Dates Panel */}
-              <div className="flex flex-wrap gap-6 text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-amber-500" />
-                  <span>تاريخ الانطلاق: {formatDate(competition.start_date)}</span>
+              {!hideDates && (
+                <div className="flex flex-wrap gap-6 text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>
+                  <div className="flex items-center gap-2">
+                    <Calendar size={16} className="text-amber-500" />
+                    <span>تاريخ الانطلاق: {formatDate(competition.start_date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock size={16} className="text-amber-500" />
+                    <span>آخر موعد للتسجيل: {formatDate(competition.registration_deadline)}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock size={16} className="text-amber-500" />
-                  <span>آخر موعد للتسجيل: {formatDate(competition.registration_deadline)}</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Status Card */}
@@ -440,8 +458,12 @@ export default function CompetitionDetailsPage() {
             {/* CTA Panel */}
             <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-6" style={{ borderColor: 'var(--t-border)' }}>
               <div>
-                <h4 className="font-black text-sm mb-1">هل أنت مستعد للمشاركة؟</h4>
-                <p className="text-xs" style={{ color: 'var(--t-text-muted)' }}>{registrationHint}</p>
+                {!hasRequestedOrAccepted && (
+                  <h4 className="font-black text-sm mb-1">هل أنت مستعد للمشاركة؟</h4>
+                )}
+                <p className={hasRequestedOrAccepted ? "text-sm font-semibold" : "text-xs"} style={{ color: hasRequestedOrAccepted ? 'var(--t-primary)' : 'var(--t-text-muted)' }}>
+                  {registrationHint}
+                </p>
               </div>
               <button
                 onClick={() => {
@@ -451,9 +473,9 @@ export default function CompetitionDetailsPage() {
                 }}
                 disabled={registrationState.disabled}
                 className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-white text-center transition-all duration-300 disabled:cursor-not-allowed ${registrationState.reason === 'available' ? 'hover:opacity-95 hover:shadow-md' : ''} ${registrationState.reason === 'closed' || registrationState.reason === 'loading' ? 'disabled:opacity-50' : ''}`}
-                style={{ backgroundColor: registrationState.reason === 'subscribed' ? 'var(--t-primary)' : 'var(--t-secondary)' }}
+                style={{ backgroundColor: (registrationState.reason === 'subscribed' || stageAssignment) ? 'var(--t-primary)' : 'var(--t-secondary)' }}
               >
-                {registrationState.label}
+                {stageAssignment && registrationState.reason !== 'subscribed' ? 'أنت مشترك بالفعل' : registrationState.label}
               </button>
             </div>
           </div>
