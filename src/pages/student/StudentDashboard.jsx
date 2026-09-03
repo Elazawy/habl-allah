@@ -97,6 +97,8 @@ export default function StudentDashboard() {
             </button>
           </div>
 
+
+
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: 'var(--t-primary-light)', borderTopColor: 'var(--t-primary)' }} />
@@ -389,10 +391,11 @@ export default function StudentDashboard() {
                                       </span>
                                     )}
                                     {assignment.status === 'completed' && (
-                                      <span className="text-emerald-500 font-bold">
-                                        اجتاز المسابقة ✓
+                                      <span className="text-emerald-500 dark:text-emerald-400 font-black flex items-center gap-1">
+                                        🏆 فائز بالمسابقة
                                       </span>
                                     )}
+
                                     {assignment.status === 'failed' && (
                                       <span className="text-red-500 font-bold">
                                         لم يجتاز {stageName || 'المرحلة الحالية'}
