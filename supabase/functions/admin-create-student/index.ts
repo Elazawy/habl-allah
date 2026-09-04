@@ -131,11 +131,14 @@ Deno.serve(async (req: Request) => {
     const adminClient = createAdminClient();
     await requireAdminUser(req, adminClient);
 
-    const { phone, password, fullName, teacherId } = await readJson(req) as {
+    const { phone, password, fullName, teacherId, gender, country, birthDate } = await readJson(req) as {
       phone: string;
       password: string;
       fullName: string;
       teacherId?: string | null;
+      gender?: string | null;
+      country?: string | null;
+      birthDate?: string | null;
     };
 
     if (!phone || !password || !fullName) {
@@ -151,6 +154,20 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'الاسم الكامل يجب أن يكون ثنائياً على الأقل.' }, { status: 400 });
     }
 
+    // Optional new profile fields (all-or-nothing per field, validated when present)
+    if (gender != null && gender !== '' && gender !== 'male' && gender !== 'female') {
+      return json({ error: 'الجنس يجب أن يكون ذكراً أو أنثى.' }, { status: 400 });
+    }
+
+    const normalizedCountry = country?.trim() ?? '';
+    if (normalizedCountry !== '' && !/^[A-Za-z]{2}$/.test(normalizedCountry)) {
+      return json({ error: 'رمز الدولة غير صحيح.' }, { status: 400 });
+    }
+
+    if (birthDate != null && birthDate !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+      return json({ error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
+    }
+
     // Derive a deterministic valid email from the phone number.
     // Admin API accepts this format without triggering email-validation errors.
     // Login uses the same email derivation in the frontend service.
@@ -164,6 +181,9 @@ Deno.serve(async (req: Request) => {
         full_name: fullName.trim(),
         phone: normalizedPhone,
         teacher_id: null,
+        ...(gender ? { gender } : {}),
+        ...(normalizedCountry ? { country: normalizedCountry.toUpperCase() } : {}),
+        ...(birthDate ? { birth_date: birthDate } : {}),
       },
     });
 
@@ -200,6 +220,26 @@ Deno.serve(async (req: Request) => {
         // Roll back auth user to avoid orphans
         await adminClient.auth.admin.deleteUser(userId);
         return json({ error: teacherError.message }, { status: 500 });
+      }
+    }
+
+    // Belt-and-suspenders: the DB trigger already persists these from
+    // user_metadata, but update the row directly in case the trigger hasn't
+    // been deployed yet.
+    const profileExtras: Record<string, string> = {};
+    if (gender) profileExtras.gender = gender;
+    if (normalizedCountry) profileExtras.country = normalizedCountry.toUpperCase();
+    if (birthDate) profileExtras.birth_date = birthDate;
+
+    if (Object.keys(profileExtras).length > 0) {
+      const { error: extrasError } = await adminClient
+        .from('student_profiles')
+        .update(profileExtras)
+        .eq('id', userId);
+
+      if (extrasError) {
+        await adminClient.auth.admin.deleteUser(userId);
+        return json({ error: extrasError.message }, { status: 500 });
       }
     }
 

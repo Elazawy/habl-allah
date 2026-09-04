@@ -700,6 +700,13 @@ body {
   border-radius: 8px;
   padding: 0.25rem;
   border: 1px solid var(--admin-border);
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-filter-tabs::-webkit-scrollbar {
+  display: none;
 }
 .admin-filter-tab {
   padding: 0.4rem 0.85rem;
@@ -711,6 +718,8 @@ body {
   font-family: 'Cairo', sans-serif;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .admin-filter-tab:hover { color: var(--admin-text); }
 .admin-filter-tab--active {
@@ -813,6 +822,11 @@ body {
   color: var(--admin-accent);
 }
 .admin-icon-btn--edit:hover { background: rgba(78,173,136,0.2); }
+.admin-icon-btn--lesson {
+  background: rgba(217,163,75,0.14);
+  color: #e5a93b;
+}
+.admin-icon-btn--lesson:hover { background: rgba(217,163,75,0.26); }
 .admin-icon-btn--delete {
   background: rgba(248,81,73,0.1);
   color: var(--admin-danger);
@@ -1380,6 +1394,47 @@ body {
   font-weight: 500;
 }
 
+/* ── Detail Card & Custom Filters ── */
+.admin-detail-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 2rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-users-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.admin-users-search {
+  max-width: 400px;
+  flex: 1 1 260px;
+}
+.admin-filter-group-gender {
+  margin: 0;
+  min-width: 130px;
+}
+.admin-filter-group-teacher {
+  margin: 0;
+  min-width: 170px;
+}
+.admin-filter-group-age {
+  margin: 0;
+}
+.admin-age-inputs-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.admin-age-input {
+  width: 80px;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    ADMIN — RESPONSIVE (Hamburger Drawer)
    ═══════════════════════════════════════════════════════════════════════ */
@@ -1468,15 +1523,25 @@ body {
   .admin-main {
     width: 100%;
     padding-top: 3.5rem;
+    overflow-x: hidden;
   }
 
   .admin-page {
     padding: 1rem;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .admin-page-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .admin-page-header .admin-btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .admin-stats-grid {
@@ -1485,6 +1550,58 @@ body {
 
   .admin-filters {
     flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .admin-search-wrapper {
+    flex: none;
+    width: 100%;
+  }
+
+  .admin-users-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .admin-users-search {
+    max-width: 100%;
+    flex: none;
+    width: 100%;
+  }
+
+  .admin-filter-group-gender,
+  .admin-filter-group-teacher,
+  .admin-filter-group-age {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .admin-filter-group-gender select,
+  .admin-filter-group-teacher select {
+    width: 100%;
+  }
+
+  .admin-age-inputs-row {
+    width: 100%;
+  }
+
+  .admin-age-input {
+    flex: 1;
+    width: auto !important;
+    min-width: 0;
+  }
+
+  .admin-filter-reset-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-detail-card {
+    padding: 1rem;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   /* Table → Card layout on mobile */

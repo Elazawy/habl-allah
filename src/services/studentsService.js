@@ -131,13 +131,16 @@ async function getFunctionErrorMessage(error, actionLabel) {
   return message || `تعذر ${actionLabel} حالياً.`;
 }
 
-export async function signUpStudent({ phone, password, fullName }) {
+export async function signUpStudent({ phone, password, fullName, gender, country, birthDate }) {
   const normalizedPhone = normalizeStudentPhone(phone);
   const { error } = await supabase.functions.invoke('student-self-signup', {
     body: {
       fullName: fullName.trim(),
       phone: normalizedPhone,
       password,
+      gender,
+      country,
+      birthDate,
     },
   });
 
@@ -221,7 +224,7 @@ async function invokeAdminFunction(functionName, payload, fallbackMessage) {
  * Calls the protected Edge Function `admin-create-student` which uses
  * admin.createUser({ email: phoneToAuthEmail(phone), email_confirm: true }).
  */
-export async function adminCreateStudent({ phone, password, fullName, teacherId }) {
+export async function adminCreateStudent({ phone, password, fullName, teacherId, gender, country, birthDate }) {
   const result = await invokeAdminFunction(
     'admin-create-student',
     {
@@ -229,11 +232,25 @@ export async function adminCreateStudent({ phone, password, fullName, teacherId 
       password,
       fullName: fullName.trim(),
       teacherId: teacherId || null,
+      gender: gender || null,
+      country: country || null,
+      birthDate: birthDate || null,
     },
     'حدث خطأ أثناء إنشاء الحساب.'
   );
 
   return result.user;
+}
+
+/** Admin: reset a student's auth password via the protected Edge Function. */
+export async function adminResetStudentPassword(studentId, newPassword) {
+  const result = await invokeAdminFunction(
+    'admin-reset-student-password',
+    { studentId, newPassword },
+    'حدث خطأ أثناء تغيير كلمة المرور.'
+  );
+
+  return result;
 }
 
 export async function adminDeleteStudent(studentId) {
@@ -281,7 +298,7 @@ export async function fetchAllStudents() {
   const { data, error } = await supabase
     .from('student_profiles')
     .select(`
-      id, full_name, phone, created_at,
+      id, full_name, phone, teacher_id, created_at, gender, country, birth_date,
       teachers(id, name),
       student_course_subscriptions(count),
       student_competition_subscriptions(count)
@@ -296,7 +313,7 @@ export async function fetchStudentById(studentId) {
   const { data, error } = await supabase
     .from('student_profiles')
     .select(`
-      id, full_name, phone, teacher_id, created_at,
+      id, full_name, phone, teacher_id, created_at, gender, country, birth_date,
       teachers(id, name, photo_url),
       student_course_subscriptions(*, quran_courses(id, name, slug, is_free, is_published)),
       student_competition_subscriptions(*, quran_competitions(id, name, slug))
@@ -340,6 +357,26 @@ export async function updateStudentProfile(studentId, payload) {
     .update(payload)
     .eq('id', studentId)
     .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Student: update own profile (name, country, birth_date).
+ * Protected by the `student_profiles_self_update` RLS policy; the
+ * `restrict_student_self_update` DB trigger reverts admin-only columns
+ * (teacher_id, phone, gender) even if a client tries to send them.
+ */
+export async function updateMyProfile(payload) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User session not found');
+
+  const { data, error } = await supabase
+    .from('student_profiles')
+    .update(payload)
+    .eq('id', user.id)
+    .select('*')
     .single();
   if (error) throw error;
   return data;

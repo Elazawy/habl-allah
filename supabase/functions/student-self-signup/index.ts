@@ -116,12 +116,15 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'Method not allowed' }, { status: 405 });
     }
 
-    const { phone, password, fullName, teacherId, teacher_id: teacherIdSnakeCase } = await readJson(req) as {
+    const { phone, password, fullName, teacherId, teacher_id: teacherIdSnakeCase, gender, country, birthDate } = await readJson(req) as {
       phone?: string;
       password?: string;
       fullName?: string;
       teacherId?: unknown;
       teacher_id?: unknown;
+      gender?: string;
+      country?: string;
+      birthDate?: string;
     };
 
     if (teacherId !== undefined || teacherIdSnakeCase !== undefined) {
@@ -145,6 +148,22 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'يجب أن تتكون كلمة المرور من 6 خانات على الأقل.' }, { status: 400 });
     }
 
+    if (gender !== 'male' && gender !== 'female') {
+      return json({ error: 'الجنس يجب أن يكون ذكراً أو أنثى.' }, { status: 400 });
+    }
+
+    const normalizedCountry = country?.trim() ?? '';
+    if (!/^[A-Za-z]{2}$/.test(normalizedCountry)) {
+      return json({ error: 'يرجى اختيار الدولة من القائمة.' }, { status: 400 });
+    }
+
+    if (typeof birthDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+      return json({ error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
+    }
+    if (Number.isNaN(new Date(`${birthDate}T00:00:00Z`).getTime())) {
+      return json({ error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
+    }
+
     const adminClient = createAdminClient();
     const email = phoneToAuthEmail(normalizedPhone);
 
@@ -155,6 +174,9 @@ Deno.serve(async (req: Request) => {
       user_metadata: {
         full_name: fullName.trim(),
         phone: normalizedPhone,
+        gender,
+        country: normalizedCountry.toUpperCase(),
+        birth_date: birthDate,
       },
     });
 

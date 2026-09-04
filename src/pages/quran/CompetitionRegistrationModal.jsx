@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { X, Loader, CheckCircle, AlertCircle, MapPin, User, Phone, Calendar, Trophy } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { submitCompetitionRegistrationRequest } from '../../services/competitionsService';
+import { COUNTRY_OPTIONS } from '../../data/countries';
 
 function normalizeLocalizedDigits(value) {
-  return String(value ?? '').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
+  return String(value ?? '').replace(/[٠-٩۰-۹]/g, (digit) => {
     const code = digit.charCodeAt(0);
 
     if (code >= 0x0660 && code <= 0x0669) {
@@ -25,22 +27,23 @@ function normalizePhoneDigits(value) {
 
 export default function CompetitionRegistrationModal({ competition, onClose, onSubmitted }) {
   const { user, isStudent, studentProfile } = useAuth();
-  
+
   // States
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
-  const [age, setAge] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [gender, setGender] = useState('');
   const [selectedLevelOption, setSelectedLevelOption] = useState('');
   const [customLevel, setCustomLevel] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
   const isClosed = new Date(competition.registration_deadline + 'T23:59:59') < new Date();
-  const availableLevels = Array.isArray(competition.available_levels) 
-    ? competition.available_levels.filter(lvl => typeof lvl === 'string' && lvl.trim() !== '') 
+  const availableLevels = Array.isArray(competition.available_levels)
+    ? competition.available_levels.filter(lvl => typeof lvl === 'string' && lvl.trim() !== '')
     : [];
   const isStudentRequester = Boolean(user && isStudent && studentProfile?.id === user.id);
 
@@ -80,22 +83,30 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
         setError('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
         return false;
       }
+
+      if (!birthDate) {
+        setError('يرجى كتابة تاريخ الميلاد.');
+        return false;
+      }
+
+      if (gender !== 'male' && gender !== 'female') {
+        setError('يرجى تحديد الجنس.');
+        return false;
+      }
+
+      if (!country) {
+        setError('يرجى اختيار الدولة.');
+        return false;
+      }
+    } else {
+      // Signed-in students: data comes from the profile — make sure it is there.
+      if (!studentProfile.birth_date || !studentProfile.gender || !studentProfile.country) {
+        setError('بيانات ملفك الشخصي غير مكتملة (تاريخ الميلاد / الجنس / الدولة). يرجى استكمالها من صفحة ملفي الشخصي ثم إعادة المحاولة.');
+        return false;
+      }
     }
 
-    // 2. Validate country
-    if (country.trim().length < 2) {
-      setError('الدولة يجب أن تتكون من حرفين على الأقل.');
-      return false;
-    }
-
-    // 3. Validate age
-    const parsedAge = parseInt(normalizeLocalizedDigits(age), 10);
-    if (isNaN(parsedAge) || parsedAge < 3 || parsedAge > 120) {
-      setError('العمر يجب أن يكون رقماً بين 3 و 120 عاماً.');
-      return false;
-    }
-
-    // 4. Validate level
+    // 2. Validate level
     const finalLevel = selectedLevelOption === 'custom' ? customLevel.trim() : selectedLevelOption.trim();
     if (!finalLevel) {
       setError('يرجى تحديد أو كتابة المستوى المطلوب.');
@@ -119,14 +130,15 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
       if (isStudent && studentProfile && !isStudentRequester) {
         throw new Error('تعذر التحقق من حساب الطالب الحالي. يرجى تسجيل الدخول مرة أخرى ثم إعادة المحاولة.');
       }
-      
+
       const payload = {
         competition_id: competition.id,
         student_id: isStudentRequester ? studentProfile.id : null,
         student_name: isStudentRequester ? studentProfile.full_name : name.trim(),
         student_phone: isStudentRequester ? normalizePhoneDigits(studentProfile.phone) : normalizePhoneDigits(phone),
-        country: country.trim(),
-        age: parseInt(normalizeLocalizedDigits(age), 10),
+        country: isStudentRequester ? studentProfile.country : country,
+        birth_date: isStudentRequester ? studentProfile.birth_date : birthDate,
+        gender: isStudentRequester ? studentProfile.gender : gender,
         level: finalLevel,
       };
 
@@ -168,13 +180,13 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
         }}
       >
         {/* Header */}
-        <div 
-          className="p-6 border-b flex items-center justify-between relative" 
+        <div
+          className="p-6 border-b flex items-center justify-between relative"
           style={{ borderColor: 'var(--t-border)' }}
         >
           <div className="flex items-center gap-3">
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white" 
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
               style={{ backgroundColor: 'var(--t-primary)' }}
             >
               <Trophy size={20} />
@@ -188,7 +200,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
               </p>
             </div>
           </div>
-          
+
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-zinc-800"
@@ -223,10 +235,10 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               {isClosed && (
-                <div 
-                  className="p-4 rounded-2xl flex items-start gap-3 text-sm" 
-                  style={{ 
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                <div
+                  className="p-4 rounded-2xl flex items-start gap-3 text-sm"
+                  style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     color: 'rgb(239, 68, 68)',
                     border: '1px solid rgba(239, 68, 68, 0.2)'
                   }}
@@ -239,33 +251,34 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
               )}
 
               {error && (
-                <div 
-                  className="p-4 rounded-2xl flex items-start gap-3 text-sm" 
-                  style={{ 
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                <div
+                  className="p-4 rounded-2xl flex items-start gap-3 text-sm"
+                  style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     color: 'rgb(239, 68, 68)',
                     border: '1px solid rgba(239, 68, 68, 0.2)'
                   }}
                   role="alert"
                 >
                   <AlertCircle size={20} className="shrink-0 mt-0.5" />
-                  <div>{error}</div>
+                  <div>
+                    {error}
+                    {isStudentRequester && error.includes('ملفي الشخصي') && (
+                      <>
+                        {' '}
+                        <Link
+                          to="/quran/student/profile"
+                          className="font-bold underline"
+                          style={{ color: 'var(--t-primary)' }}
+                        >
+                          اذهب لملفي الشخصي
+                        </Link>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
-              {/* Student info warning note */}
-              {isStudentRequester && (
-                <div 
-                  className="p-4 rounded-2xl text-xs leading-relaxed" 
-                  style={{ 
-                    backgroundColor: 'var(--t-primary-light)', 
-                    color: 'var(--t-primary)',
-                    border: '1px solid var(--t-border-gold)' 
-                  }}
-                >
-                  💡 <strong>مسجل كطالب:</strong> سيتم استخدام الاسم (<strong>{studentProfile.full_name}</strong>) ورقم الهاتف الخاص بك من حسابك المسجل تلقائياً.
-                </div>
-              )}
 
               {/* Guest fields */}
               {!isStudentRequester && (
@@ -285,8 +298,8 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                       onChange={(e) => setName(e.target.value)}
                       placeholder="اكتب اسمك الكامل هنا..."
                       className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
-                      style={{ 
-                        backgroundColor: 'var(--t-bg-page)', 
+                      style={{
+                        backgroundColor: 'var(--t-bg-page)',
                         borderColor: 'var(--t-border)',
                         color: 'var(--t-text)'
                       }}
@@ -309,63 +322,91 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                       placeholder="مثال: 201012345678"
                       dir="ltr"
                       className="w-full px-4 py-3 rounded-xl border text-sm text-right transition-all focus:outline-none focus:ring-1"
-                      style={{ 
-                        backgroundColor: 'var(--t-bg-page)', 
+                      style={{
+                        backgroundColor: 'var(--t-bg-page)',
                         borderColor: 'var(--t-border)',
                         color: 'var(--t-text)'
                       }}
                     />
                   </div>
+
+                  {/* Birth date */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="student_birth_date" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
+                      <Calendar size={14} className="text-amber-500" />
+                      تاريخ الميلاد *
+                    </label>
+                    <input
+                      id="student_birth_date"
+                      type="date"
+                      required
+                      disabled={loading || isClosed}
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
+                      style={{
+                        backgroundColor: 'var(--t-bg-page)',
+                        borderColor: 'var(--t-border)',
+                        color: 'var(--t-text)'
+                      }}
+                    />
+                  </div>
+
+                  {/* Gender */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="student_gender" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
+                      <User size={14} className="text-amber-500" />
+                      الجنس *
+                    </label>
+                    <select
+                      id="student_gender"
+                      required
+                      disabled={loading || isClosed}
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
+                      style={{
+                        backgroundColor: 'var(--t-bg-page)',
+                        borderColor: 'var(--t-border)',
+                        color: 'var(--t-text)'
+                      }}
+                    >
+                      <option value="">اختر الجنس...</option>
+                      <option value="male">ذكر</option>
+                      <option value="female">أنثى</option>
+                    </select>
+                  </div>
+
+                  {/* Country */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="country" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
+                      <MapPin size={14} className="text-amber-500" />
+                      الدولة *
+                    </label>
+                    <select
+                      id="country"
+                      required
+                      disabled={loading || isClosed}
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
+                      style={{
+                        backgroundColor: 'var(--t-bg-page)',
+                        borderColor: 'var(--t-border)',
+                        color: 'var(--t-text)'
+                      }}
+                    >
+                      <option value="">اختر دولتك...</option>
+                      {COUNTRY_OPTIONS.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.nameAr}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </>
               )}
-
-              {/* Country */}
-              <div className="space-y-1.5">
-                <label htmlFor="country" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
-                  <MapPin size={14} className="text-amber-500" />
-                  الدولة *
-                </label>
-                <input
-                  id="country"
-                  type="text"
-                  required
-                  disabled={loading || isClosed}
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="مثال: مصر، السعودية، الأردن..."
-                  className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
-                  style={{ 
-                    backgroundColor: 'var(--t-bg-page)', 
-                    borderColor: 'var(--t-border)',
-                    color: 'var(--t-text)'
-                  }}
-                />
-              </div>
-
-              {/* Age */}
-              <div className="space-y-1.5">
-                <label htmlFor="age" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
-                  <Calendar size={14} className="text-amber-500" />
-                  العمر *
-                </label>
-                <input
-                  id="age"
-                  type="number"
-                  required
-                  min={3}
-                  max={120}
-                  disabled={loading || isClosed}
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="اكتب عمرك بالسنوات..."
-                  className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
-                  style={{ 
-                    backgroundColor: 'var(--t-bg-page)', 
-                    borderColor: 'var(--t-border)',
-                    color: 'var(--t-text)'
-                  }}
-                />
-              </div>
 
               {/* Level Select */}
               <div className="space-y-1.5">
@@ -373,7 +414,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   <Trophy size={14} className="text-amber-500" />
                   المستوى المراد الاشتراك فيه *
                 </label>
-                
+
                 {availableLevels.length > 0 ? (
                   <div className="space-y-3">
                     <select
@@ -382,8 +423,8 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                       value={selectedLevelOption}
                       onChange={(e) => setSelectedLevelOption(e.target.value)}
                       className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
-                      style={{ 
-                        backgroundColor: 'var(--t-bg-page)', 
+                      style={{
+                        backgroundColor: 'var(--t-bg-page)',
                         borderColor: 'var(--t-border)',
                         color: 'var(--t-text)'
                       }}
@@ -406,8 +447,8 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                         onChange={(e) => setCustomLevel(e.target.value)}
                         placeholder="اكتب مستواك هنا بالتفصيل..."
                         className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1 animate-in fade-in slide-in-from-top-2 duration-200"
-                        style={{ 
-                          backgroundColor: 'var(--t-bg-page)', 
+                        style={{
+                          backgroundColor: 'var(--t-bg-page)',
                           borderColor: 'var(--t-border)',
                           color: 'var(--t-text)'
                         }}
@@ -424,8 +465,8 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                     onChange={(e) => setCustomLevel(e.target.value)}
                     placeholder="مثال: جزء عم، ثلاثة أجزاء، القرآن كاملاً..."
                     className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
-                    style={{ 
-                      backgroundColor: 'var(--t-bg-page)', 
+                    style={{
+                      backgroundColor: 'var(--t-bg-page)',
                       borderColor: 'var(--t-border)',
                       color: 'var(--t-text)'
                     }}
