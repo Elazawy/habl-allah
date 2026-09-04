@@ -1,8 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { isValidStudentPhone, normalizeStudentPhone, signUpStudent } from '../../services/studentsService';
+import { COUNTRY_OPTIONS } from '../../data/countries';
 import { useAuth } from '../../context/AuthContext';
 import logoGold from '../../assets/logo-gold.png';
+
+function calcAgeInYears(dateString) {
+  const birthDate = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(birthDate.getTime())) return NaN;
+  const now = new Date();
+  let age = now.getFullYear() - birthDate.getFullYear();
+  const monthDiff = now.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
 
 export default function StudentSignupPage() {
   const navigate = useNavigate();
@@ -10,9 +23,12 @@ export default function StudentSignupPage() {
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [gender, setGender] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -29,6 +45,26 @@ export default function StudentSignupPage() {
 
     if (!isValidStudentPhone(phone)) {
       setError('يرجى كتابة رقم هاتف صحيح يتكون من 10 إلى 15 رقماً.');
+      return;
+    }
+
+    if (!country) {
+      setError('يرجى اختيار الدولة.');
+      return;
+    }
+
+    const age = calcAgeInYears(birthDate);
+    if (!birthDate || Number.isNaN(age)) {
+      setError('يرجى كتابة تاريخ الميلاد بشكل صحيح.');
+      return;
+    }
+    if (age < 3 || age > 120) {
+      setError('العمر يجب أن يكون بين 3 و 120 عاماً.');
+      return;
+    }
+
+    if (gender !== 'male' && gender !== 'female') {
+      setError('يرجى تحديد الجنس.');
       return;
     }
 
@@ -49,6 +85,9 @@ export default function StudentSignupPage() {
         phone: normalizedPhone,
         password,
         fullName: fullName.trim(),
+        gender,
+        country,
+        birthDate,
       });
 
       // Refresh student states in AuthContext
@@ -129,6 +168,72 @@ export default function StudentSignupPage() {
               className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 placeholder-emerald-800/40 dark:placeholder-emerald-200/40 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
               dir="ltr"
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="country-signup-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
+              الدولة
+            </label>
+            <select
+              id="country-signup-input"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              required
+              className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
+            >
+              <option value="">اختر دولتك...</option>
+              {COUNTRY_OPTIONS.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.nameAr}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="birthdate-signup-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
+              تاريخ الميلاد
+            </label>
+            <input
+              id="birthdate-signup-input"
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              required
+              max={new Date().toISOString().split('T')[0]}
+              className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
+              الجنس
+            </label>
+            <div className="flex gap-3">
+              <label className="flex-1 flex items-center gap-2 py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-sm font-semibold text-emerald-950 dark:text-emerald-100 cursor-pointer">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="male"
+                  checked={gender === 'male'}
+                  onChange={() => setGender('male')}
+                  className="accent-emerald-700 dark:accent-emerald-400"
+                  required
+                />
+                ذكر
+              </label>
+              <label className="flex-1 flex items-center gap-2 py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-sm font-semibold text-emerald-950 dark:text-emerald-100 cursor-pointer">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="female"
+                  checked={gender === 'female'}
+                  onChange={() => setGender('female')}
+                  className="accent-emerald-700 dark:accent-emerald-400"
+                />
+                أنثى
+              </label>
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">

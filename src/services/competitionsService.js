@@ -190,7 +190,12 @@ export async function submitCompetitionRegistrationRequest(payload) {
     ? payload.student_id.trim()
     : null;
   const normalizedPhone = normalizePhoneDigits(payload.student_phone);
-  const normalizedAge = Number.parseInt(normalizeLocalizedDigits(payload.age), 10);
+  const normalizedBirthDate = typeof payload.birth_date === 'string'
+    ? payload.birth_date.trim()
+    : '';
+  const normalizedGender = typeof payload.gender === 'string'
+    ? payload.gender.trim()
+    : '';
   const client = normalizedStudentId ? ensureSupabaseClient() : ensurePublicClient();
 
   const normalizedPayload = {
@@ -201,7 +206,8 @@ export async function submitCompetitionRegistrationRequest(payload) {
     student_name: typeof payload.student_name === 'string' ? payload.student_name.trim() : payload.student_name,
     student_phone: normalizedPhone,
     country: typeof payload.country === 'string' ? payload.country.trim() : payload.country,
-    age: normalizedAge,
+    birth_date: normalizedBirthDate,
+    gender: normalizedGender,
     level: typeof payload.level === 'string' ? payload.level.trim() : payload.level,
   };
 
@@ -217,8 +223,12 @@ export async function submitCompetitionRegistrationRequest(payload) {
     throw new Error('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
   }
 
-  if (!Number.isInteger(normalizedPayload.age) || normalizedPayload.age < 3 || normalizedPayload.age > 120) {
-    throw new Error('العمر يجب أن يكون رقماً بين 3 و120 عاماً.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedBirthDate)) {
+    throw new Error('يرجى كتابة تاريخ ميلاد صحيح.');
+  }
+
+  if (!['male', 'female'].includes(normalizedGender)) {
+    throw new Error('يرجى تحديد الجنس.');
   }
 
   if (typeof normalizedPayload.country !== 'string' || normalizedPayload.country.length < 2) {

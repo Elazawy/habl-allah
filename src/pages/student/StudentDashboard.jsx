@@ -89,12 +89,21 @@ export default function StudentDashboard() {
                 </p>
               )}
             </div>
-            <button
-              onClick={handleLogout}
-              className="mt-4 md:mt-0 px-4 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
-            >
-              تسجيل الخروج
-            </button>
+            <div className="flex items-center gap-2 mt-4 md:mt-0">
+              <Link
+                to="/quran/student/profile"
+                className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                style={{ backgroundColor: 'var(--t-primary-light)', color: 'var(--t-primary)' }}
+              >
+                ملفي الشخصي
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
+              >
+                تسجيل الخروج
+              </button>
+            </div>
           </div>
 
 

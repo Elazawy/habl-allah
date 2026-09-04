@@ -44,6 +44,7 @@ import StudentSignupPage from './pages/student/StudentSignupPage';
 import RequireStudent from './components/RequireStudent';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentQuranLessons from './pages/student/StudentQuranLessons';
+import StudentProfilePage from './pages/student/StudentProfilePage';
 
 // Admin Users Pages
 import UsersManagementPage from './pages/admin/UsersManagementPage';
@@ -103,6 +104,7 @@ export default function App() {
         <Route path="/quran/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
         <Route path="/quran/student/dashbaord" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
         <Route path="/quran/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />
+        <Route path="/quran/student/profile" element={<RequireStudent><StudentProfilePage /></RequireStudent>} />
 
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

@@ -26,7 +26,7 @@ const EMPTY_LESSON = {
 
 const LEVELS = ['ممتاز', 'جيد جداً', 'جيد', 'مقبول', 'ضعيف'];
 
-export default function QuranLessonFormModal({ lesson, studentId, onClose, onSaved }) {
+export default function QuranLessonFormModal({ lesson, studentId, studentName, onClose, onSaved }) {
   const [form, setForm] = useState(EMPTY_LESSON);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -109,7 +109,7 @@ export default function QuranLessonFormModal({ lesson, studentId, onClose, onSav
       <div className="admin-modal" style={{ maxWidth: '700px', width: '90%' }}>
         <div className="admin-modal-header">
           <h2 className="admin-modal-title">
-            {isEdit ? 'تعديل تقرير درس القرآن' : 'إضافة تقرير درس قرآن جديد'}
+            {isEdit ? 'تعديل تقرير درس القرآن' : studentName ? `إضافة حصة قرآن جديدة للطالب: ${studentName}` : 'إضافة تقرير درس قرآن جديد'}
           </h2>
           <button
             id="admin-modal-close-btn"

@@ -3,17 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   fetchStudentById,
   updateStudentProfile,
+  adminResetStudentPassword,
   grantCourseAccess,
   revokeCourseAccess,
   subscribeStudentToCompetition,
   unsubscribeStudentFromCompetition,
+  generatePassword,
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
 import { fetchAllCourses } from '../../services/coursesService';
 import { fetchAllCompetitions } from '../../services/competitionsService';
 import { fetchStudentLessons, deleteQuranLesson } from '../../services/quranLessonsService';
 import QuranLessonFormModal from './QuranLessonFormModal';
-import { User, BookOpen, Trophy, Calendar, Pencil, Trash2, Plus, ArrowRight, Loader } from 'lucide-react';
+import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
+import { User, BookOpen, Trophy, Calendar, Pencil, Trash2, Plus, ArrowRight, Loader, KeyRound, RefreshCw } from 'lucide-react';
 
 export default function UserDetailPage() {
   const { id: studentId } = useParams();
@@ -34,6 +37,16 @@ export default function UserDetailPage() {
   const [savingBasic, setSavingBasic] = useState(false);
   const [basicError, setBasicError] = useState('');
 
+  // Basic info — new profile fields
+  const [gender, setGender] = useState('');
+  const [country, setCountry] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+
+  // Password reset state
+  const [newPassword, setNewPassword] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState('');
+
   // Lesson management state
   const [lessonModal, setLessonModal] = useState({ open: false, lesson: null });
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -46,6 +59,9 @@ export default function UserDetailPage() {
       setStudent(studentData);
       setFullName(studentData.full_name);
       setTeacherId(studentData.teacher_id ?? '');
+      setGender(studentData.gender ?? '');
+      setCountry(studentData.country ?? '');
+      setBirthDate(studentData.birth_date ?? '');
 
       const teachersData = await fetchAllTeachers();
       setTeachers(teachersData);
@@ -78,11 +94,17 @@ export default function UserDetailPage() {
       const updated = await updateStudentProfile(studentId, {
         full_name: fullName.trim(),
         teacher_id: teacherId || null,
+        gender: gender || null,
+        country: country || null,
+        birth_date: birthDate || null,
       });
       setStudent((prev) => ({
         ...prev,
         full_name: updated.full_name,
         teacher_id: updated.teacher_id,
+        gender: updated.gender,
+        country: updated.country,
+        birth_date: updated.birth_date,
       }));
       alert('تم تحديث البيانات الأساسية بنجاح.');
     } catch (err) {
@@ -90,6 +112,30 @@ export default function UserDetailPage() {
       setBasicError(err.message ?? 'حدث خطأ أثناء حفظ التغييرات.');
     } finally {
       setSavingBasic(false);
+    }
+  };
+
+  // Tab 1: Admin password reset
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetPasswordError('');
+    if (newPassword.length < 6 || newPassword.length > 10) {
+      setResetPasswordError('يجب أن تكون كلمة المرور بين 6 و 10 خانات.');
+      return;
+    }
+
+    if (!window.confirm(`هل أنت متأكد من تغيير كلمة مرور الطالب ${student.full_name}؟`)) return;
+
+    setResettingPassword(true);
+    try {
+      await adminResetStudentPassword(studentId, newPassword);
+      setNewPassword('');
+      alert(`تم تغيير كلمة المرور بنجاح!\nكلمة المرور الجديدة: ${newPassword}\nيرجى إرسالها للطالب.`);
+    } catch (err) {
+      console.error(err);
+      setResetPasswordError(err.message ?? 'حدث خطأ أثناء تغيير كلمة المرور.');
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -201,7 +247,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Tabs list */}
-      <div className="admin-filter-tabs" style={{ marginBottom: '2rem', justifyContent: 'flex-start' }}>
+      <div className="admin-filter-tabs admin-detail-tabs" style={{ marginBottom: '2rem' }}>
         {[
           { id: 'basic', label: 'المعلومات الأساسية', icon: User },
           { id: 'courses', label: 'الدورات والوصول', icon: BookOpen },
@@ -222,7 +268,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Tab Contents */}
-      <div className="admin-card" style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius)', padding: '2rem' }}>
+      <div className="admin-card admin-detail-card">
         
         {/* Basic Info Tab */}
         {activeTab === 'basic' && (
@@ -267,6 +313,52 @@ export default function UserDetailPage() {
               </select>
             </div>
 
+            <div className="admin-field-group">
+              <label htmlFor="edit-student-gender" className="admin-label">الجنس</label>
+              <select
+                id="edit-student-gender"
+                className="admin-input admin-select"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <option value="">--غير محدد</option>
+                <option value="male">ذكر</option>
+                <option value="female">أنثى</option>
+              </select>
+            </div>
+
+            <div className="admin-field-group">
+              <label htmlFor="edit-student-country" className="admin-label">الدولة</label>
+              <select
+                id="edit-student-country"
+                className="admin-input admin-select"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+              >
+                <option value="">--غير محددة</option>
+                {COUNTRY_OPTIONS.map((c) => (
+                  <option key={c.code} value={c.code}>{c.nameAr}</option>
+                ))}
+              </select>
+              {student.country && !COUNTRY_OPTIONS.some((c) => c.code === student.country) && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--admin-muted)', marginTop: '0.2rem' }}>
+                  القيمة الحالية المخزنة: {getCountryName(student.country)}
+                </p>
+              )}
+            </div>
+
+            <div className="admin-field-group">
+              <label htmlFor="edit-student-birthdate" className="admin-label">تاريخ الميلاد</label>
+              <input
+                id="edit-student-birthdate"
+                type="date"
+                className="admin-input"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+
             {basicError && (
               <div className="admin-error-banner" role="alert">⚠️ {basicError}</div>
             )}
@@ -279,6 +371,64 @@ export default function UserDetailPage() {
             >
               {savingBasic ? <Loader size={16} className="admin-spin" /> : null}
               {savingBasic ? 'جارٍ الحفظ…' : 'حفظ التغيرات الأساسية'}
+            </button>
+          </form>
+        )}
+
+        {/* Password Reset (basic tab) */}
+        {activeTab === 'basic' && (
+          <form
+            onSubmit={handleResetPassword}
+            id="reset-student-password-form"
+            className="space-y-4"
+            style={{ maxWidth: '500px', marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid var(--admin-border)' }}
+          >
+            <h3 className="admin-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <KeyRound size={18} />
+              تغيير كلمة المرور
+            </h3>
+
+            <div className="admin-field-group">
+              <label htmlFor="new-student-password" className="admin-label">كلمة المرور الجديدة</label>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <input
+                  id="new-student-password"
+                  type="text"
+                  className="admin-input"
+                  dir="ltr"
+                  placeholder="من 6 إلى 10 خانات…"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{ flex: '1 1 180px', minWidth: 0 }}
+                />
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={() => setNewPassword(generatePassword(9))}
+                  disabled={resettingPassword}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <RefreshCw size={14} />
+                  توليد عشوائي
+                </button>
+              </div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--admin-muted)', marginTop: '0.2rem' }}>
+                ⚠️ تأكد من حفظ أو كتابة كلمة المرور لإرسالها للطالب.
+              </p>
+            </div>
+
+            {resetPasswordError && (
+              <div className="admin-error-banner" role="alert">⚠️ {resetPasswordError}</div>
+            )}
+
+            <button
+              type="submit"
+              id="reset-student-password-btn"
+              className="admin-btn admin-btn--primary"
+              disabled={resettingPassword}
+            >
+              {resettingPassword ? <Loader size={16} className="admin-spin" /> : <KeyRound size={16} />}
+              {resettingPassword ? 'جاري التغيير…' : 'تغيير كلمة المرور'}
             </button>
           </form>
         )}
@@ -398,7 +548,7 @@ export default function UserDetailPage() {
         {/* Quran Lessons Report Tab */}
         {activeTab === 'lessons' && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
               <h3 className="admin-section-title" style={{ margin: 0 }}>تقارير ودروس التسميع</h3>
               <button
                 id="add-lesson-btn"
@@ -486,6 +636,7 @@ export default function UserDetailPage() {
         <QuranLessonFormModal
           lesson={lessonModal.lesson}
           studentId={studentId}
+          studentName={student?.full_name}
           onClose={() => setLessonModal({ open: false, lesson: null })}
           onSaved={handleLessonSaved}
         />

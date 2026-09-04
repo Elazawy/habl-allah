@@ -8,8 +8,23 @@ import {
   normalizeStudentPhone,
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
-import { Plus, Search, User, Loader, ChevronLeft, Trash2 } from 'lucide-react';
+import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
+import { Plus, Search, User, Loader, ChevronLeft, Trash2, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import QuranLessonFormModal from './QuranLessonFormModal';
+
+function calcAgeInYears(dateString) {
+  if (!dateString) return null;
+  const birthDate = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(birthDate.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birthDate.getFullYear();
+  const monthDiff = now.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
 
 export default function UsersManagementPage() {
   const navigate = useNavigate();
@@ -17,16 +32,26 @@ export default function UsersManagementPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [teachers, setTeachers] = useState([]);
-  
+
+  // Filters
+  const [genderFilter, setGenderFilter] = useState('');
+  const [teacherFilter, setTeacherFilter] = useState('');
+  const [ageMinFilter, setAgeMinFilter] = useState('');
+  const [ageMaxFilter, setAgeMaxFilter] = useState('');
+
   const [modalOpen, setModalOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [teacherId, setTeacherId] = useState('');
+  const [gender, setGender] = useState('');
+  const [country, setCountry] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [lessonModalStudent, setLessonModalStudent] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -48,13 +73,37 @@ export default function UsersManagementPage() {
 
   const filtered = students.filter((s) => {
     const term = search.toLowerCase().trim();
-    if (!term) return true;
-    return (
-      s.full_name.toLowerCase().includes(term) ||
-      s.phone.includes(term) ||
-      (s.teachers?.name || '').toLowerCase().includes(term)
-    );
+    if (term) {
+      const matchesSearch = (
+        s.full_name.toLowerCase().includes(term) ||
+        s.phone.includes(term) ||
+        (s.teachers?.name || '').toLowerCase().includes(term)
+      );
+      if (!matchesSearch) return false;
+    }
+
+    if (genderFilter && s.gender !== genderFilter) return false;
+
+    if (teacherFilter && (s.teacher_id ?? '') !== teacherFilter) return false;
+
+    if (ageMinFilter !== '' || ageMaxFilter !== '') {
+      const age = calcAgeInYears(s.birth_date);
+      if (age === null) return false;
+      if (ageMinFilter !== '' && age < Number(ageMinFilter)) return false;
+      if (ageMaxFilter !== '' && age > Number(ageMaxFilter)) return false;
+    }
+
+    return true;
   });
+
+  const resetFilters = () => {
+    setGenderFilter('');
+    setTeacherFilter('');
+    setAgeMinFilter('');
+    setAgeMaxFilter('');
+  };
+
+  const hasActiveFilters = Boolean(genderFilter || teacherFilter || ageMinFilter !== '' || ageMaxFilter !== '');
 
   const handleGeneratePassword = () => {
     const pw = generatePassword(9);
@@ -88,17 +137,23 @@ export default function UsersManagementPage() {
         phone: normalizedPhone,
         password,
         teacherId: teacherId || null,
+        gender: gender || null,
+        country: country || null,
+        birthDate: birthDate || null,
       });
 
       // Reload students list
       const data = await fetchAllStudents();
       setStudents(data);
-      
+
       // Reset form and close
       setFullName('');
       setPhone('');
       setPassword('');
       setTeacherId('');
+      setGender('');
+      setCountry('');
+      setBirthDate('');
       setModalOpen(false);
 
       alert(`تم إنشاء الحساب بنجاح!\nكلمة مرور الطالب: ${password}\nيرجى إرسالها للطالب.`);
@@ -149,8 +204,8 @@ export default function UsersManagementPage() {
       </div>
 
       {/* Filters */}
-      <div className="admin-filters">
-        <div className="admin-search-wrapper" style={{ maxWidth: '400px' }}>
+      <div className="admin-filters admin-users-filters">
+        <div className="admin-search-wrapper admin-users-search">
           <Search size={16} className="admin-search-icon" />
           <input
             id="admin-student-search"
@@ -161,6 +216,74 @@ export default function UsersManagementPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+
+        <div className="admin-field-group admin-filter-group-gender">
+          <label htmlFor="admin-filter-gender" className="admin-label">الجنس</label>
+          <select
+            id="admin-filter-gender"
+            className="admin-input admin-select"
+            value={genderFilter}
+            onChange={(e) => setGenderFilter(e.target.value)}
+          >
+            <option value="">الكل</option>
+            <option value="male">ذكر</option>
+            <option value="female">أنثى</option>
+          </select>
+        </div>
+
+        <div className="admin-field-group admin-filter-group-teacher">
+          <label htmlFor="admin-filter-teacher" className="admin-label">المعلم</label>
+          <select
+            id="admin-filter-teacher"
+            className="admin-input admin-select"
+            value={teacherFilter}
+            onChange={(e) => setTeacherFilter(e.target.value)}
+          >
+            <option value="">كل المعلمين</option>
+            {teachers.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-field-group admin-filter-group-age">
+          <label htmlFor="admin-filter-age-min" className="admin-label">العمر من / إلى</label>
+          <div className="admin-age-inputs-row">
+            <input
+              id="admin-filter-age-min"
+              type="number"
+              min={3}
+              max={120}
+              className="admin-input admin-age-input"
+              placeholder="من"
+              value={ageMinFilter}
+              onChange={(e) => setAgeMinFilter(e.target.value)}
+            />
+            <span style={{ color: 'var(--admin-muted)' }}>-</span>
+            <input
+              id="admin-filter-age-max"
+              type="number"
+              min={3}
+              max={120}
+              className="admin-input admin-age-input"
+              placeholder="إلى"
+              value={ageMaxFilter}
+              onChange={(e) => setAgeMaxFilter(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            className="admin-btn admin-btn--ghost admin-filter-reset-btn"
+            onClick={resetFilters}
+          >
+            مسح الفلاتر
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -182,6 +305,9 @@ export default function UsersManagementPage() {
                 <th>اسم الطالب</th>
                 <th>رقم الهاتف</th>
                 <th>المعلم المتابع</th>
+                <th>الجنس</th>
+                <th>الدولة</th>
+                <th>العمر</th>
                 <th>الدورات</th>
                 <th>المسابقات</th>
                 <th>تاريخ التسجيل</th>
@@ -189,7 +315,9 @@ export default function UsersManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((student) => (
+              {filtered.map((student) => {
+                const age = calcAgeInYears(student.birth_date);
+                return (
                 <tr key={student.id} id={`student-row-${student.id}`}>
                   <td style={{ fontWeight: 600 }}>{student.full_name}</td>
                   <td dir="ltr" style={{ textAlign: 'right' }}>{student.phone}</td>
@@ -200,6 +328,29 @@ export default function UsersManagementPage() {
                       </span>
                     ) : (
                       <span className="admin-muted">--بدون معلم</span>
+                    )}
+                  </td>
+                  <td>
+                    {student.gender ? (
+                      <span className={`admin-badge ${student.gender === 'male' ? 'admin-badge--male' : 'admin-badge--female'}`}>
+                        {student.gender === 'male' ? 'ذكر' : 'أنثى'}
+                      </span>
+                    ) : (
+                      <span className="admin-muted">--</span>
+                    )}
+                  </td>
+                  <td>
+                    {student.country ? (
+                      <span className="admin-badge admin-badge--neutral">{getCountryName(student.country)}</span>
+                    ) : (
+                      <span className="admin-muted">--</span>
+                    )}
+                  </td>
+                  <td>
+                    {age !== null ? (
+                      <span className="admin-badge admin-badge--neutral">{age} سنة</span>
+                    ) : (
+                      <span className="admin-muted">--</span>
                     )}
                   </td>
                   <td>
@@ -217,6 +368,15 @@ export default function UsersManagementPage() {
                   </td>
                   <td>
                     <div className="admin-row-actions">
+                      <button
+                        id={`add-lesson-student-${student.id}`}
+                        className="admin-icon-btn admin-icon-btn--lesson"
+                        onClick={() => setLessonModalStudent(student)}
+                        title="إضافة حصة قرآن جديدة للطالب"
+                        aria-label={`إضافة حصة قرآن للطالب ${student.full_name}`}
+                      >
+                        <BookOpen size={15} />
+                      </button>
                       <button
                         id={`view-student-${student.id}`}
                         className="admin-icon-btn admin-icon-btn--edit"
@@ -238,7 +398,8 @@ export default function UsersManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -337,6 +498,49 @@ export default function UsersManagementPage() {
                 </select>
               </div>
 
+              <div className="admin-field-group">
+                <label htmlFor="student-gender" className="admin-label">الجنس (اختياري)</label>
+                <select
+                  id="student-gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="admin-input admin-select"
+                >
+                  <option value="">--غير محدد</option>
+                  <option value="male">ذكر</option>
+                  <option value="female">أنثى</option>
+                </select>
+              </div>
+
+              <div className="admin-field-group">
+                <label htmlFor="student-country" className="admin-label">الدولة (اختياري)</label>
+                <select
+                  id="student-country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="admin-input admin-select"
+                >
+                  <option value="">--غير محددة</option>
+                  {COUNTRY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.nameAr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="admin-field-group">
+                <label htmlFor="student-birthdate" className="admin-label">تاريخ الميلاد (اختياري)</label>
+                <input
+                  id="student-birthdate"
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="admin-input"
+                />
+              </div>
+
               {error && (
                 <div className="admin-error-banner" role="alert">
                   ⚠️ {error}
@@ -401,6 +605,20 @@ export default function UsersManagementPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Add Quran Lesson Modal */}
+      {lessonModalStudent && (
+        <QuranLessonFormModal
+          studentId={lessonModalStudent.id}
+          studentName={lessonModalStudent.full_name}
+          onClose={() => setLessonModalStudent(null)}
+          onSaved={() => {
+            const studentName = lessonModalStudent.full_name;
+            setLessonModalStudent(null);
+            alert(`تمت إضافة تقرير الحصة بنجاح للطالب: ${studentName}`);
+          }}
+        />
       )}
     </div>
   );

@@ -48,6 +48,7 @@ import {
   normalizeStudentPhone,
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
+import { getCountryName } from '../../data/countries';
 
 function formatDateTime(dateStr) {
   if (!dateStr) return '—';
@@ -63,6 +64,25 @@ function formatDateTime(dateStr) {
   } catch {
     return dateStr;
   }
+}
+
+function calcAgeInYears(dateString) {
+  if (!dateString) return null;
+  const birthDate = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(birthDate.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birthDate.getFullYear();
+  const monthDiff = now.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
+function getGenderLabel(gender) {
+  if (gender === 'male') return 'ذكر';
+  if (gender === 'female') return 'أنثى';
+  return null;
 }
 
 const ASSIGNMENT_STATUS_OPTIONS = [
@@ -288,6 +308,9 @@ export default function CompetitionStudentsPage() {
         phone: normalizeStudentPhone(request.student_phone),
         password: generatePassword(9),
         teacherId: '',
+        gender: request.gender ?? '',
+        country: request.country ?? '',
+        birthDate: request.birth_date ?? '',
         error: '',
         saving: false,
       });
@@ -337,6 +360,9 @@ export default function CompetitionStudentsPage() {
             phone: normalizedPhone,
             password: accountModal.password,
             teacherId: accountModal.teacherId || null,
+            gender: accountModal.gender || null,
+            country: accountModal.country || null,
+            birthDate: accountModal.birthDate || null,
           });
           targetStudent = { id: createdUser.id, full_name: trimmedName, phone: normalizedPhone };
           createdPassword = accountModal.password;
@@ -754,7 +780,7 @@ export default function CompetitionStudentsPage() {
                   <thead>
                     <tr>
                       <th>مقدم الطلب</th>
-                      <th>الدولة / العمر</th>
+                      <th>الدولة / الجنس / العمر</th>
                       <th>المستوى</th>
                       <th>الحساب</th>
                       <th>الإجراءات</th>
@@ -764,6 +790,8 @@ export default function CompetitionStudentsPage() {
                     {filterByLevel(requests).map((request) => {
                       const isLinkedStudent = Boolean(request.student_id);
                       const isBusy = processingId === request.id;
+                      const requestAge = calcAgeInYears(request.birth_date);
+                      const requestGender = getGenderLabel(request.gender);
 
                       return (
                         <tr key={request.id}>
@@ -778,10 +806,16 @@ export default function CompetitionStudentsPage() {
                           <td>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', fontSize: '0.8rem' }}>
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <MapPin size={11} className="text-amber-500" /> {request.country}
+                                <MapPin size={11} className="text-amber-500" /> {getCountryName(request.country)}
                               </span>
+                              {requestGender && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  <Users size={11} className="text-amber-500" /> {requestGender}
+                                </span>
+                              )}
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <Calendar size={11} className="text-amber-500" /> {request.age} سنة
+                                <Calendar size={11} className="text-amber-500" />{' '}
+                                {requestAge !== null ? `${requestAge} سنة` : '—'}
                               </span>
                             </div>
                           </td>
@@ -1351,8 +1385,14 @@ export default function CompetitionStudentsPage() {
                 <div style={{ fontSize: '0.8rem', color: 'var(--admin-text-muted)', lineHeight: 1.8 }}>
                   <div><strong>الاسم:</strong> {accountModal.request.student_name}</div>
                   <div><strong>رقم الهاتف:</strong> <span dir="ltr">{accountModal.request.student_phone}</span></div>
-                  <div><strong>الدولة:</strong> {accountModal.request.country}</div>
-                  <div><strong>العمر:</strong> {accountModal.request.age}</div>
+                  <div><strong>الدولة:</strong> {getCountryName(accountModal.request.country)}</div>
+                  <div><strong>الجنس:</strong> {getGenderLabel(accountModal.request.gender) ?? '—'}</div>
+                  <div>
+                    <strong>تاريخ الميلاد:</strong>{' '}
+                    {accountModal.request.birth_date
+                      ? new Date(accountModal.request.birth_date).toLocaleDateString('ar-EG')
+                      : '—'}
+                  </div>
                   <div><strong>المستوى:</strong> {accountModal.request.level}</div>
                 </div>
               </div>
