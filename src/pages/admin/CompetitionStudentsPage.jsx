@@ -19,7 +19,6 @@ import {
   Filter,
   GripVertical,
   Save,
-  Award,
   RotateCcw,
   SlidersHorizontal,
 } from 'lucide-react';
@@ -49,22 +48,6 @@ import {
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
 import { getCountryName } from '../../data/countries';
-
-function formatDateTime(dateStr) {
-  if (!dateStr) return '—';
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleString('ar-EG', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateStr;
-  }
-}
 
 function calcAgeInYears(dateString) {
   if (!dateString) return null;
