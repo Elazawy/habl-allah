@@ -190,14 +190,11 @@ export async function submitCompetitionRegistrationRequest(payload) {
     ? payload.student_id.trim()
     : null;
   const normalizedPhone = normalizePhoneDigits(payload.student_phone);
-  const normalizedBirthDate = typeof payload.birth_date === 'string'
-    ? payload.birth_date.trim()
-    : '';
-  const normalizedGender = typeof payload.gender === 'string'
-    ? payload.gender.trim()
-    : '';
   const client = normalizedStudentId ? ensureSupabaseClient() : ensurePublicClient();
 
+  // Applications only need name, phone and level now. The legacy country /
+  // birth_date / gender columns are still written when supplied (old clients),
+  // but they are optional and validated server-side only when present.
   const normalizedPayload = {
     competition_id: payload.competition_id,
     // Keep the signed-in student link when present so admins can approve
@@ -205,9 +202,9 @@ export async function submitCompetitionRegistrationRequest(payload) {
     student_id: normalizedStudentId,
     student_name: typeof payload.student_name === 'string' ? payload.student_name.trim() : payload.student_name,
     student_phone: normalizedPhone,
-    country: typeof payload.country === 'string' ? payload.country.trim() : payload.country,
-    birth_date: normalizedBirthDate,
-    gender: normalizedGender,
+    country: normalizeOptionalText(payload.country),
+    birth_date: normalizeOptionalText(payload.birth_date),
+    gender: normalizeOptionalText(payload.gender),
     level: typeof payload.level === 'string' ? payload.level.trim() : payload.level,
   };
 
@@ -221,18 +218,6 @@ export async function submitCompetitionRegistrationRequest(payload) {
 
   if (!/^\d{10,15}$/.test(normalizedPayload.student_phone ?? '')) {
     throw new Error('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedBirthDate)) {
-    throw new Error('يرجى كتابة تاريخ ميلاد صحيح.');
-  }
-
-  if (!['male', 'female'].includes(normalizedGender)) {
-    throw new Error('يرجى تحديد الجنس.');
-  }
-
-  if (typeof normalizedPayload.country !== 'string' || normalizedPayload.country.length < 2) {
-    throw new Error('الدولة يجب أن تتكون من حرفين على الأقل.');
   }
 
   if (typeof normalizedPayload.level !== 'string' || normalizedPayload.level.length < 1) {
@@ -397,16 +382,31 @@ export async function deleteCompetitionStage(id) {
 
 export async function checkStageHasStudents(stageId) {
   const client = ensureSupabaseClient();
-  const { count, error } = await client
+
+  // Count signed-in students on the stage.
+  const { count: studentCount, error: studentError } = await client
     .from('student_stage_assignments')
     .select('id', { count: 'exact', head: true })
     .eq('current_stage_id', stageId);
 
-  if (error) {
-    throw error;
+  if (studentError) {
+    throw studentError;
   }
 
-  return (count ?? 0) > 0;
+  // Count guest participants on the stage too, so admins can't delete a
+  // stage that still has guests assigned to it.
+  const { count: guestCount, error: guestError } = await client
+    .from('competition_guest_participants')
+    .select('id', { count: 'exact', head: true })
+    .eq('current_stage_id', stageId);
+
+  if (guestError) {
+    // Guests table may not be migrated yet; only students were checked.
+    console.warn('[guest stage check failed]', guestError);
+    return (studentCount ?? 0) > 0;
+  }
+
+  return (studentCount ?? 0) + (guestCount ?? 0) > 0;
 }
 
 // ──────────────────────────────────────────
@@ -710,4 +710,381 @@ export async function fetchPendingRegistrationRequests(competitionId) {
   }
 
   return data ?? [];
+}
+
+// ──────────────────────────────────────────
+// Guest Participants — Public (anonymous) flows
+// Go through narrow security-definer RPCs; there is no anon table access.
+// ──────────────────────────────────────────
+
+/**
+ * Submit a guest competition application (no account needed).
+ * Returns the participant row — on duplicate applications the existing row
+ * comes back (pending/accepted/active/rejected/…) without creating a copy.
+ * Includes `public_access_token`, which the caller must persist locally.
+ */
+export async function submitGuestCompetitionParticipant({ competitionId, studentName, studentPhone, level }) {
+  const client = ensurePublicClient();
+  const { data, error } = await client.rpc('submit_competition_guest_participant', {
+    p_competition_id: competitionId,
+    p_student_name: studentName,
+    p_student_phone: studentPhone,
+    p_level: level,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  // PostgREST returns set-returning RPC results as arrays.
+  return data?.[0] ?? null;
+}
+
+/**
+ * Recover a guest application using the competition + phone number only.
+ * Returns the participant row (with token) or null when nothing is found.
+ */
+export async function recoverGuestCompetitionParticipant({ competitionId, studentPhone }) {
+  const client = ensurePublicClient();
+  const { data, error } = await client.rpc('recover_competition_guest_participant', {
+    p_competition_id: competitionId,
+    p_student_phone: studentPhone,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  // Empty array means no participant found for this phone.
+  return data?.[0] ?? null;
+}
+
+/**
+ * Look up a guest participant by the token saved in localStorage.
+ * Returns the public row (without the token itself) or null.
+ */
+export async function fetchGuestCompetitionParticipantByToken({ competitionId, token }) {
+  const client = ensurePublicClient();
+  const { data, error } = await client.rpc('get_competition_guest_participant_by_token', {
+    p_competition_id: competitionId,
+    p_public_access_token: token,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  // Empty array means the token no longer matches a row (e.g. deleted).
+  return data?.[0] ?? null;
+}
+
+// ──────────────────────────────────────────
+// Guest Participants — Admin flows
+// Rows are identified by the guest participant `id` (unlike signed-in
+// students, which are keyed by student_id + competition_id).
+// ──────────────────────────────────────────
+
+export async function fetchGuestParticipants(competitionId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .select('*')
+    .eq('competition_id', competitionId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function fetchPendingGuestParticipants(competitionId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .select('*')
+    .eq('competition_id', competitionId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+/**
+ * Accept a guest. With stages: activate into the first stage.
+ * Without stages: plain `accepted` status.
+ */
+export async function acceptGuestParticipant(participantId, { firstStageId } = {}) {
+  const client = ensureSupabaseClient();
+  const now = new Date().toISOString();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update({
+      status: firstStageId ? 'active' : 'accepted',
+      current_stage_id: firstStageId || null,
+      accepted_at: now,
+      updated_at: now,
+    })
+    .eq('id', participantId)
+    .eq('status', 'pending')
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function deleteGuestParticipant(participantId) {
+  const client = ensureSupabaseClient();
+  const { error } = await client
+    .from('competition_guest_participants')
+    .delete()
+    .eq('id', participantId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function rejectGuestParticipant(participantId) {
+  const client = ensureSupabaseClient();
+  const now = new Date().toISOString();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update({
+      status: 'rejected',
+      rejected_at: now,
+      updated_at: now,
+    })
+    .eq('id', participantId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function moveGuestParticipantToStage(participantId, stageId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update({
+      current_stage_id: stageId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', participantId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function moveGuestParticipantToNextStage(participantId, competitionId, nextStageId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update({
+      current_stage_id: nextStageId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', participantId)
+    .eq('competition_id', competitionId)
+    .eq('status', 'active')
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function markGuestParticipantFailed(participantId) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update({
+      status: 'failed',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', participantId)
+    .eq('status', 'active')
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function markGuestParticipantCompleted(participantId) {
+  const client = ensureSupabaseClient();
+  const now = new Date().toISOString();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update({
+      status: 'completed',
+      completed_at: now,
+      updated_at: now,
+    })
+    .eq('id', participantId)
+    .eq('status', 'active')
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export const GUEST_PARTICIPANT_STATUSES = ['pending', 'accepted', 'active', 'rejected', 'failed', 'completed'];
+
+// Admin correction path: not restricted to `status = 'active'`, so a wrongly
+// failed or wrongly promoted guest can be sent back to any stage or status.
+export async function updateGuestParticipantAssignment(participantId, { stageId, status } = {}) {
+  const client = ensureSupabaseClient();
+  const updates = { updated_at: new Date().toISOString() };
+
+  if (stageId !== undefined) {
+    if (!stageId) {
+      throw new Error('يجب تحديد المرحلة المطلوب نقل المشارك إليها.');
+    }
+    updates.current_stage_id = stageId;
+  }
+
+  if (status !== undefined) {
+    if (!GUEST_PARTICIPANT_STATUSES.includes(status)) {
+      throw new Error('حالة المشارك غير صحيحة.');
+    }
+    updates.status = status;
+    if (status === 'rejected') {
+      updates.rejected_at = new Date().toISOString();
+    }
+    // The final ranking only means anything for participants who finished,
+    // so undoing a completion has to drop the stored rank.
+    if (status !== 'completed') {
+      updates.final_rank = null;
+      updates.completed_at = null;
+    }
+  }
+
+  if (stageId === undefined && status === undefined) {
+    throw new Error('لا يوجد تغيير مطلوب.');
+  }
+
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update(updates)
+    .eq('id', participantId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function updateGuestParticipantLevel(participantId, newLevel) {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from('competition_guest_participants')
+    .update({
+      level: typeof newLevel === 'string' ? newLevel.trim() : newLevel,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', participantId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function bulkUpdateGuestFinalRanks(competitionId, rankedGuests) {
+  const client = ensureSupabaseClient();
+  const errors = [];
+
+  for (let i = 0; i < rankedGuests.length; i++) {
+    const { id } = rankedGuests[i];
+    const { error } = await client
+      .from('competition_guest_participants')
+      .update({
+        final_rank: i + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('competition_id', competitionId)
+      .eq('status', 'completed');
+
+    if (error) {
+      errors.push(error);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw errors[0];
+  }
+}
+
+// ──────────────────────────────────────────
+// Participant normalizers
+// Unified shape so the admin UI renders one list while branching actions
+// internally by `participantType`.
+// ──────────────────────────────────────────
+
+export function normalizeStudentParticipant(assignment) {
+  return {
+    participantType: 'student',
+    id: assignment.id,
+    studentId: assignment.student_id,
+    displayName: assignment.student_profiles?.full_name,
+    phone: assignment.student_profiles?.phone,
+    level: assignment.level,
+    status: assignment.status,
+    currentStageId: assignment.current_stage_id,
+    finalRank: assignment.final_rank,
+    createdAt: assignment.assigned_at,
+    raw: assignment,
+  };
+}
+
+export function normalizeGuestParticipant(guest) {
+  return {
+    participantType: 'guest',
+    id: guest.id,
+    studentId: null,
+    displayName: guest.student_name,
+    phone: guest.student_phone,
+    level: guest.level,
+    status: guest.status,
+    currentStageId: guest.current_stage_id,
+    finalRank: guest.final_rank,
+    createdAt: guest.created_at,
+    raw: guest,
+  };
 }
