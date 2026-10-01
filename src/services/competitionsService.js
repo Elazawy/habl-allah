@@ -41,26 +41,6 @@ function normalizeArrayOfStrings(value) {
   return normalized;
 }
 
-function normalizeLocalizedDigits(value) {
-  return String(value ?? '').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
-    const code = digit.charCodeAt(0);
-
-    if (code >= 0x0660 && code <= 0x0669) {
-      return String(code - 0x0660);
-    }
-
-    if (code >= 0x06f0 && code <= 0x06f9) {
-      return String(code - 0x06f0);
-    }
-
-    return digit;
-  });
-}
-
-function normalizePhoneDigits(value) {
-  return normalizeLocalizedDigits(value).replace(/\D/g, '');
-}
-
 function normalizeCompetitionPayload(payload = {}) {
   const normalizedPayload = {
     ...payload,
@@ -186,90 +166,36 @@ export async function deleteCompetition(id) {
 }
 
 export async function submitCompetitionRegistrationRequest(payload) {
-  const normalizedStudentId = typeof payload.student_id === 'string' && payload.student_id.trim() !== ''
-    ? payload.student_id.trim()
-    : null;
-  const normalizedPhone = normalizePhoneDigits(payload.student_phone);
-  const client = normalizedStudentId ? ensureSupabaseClient() : ensurePublicClient();
-
-  // Applications only need name, phone and level now. The legacy country /
-  // birth_date / gender columns are still written when supplied (old clients),
-  // but they are optional and validated server-side only when present.
-  const normalizedPayload = {
-    competition_id: payload.competition_id,
-    // Keep the signed-in student link when present so admins can approve
-    // the request directly. Guests still submit anonymous pending rows.
-    student_id: normalizedStudentId,
-    student_name: typeof payload.student_name === 'string' ? payload.student_name.trim() : payload.student_name,
-    student_phone: normalizedPhone,
-    country: normalizeOptionalText(payload.country),
-    birth_date: normalizeOptionalText(payload.birth_date),
-    gender: normalizeOptionalText(payload.gender),
-    level: typeof payload.level === 'string' ? payload.level.trim() : payload.level,
-  };
-
-  if (!normalizedPayload.competition_id) {
-    throw new Error('بيانات المسابقة غير مكتملة. يرجى إعادة تحميل الصفحة ثم المحاولة مرة أخرى.');
-  }
-
-  if (typeof normalizedPayload.student_name !== 'string' || normalizedPayload.student_name.length < 2) {
-    throw new Error('الاسم يجب أن يتكون من حرفين على الأقل.');
-  }
-
-  if (!/^\d{10,15}$/.test(normalizedPayload.student_phone ?? '')) {
-    throw new Error('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
-  }
-
-  if (typeof normalizedPayload.level !== 'string' || normalizedPayload.level.length < 1) {
-    throw new Error('يرجى تحديد المستوى المطلوب.');
-  }
-
-  const { error } = await client
-    .from('competition_registration_requests')
-    .insert([normalizedPayload]);
-
-  if (error) {
-    throw error;
-  }
-
-  return normalizedPayload;
+  return submitGuestCompetitionParticipant({ competitionId: payload.competition_id,
+    studentName: payload.student_name, studentPhone: payload.student_phone, level: payload.level });
 }
 
 export async function fetchSubscribedStudents(competitionId) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
-    .from('student_competition_subscriptions')
-    .select('id, is_active, subscribed_at, student_profiles(id, full_name, phone)')
+    .from('competition_guest_participants')
+    .select('*, student_profiles(id, full_name, phone)')
     .eq('competition_id', competitionId)
-    .eq('is_active', true)
-    .order('subscribed_at', { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return data ?? [];
-}
-
-export async function fetchRegistrationRequests(competitionId) {
-  const client = ensureSupabaseClient();
-  const { data, error } = await client
-    .from('competition_registration_requests')
-    .select('*')
-    .eq('competition_id', competitionId)
+    .in('status', ['accepted', 'active', 'failed', 'completed'])
     .order('created_at', { ascending: false });
 
   if (error) {
     throw error;
   }
 
-  return data ?? [];
+  return (data ?? []).map((row) => ({ ...row, student_profiles: row.student_profiles ?? {
+    full_name: row.student_name, phone: row.student_phone,
+  } }));
+}
+
+export async function fetchRegistrationRequests(competitionId) {
+  return fetchPendingRegistrationRequests(competitionId);
 }
 
 export async function deleteRegistrationRequest(id) {
   const client = ensureSupabaseClient();
   const { error } = await client
-    .from('competition_registration_requests')
+    .from('competition_guest_participants')
     .delete()
     .eq('id', id);
 
@@ -280,12 +206,26 @@ export async function deleteRegistrationRequest(id) {
 
 export async function subscribeStudentToCompetition(studentId, competitionId) {
   const client = ensureSupabaseClient();
+  const { data: profile, error: profileError } = await client.from('student_profiles')
+    .select('full_name, phone').eq('id', studentId).single();
+  if (profileError) throw profileError;
+  const { data: existing, error: lookupError } = await client.from('competition_guest_participants')
+    .select('*').eq('student_id', studentId).eq('competition_id', competitionId).maybeSingle();
+  if (lookupError) throw lookupError;
+  if (existing) {
+    if (['accepted', 'active', 'failed', 'completed'].includes(existing.status)) return existing;
+    // This is an explicit admin approval, not account linking or reapplication.
+    const { data, error } = await client.from('competition_guest_participants')
+      .update({ status: existing.current_stage_id ? 'active' : 'accepted', accepted_at: new Date().toISOString() })
+      .eq('id', existing.id).select('*').single();
+    if (error) throw error;
+    return data;
+  }
   const { data, error } = await client
-    .from('student_competition_subscriptions')
-    .upsert(
-      [{ student_id: studentId, competition_id: competitionId, is_active: true }],
-      { onConflict: 'student_id,competition_id' }
-    )
+    .from('competition_guest_participants')
+    .insert({ student_id: studentId, competition_id: competitionId,
+      student_name: profile.full_name, student_phone: profile.phone,
+      normalized_phone: profile.phone, level: 'المستوى العام', status: 'accepted' })
     .select('*')
     .single();
 
@@ -382,31 +322,13 @@ export async function deleteCompetitionStage(id) {
 
 export async function checkStageHasStudents(stageId) {
   const client = ensureSupabaseClient();
-
-  // Count signed-in students on the stage.
-  const { count: studentCount, error: studentError } = await client
-    .from('student_stage_assignments')
-    .select('id', { count: 'exact', head: true })
-    .eq('current_stage_id', stageId);
-
-  if (studentError) {
-    throw studentError;
-  }
-
-  // Count guest participants on the stage too, so admins can't delete a
-  // stage that still has guests assigned to it.
-  const { count: guestCount, error: guestError } = await client
+  const { count, error } = await client
     .from('competition_guest_participants')
     .select('id', { count: 'exact', head: true })
     .eq('current_stage_id', stageId);
 
-  if (guestError) {
-    // Guests table may not be migrated yet; only students were checked.
-    console.warn('[guest stage check failed]', guestError);
-    return (studentCount ?? 0) > 0;
-  }
-
-  return (studentCount ?? 0) + (guestCount ?? 0) > 0;
+  if (error) throw error;
+  return (count ?? 0) > 0;
 }
 
 // ──────────────────────────────────────────
@@ -414,36 +336,29 @@ export async function checkStageHasStudents(stageId) {
 // ──────────────────────────────────────────
 
 export async function fetchStudentStageAssignments(competitionId) {
-  const client = ensureSupabaseClient();
-  const { data, error } = await client
-    .from('student_stage_assignments')
+  const { data, error } = await ensureSupabaseClient()
+    .from('competition_guest_participants')
     .select('*, student_profiles(id, full_name, phone), competition_stages(id, name, sort_order)')
     .eq('competition_id', competitionId)
-    .order('assigned_at', { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
+    .not('student_id', 'is', null)
+    .in('status', ['active', 'failed', 'completed'])
+    .order('created_at');
+  if (error) throw error;
   return data ?? [];
 }
 
 export async function assignStudentToStage(studentId, competitionId, stageId, level) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
-    .from('student_stage_assignments')
-    .upsert(
-      [{
-        student_id: studentId,
-        competition_id: competitionId,
-        current_stage_id: stageId,
-        status: 'active',
-        level: typeof level === 'string' ? level.trim() : level,
-        assigned_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }],
-      { onConflict: 'student_id,competition_id' }
-    )
+    .from('competition_guest_participants')
+    .update({
+      current_stage_id: stageId,
+      status: 'active',
+      level: typeof level === 'string' ? level.trim() : level,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('student_id', studentId)
+    .eq('competition_id', competitionId)
     .select('*')
     .single();
 
@@ -457,7 +372,7 @@ export async function assignStudentToStage(studentId, competitionId, stageId, le
 export async function moveStudentToNextStage(studentId, competitionId, nextStageId) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
-    .from('student_stage_assignments')
+    .from('competition_guest_participants')
     .update({
       current_stage_id: nextStageId,
       updated_at: new Date().toISOString(),
@@ -478,7 +393,7 @@ export async function moveStudentToNextStage(studentId, competitionId, nextStage
 export async function markStudentFailed(studentId, competitionId) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
-    .from('student_stage_assignments')
+    .from('competition_guest_participants')
     .update({
       status: 'failed',
       updated_at: new Date().toISOString(),
@@ -499,7 +414,7 @@ export async function markStudentFailed(studentId, competitionId) {
 export async function markStudentCompleted(studentId, competitionId) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
-    .from('student_stage_assignments')
+    .from('competition_guest_participants')
     .update({
       status: 'completed',
       updated_at: new Date().toISOString(),
@@ -550,7 +465,7 @@ export async function updateStudentAssignment(studentId, competitionId, { stageI
   }
 
   const { data, error } = await client
-    .from('student_stage_assignments')
+    .from('competition_guest_participants')
     .update(updates)
     .eq('student_id', studentId)
     .eq('competition_id', competitionId)
@@ -567,7 +482,7 @@ export async function updateStudentAssignment(studentId, competitionId, { stageI
 export async function updateStudentLevel(studentId, competitionId, newLevel) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
-    .from('student_stage_assignments')
+    .from('competition_guest_participants')
     .update({
       level: typeof newLevel === 'string' ? newLevel.trim() : newLevel,
       updated_at: new Date().toISOString(),
@@ -591,9 +506,9 @@ export async function bulkUpdateFinalRanks(competitionId, rankedStudents) {
   for (let i = 0; i < rankedStudents.length; i++) {
     const { student_id } = rankedStudents[i];
     const { error } = await client
-      .from('student_stage_assignments')
+      .from('competition_guest_participants')
       .update({
-        final_rank: i + 1,
+        final_rank: rankedStudents[i].final_rank ?? i + 1,
         updated_at: new Date().toISOString(),
       })
       .eq('student_id', student_id)
@@ -617,7 +532,7 @@ export async function bulkUpdateFinalRanks(competitionId, rankedStudents) {
 export async function rejectRegistrationRequest(requestId) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
-    .from('competition_registration_requests')
+    .from('competition_guest_participants')
     .update({ status: 'rejected' })
     .eq('id', requestId)
     .select('*')
@@ -640,10 +555,11 @@ export async function fetchMyStageAssignment(competitionId) {
   if (!user) return null;
 
   const { data, error } = await client
-    .from('student_stage_assignments')
+    .from('competition_guest_participants')
     .select('*, competition_stages(id, name, sort_order)')
     .eq('student_id', user.id)
     .eq('competition_id', competitionId)
+    .in('status', ['active', 'failed', 'completed'])
     .maybeSingle();
 
   if (error) {
@@ -659,7 +575,7 @@ export async function fetchMyRejectedRequest(competitionId) {
   if (!user) return null;
 
   const { data, error } = await client
-    .from('competition_registration_requests')
+    .from('competition_guest_participants')
     .select('id, status')
     .eq('competition_id', competitionId)
     .eq('student_id', user.id)
@@ -697,18 +613,11 @@ export async function fetchCompetitionBySlugAdmin(slug) {
 // ──────────────────────────────────────────
 
 export async function fetchPendingRegistrationRequests(competitionId) {
-  const client = ensureSupabaseClient();
-  const { data, error } = await client
-    .from('competition_registration_requests')
-    .select('*')
-    .eq('competition_id', competitionId)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
+  const { data, error } = await ensureSupabaseClient()
+    .from('competition_guest_participants').select('*')
+    .eq('competition_id', competitionId).eq('status', 'pending')
+    .not('student_id', 'is', null).order('created_at', { ascending: false });
+  if (error) throw error;
   return data ?? [];
 }
 
@@ -724,7 +633,7 @@ export async function fetchPendingRegistrationRequests(competitionId) {
  * Includes `public_access_token`, which the caller must persist locally.
  */
 export async function submitGuestCompetitionParticipant({ competitionId, studentName, studentPhone, level }) {
-  const client = ensurePublicClient();
+  const client = ensureSupabaseClient();
   const { data, error } = await client.rpc('submit_competition_guest_participant', {
     p_competition_id: competitionId,
     p_student_name: studentName,
@@ -790,6 +699,7 @@ export async function fetchGuestParticipants(competitionId) {
     .from('competition_guest_participants')
     .select('*')
     .eq('competition_id', competitionId)
+    .is('student_id', null)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -805,6 +715,7 @@ export async function fetchPendingGuestParticipants(competitionId) {
     .from('competition_guest_participants')
     .select('*')
     .eq('competition_id', competitionId)
+    .is('student_id', null)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
 
@@ -1034,7 +945,7 @@ export async function bulkUpdateGuestFinalRanks(competitionId, rankedGuests) {
     const { error } = await client
       .from('competition_guest_participants')
       .update({
-        final_rank: i + 1,
+        final_rank: rankedGuests[i].final_rank ?? i + 1,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -1060,6 +971,7 @@ export async function bulkUpdateGuestFinalRanks(competitionId, rankedGuests) {
 export function normalizeStudentParticipant(assignment) {
   return {
     participantType: 'student',
+    storageType: 'participant',
     id: assignment.id,
     studentId: assignment.student_id,
     displayName: assignment.student_profiles?.full_name,
@@ -1068,16 +980,17 @@ export function normalizeStudentParticipant(assignment) {
     status: assignment.status,
     currentStageId: assignment.current_stage_id,
     finalRank: assignment.final_rank,
-    createdAt: assignment.assigned_at,
+    createdAt: assignment.created_at,
     raw: assignment,
   };
 }
 
 export function normalizeGuestParticipant(guest) {
   return {
-    participantType: 'guest',
+    participantType: guest.student_id ? 'student' : 'guest',
+    storageType: 'participant',
+    studentId: guest.student_id,
     id: guest.id,
-    studentId: null,
     displayName: guest.student_name,
     phone: guest.student_phone,
     level: guest.level,

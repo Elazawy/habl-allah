@@ -14,7 +14,6 @@ import {
   fetchSubscribedStudents,
   fetchRegistrationRequests,
   deleteRegistrationRequest,
-  subscribeStudentToCompetition,
   fetchPendingGuestParticipants,
   fetchCompetitionStages,
   acceptGuestParticipant,
@@ -86,9 +85,9 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const approveRequestForStudent = async ({ request, studentId, successMessage }) => {
-    await subscribeStudentToCompetition(studentId, competition.id);
-    await deleteRegistrationRequest(request.id);
+  const approveRequestForStudent = async ({ request, successMessage }) => {
+    const stages = await fetchCompetitionStages(competition.id);
+    await acceptGuestParticipant(request.id, { firstStageId: stages[0]?.id });
     await loadDetails();
 
     if (successMessage) {
@@ -477,7 +476,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                           </td>
                           <td>
                             <span className="admin-badge admin-badge--draft" style={{ fontSize: '0.7rem' }}>
-                              طلب زائر
+                                {guest.student_id ? 'طالب مسجل' : 'طلب زائر'}
                             </span>
                           </td>
                           <td>

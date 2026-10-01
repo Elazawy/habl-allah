@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { X, Loader, CheckCircle, AlertCircle, User, Phone, Trophy, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  submitCompetitionRegistrationRequest,
   submitGuestCompetitionParticipant,
   recoverGuestCompetitionParticipant,
 } from '../../services/competitionsService';
 import { saveGuestCompetitionToken } from '../../services/guestCompetitionToken';
+import { normalizeStudentPhone } from '../../services/studentsService';
 
 function normalizeLocalizedDigits(value) {
   return String(value ?? '').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
@@ -25,7 +25,7 @@ function normalizeLocalizedDigits(value) {
 }
 
 function normalizePhoneDigits(value) {
-  return normalizeLocalizedDigits(value).replace(/\D/g, '');
+  return normalizeStudentPhone(normalizeLocalizedDigits(value));
 }
 
 // initialMode: 'apply' shows the application form, 'recover' opens the
@@ -75,7 +75,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
   useEffect(() => {
     if (isStudentRequester) {
       setName((prev) => (prev ? prev : studentProfile?.full_name || ''));
-      setPhone((prev) => (prev ? prev : studentProfile?.phone || ''));
+      setPhone(studentProfile?.phone || '');
     }
   }, [isStudentRequester, studentProfile?.full_name, studentProfile?.phone]);
 
@@ -125,31 +125,16 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
       }
 
       const trimmedName = name.trim();
-      const normalizedPhone = normalizePhoneDigits(phone);
+      const normalizedPhone = normalizePhoneDigits(isStudentRequester ? studentProfile.phone : phone);
+      const participant = await submitGuestCompetitionParticipant({
+        competitionId: competition.id,
+        studentName: trimmedName,
+        studentPhone: normalizedPhone,
+        level: finalLevel,
+      });
 
-      if (isStudentRequester) {
-        // Signed-in students keep using the registration requests table,
-        // now with the simplified name/phone/level payload.
-        await submitCompetitionRegistrationRequest({
-          competition_id: competition.id,
-          student_id: studentProfile.id,
-          student_name: trimmedName,
-          student_phone: normalizedPhone,
-          level: finalLevel,
-        });
-      } else {
-        // Guests go through the anonymous RPC. Duplicate applications return
-        // the existing row instead of creating a new pending request.
-        const participant = await submitGuestCompetitionParticipant({
-          competitionId: competition.id,
-          studentName: trimmedName,
-          studentPhone: normalizedPhone,
-          level: finalLevel,
-        });
-
-        if (participant?.public_access_token) {
-          saveGuestCompetitionToken(competition.id, participant.public_access_token, participant.student_phone);
-        }
+      if (participant?.public_access_token) {
+        saveGuestCompetitionToken(competition.id, participant.public_access_token, participant.student_phone);
       }
 
       try {
@@ -159,9 +144,11 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
       }
 
       setSuccessMessage(
-        isStudentRequester
-          ? 'تم إرسال طلب الاشتراك بنجاح، وسيتم التواصل معك قريباً.'
-          : 'تم إرسال طلب الاشتراك بنجاح وهو بانتظار مراجعة الإدارة. احفظ رقم هاتفك لاستعادة حالة اشتراكك على أي جهاز.'
+        participant?.status === 'pending'
+          ? 'تم استلام طلب الاشتراك وهو بانتظار مراجعة الإدارة. يمكنك متابعة حالته باستخدام رقم هاتفك.'
+          : participant?.status === 'rejected'
+            ? 'تم رفض طلب الاشتراك لهذه المسابقة.'
+            : 'مشترك بالفعل. يمكنك الآن متابعة تقدمك في المسابقة.'
       );
       setSuccess(true);
     } catch (err) {
@@ -446,6 +433,8 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   required
                   disabled={loading || isClosed}
                   value={phone}
+                  readOnly={isStudentRequester}
+                  aria-readonly={isStudentRequester}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="مثال: 201012345678"
                   dir="ltr"
@@ -520,7 +509,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                     title="استعادة حالة اشتراك سابق برقم الهاتف"
                   >
                     <KeyRound size={14} />
-                    مسجل بالفعل
+                    مشترك بالفعل
                   </button>
                 )}
                 <div className="flex items-center gap-3 mr-auto">

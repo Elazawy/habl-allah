@@ -25,8 +25,6 @@ import {
   fetchStudentStageAssignments,
   deleteRegistrationRequest,
   rejectRegistrationRequest,
-  subscribeStudentToCompetition,
-  assignStudentToStage,
   moveStudentToNextStage,
   markStudentFailed,
   markStudentCompleted,
@@ -213,13 +211,8 @@ export default function CompetitionStudentsPage() {
   };
 
   // ── Signed-in Student Request Handlers ──
-  const approveRequestForStudent = async ({ request, studentId, successMessage }) => {
-    await subscribeStudentToCompetition(studentId, competition.id);
-    // If there are stages, assign to Stage 1
-    if (stages.length > 0) {
-      await assignStudentToStage(studentId, competition.id, stages[0].id, request.level);
-    }
-    await deleteRegistrationRequest(request.id);
+  const approveRequestForStudent = async ({ request, successMessage }) => {
+    await acceptGuestParticipant(request.id, { firstStageId: stages[0]?.id });
     await loadData();
     if (successMessage) {
       alert(successMessage);
@@ -331,7 +324,7 @@ export default function CompetitionStudentsPage() {
 
     setProcessingId(participant.id);
     try {
-      if (participant.participantType === 'guest') {
+      if (participant.storageType === 'participant') {
         await moveGuestParticipantToNextStage(participant.id, competition.id, nextStage.id);
       } else {
         await moveStudentToNextStage(participant.studentId, competition.id, nextStage.id);
@@ -352,7 +345,7 @@ export default function CompetitionStudentsPage() {
 
     setProcessingId(participant.id);
     try {
-      if (participant.participantType === 'guest') {
+      if (participant.storageType === 'participant') {
         await markGuestParticipantFailed(participant.id);
       } else {
         await markStudentFailed(participant.studentId, competition.id);
@@ -371,7 +364,7 @@ export default function CompetitionStudentsPage() {
 
     setProcessingId(participant.id);
     try {
-      if (participant.participantType === 'guest') {
+      if (participant.storageType === 'participant') {
         await markGuestParticipantCompleted(participant.id);
       } else {
         await markStudentCompleted(participant.studentId, competition.id);
@@ -388,7 +381,7 @@ export default function CompetitionStudentsPage() {
   const handleUpdateLevel = async (participant, newLevel) => {
     if (!newLevel || newLevel === participant.level) return;
     try {
-      if (participant.participantType === 'guest') {
+      if (participant.storageType === 'participant') {
         await updateGuestParticipantLevel(participant.id, newLevel);
         setGuestParticipants((prev) =>
           prev.map((g) => (g.id === participant.id ? { ...g, level: newLevel } : g))
@@ -415,12 +408,13 @@ export default function CompetitionStudentsPage() {
     );
     if (remaining.length === 0) return;
 
-    const rankedStudents = remaining
-      .filter((p) => p.participantType === 'student')
-      .map((p) => ({ student_id: p.studentId }));
-    const rankedGuests = remaining
-      .filter((p) => p.participantType === 'guest')
-      .map((p) => ({ id: p.id }));
+    const numbered = remaining.map((p, index) => ({ ...p, final_rank: index + 1 }));
+    const rankedStudents = numbered
+      .filter((p) => p.storageType !== 'participant')
+      .map((p) => ({ student_id: p.studentId, final_rank: p.final_rank }));
+    const rankedGuests = numbered
+      .filter((p) => p.storageType === 'participant')
+      .map((p) => ({ id: p.id, final_rank: p.final_rank }));
 
     if (rankedStudents.length > 0) {
       await bulkUpdateFinalRanks(competition.id, rankedStudents);
@@ -454,7 +448,7 @@ export default function CompetitionStudentsPage() {
       return { changed: false };
     }
 
-    if (participant.participantType === 'guest') {
+    if (participant.storageType === 'participant') {
       await updateGuestParticipantAssignment(participant.id, {
         ...(stageChanged ? { stageId } : {}),
         ...(statusChanged ? { status } : {}),
@@ -574,12 +568,13 @@ export default function CompetitionStudentsPage() {
   const handleSaveRanks = async () => {
     setSavingRanks(true);
     try {
-      const rankedStudents = rankedParticipants
-        .filter((p) => p.participantType === 'student')
-        .map((p) => ({ student_id: p.studentId }));
-      const rankedGuests = rankedParticipants
-        .filter((p) => p.participantType === 'guest')
-        .map((p) => ({ id: p.id }));
+      const numbered = rankedParticipants.map((p, index) => ({ ...p, final_rank: index + 1 }));
+      const rankedStudents = numbered
+        .filter((p) => p.storageType !== 'participant')
+        .map((p) => ({ student_id: p.studentId, final_rank: p.final_rank }));
+      const rankedGuests = numbered
+        .filter((p) => p.storageType === 'participant')
+        .map((p) => ({ id: p.id, final_rank: p.final_rank }));
 
       if (rankedStudents.length > 0) {
         await bulkUpdateFinalRanks(competition.id, rankedStudents);
@@ -850,7 +845,7 @@ export default function CompetitionStudentsPage() {
                           </td>
                           <td>
                             <span className="admin-badge admin-badge--draft" style={{ fontSize: '0.7rem' }}>
-                              طلب زائر
+                               {guest.student_id ? 'طالب مسجل' : 'طلب زائر'}
                             </span>
                           </td>
                           <td>
@@ -865,7 +860,7 @@ export default function CompetitionStudentsPage() {
                                 onClick={() => handleApproveGuestParticipant(guest)}
                                 disabled={processingId !== null}
                                 style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
-                                title="اعتماد طلب الزائر (بدون إنشاء حساب)"
+                                title="اعتماد طلب الاشتراك"
                               >
                                 {isBusy ? <Loader size={12} className="admin-spin" /> : <CheckCircle size={12} />}
                                 اعتماد

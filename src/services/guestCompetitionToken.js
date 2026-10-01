@@ -6,6 +6,15 @@
 
 const KEY_PREFIX = 'habl-competition-guest-token:';
 
+export function getSavedGuestCompetitionIds() {
+  if (typeof window === 'undefined') return [];
+  try {
+    return Object.keys(window.localStorage)
+      .filter((key) => key.startsWith(KEY_PREFIX))
+      .map((key) => key.slice(KEY_PREFIX.length));
+  } catch { return []; }
+}
+
 function buildStorageKey(competitionId) {
   return `${KEY_PREFIX}${competitionId}`;
 }
@@ -48,6 +57,7 @@ export function saveGuestCompetitionToken(competitionId, token, phone) {
       buildStorageKey(competitionId),
       JSON.stringify({ competitionId, token, phone: phone ?? '' })
     );
+    window.dispatchEvent(new Event('competition-participation-changed'));
   } catch {
     // localStorage may be unavailable (private mode, quota); progress tracking
     // simply falls back to the recovery button in that case.

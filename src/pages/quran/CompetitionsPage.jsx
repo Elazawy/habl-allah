@@ -189,14 +189,14 @@ export default function CompetitionsPage() {
                         {registrationState.label}
                       </button>
                       <Link
-                        to={`/quran/competition/${c.slug}`}
+                        to={`/quran/competition/${c.slug}${registrationState.reason === 'subscribed' ? '#progress' : ''}`}
                         className="px-4 py-3 rounded-xl text-center font-bold text-xs border transition-all duration-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
                         style={{
                           color: 'var(--t-text)',
                           borderColor: 'var(--t-border)',
                         }}
                       >
-                        التفاصيل
+                        {registrationState.reason === 'subscribed' ? 'تابع تقدمك' : 'التفاصيل'}
                       </Link>
                     </div>
                   </div>

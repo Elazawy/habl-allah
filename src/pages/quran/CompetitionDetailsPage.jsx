@@ -6,11 +6,7 @@ import QuranFooter from './QuranFooter';
 import {
   fetchCompetitionBySlug,
   fetchCompetitionStages,
-  fetchMyStageAssignment,
-  fetchMyRejectedRequest,
-  fetchGuestCompetitionParticipantByToken,
 } from '../../services/competitionsService';
-import { getGuestCompetitionToken } from '../../services/guestCompetitionToken';
 import CompetitionRegistrationModal from './CompetitionRegistrationModal';
 import CompetitionProgressLine from './CompetitionProgressLine';
 import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
@@ -59,19 +55,20 @@ export default function CompetitionDetailsPage() {
   const { isStudent, studentProfile } = useAuth();
 
   const [stages, setStages] = useState([]);
-  const [stageAssignment, setStageAssignment] = useState(null);
-  const [rejectedRequest, setRejectedRequest] = useState(null);
-  const [studentDataLoading, setStudentDataLoading] = useState(false);
 
   // Guest participant state (no account — identified by a local token or
   // phone recovery). Only shown on this page, never the student dashboard.
-  const [guestParticipant, setGuestParticipant] = useState(null);
-  const [guestLoading, setGuestLoading] = useState(false);
 
   const loading = resource.slug !== slug;
   const competition = resource.slug === slug ? resource.competition : null;
   const error = resource.slug === slug ? resource.error : '';
-  const { getCompetitionRegistrationState, markCompetitionRequestPending, loadingSubscriptions } = useCompetitionRegistrationStatus();
+  const { getCompetitionRegistrationState, markCompetitionRequestPending, loadingSubscriptions, participants } = useCompetitionRegistrationStatus();
+  const guestParticipant = participants.get(competition?.id) ?? null;
+
+  useEffect(() => {
+    if (!competition || loadingSubscriptions || window.location.hash !== '#progress') return;
+    document.getElementById('progress')?.scrollIntoView({ block: 'start' });
+  }, [competition, loadingSubscriptions]);
 
   useEffect(() => {
     let active = true;
@@ -114,63 +111,10 @@ export default function CompetitionDetailsPage() {
         console.error('Failed to load stages', err);
       }
 
-      // Guest state: a saved token from a previous application/recovery on
-      // this device. Loads for everyone — signed-in state takes priority in
-      // the render logic below, so an old guest token never shadows the
-      // signed-in student's own subscription.
-      const guestTokenInfo = getGuestCompetitionToken(competition.id);
-      if (guestTokenInfo?.token) {
-        setGuestLoading(true);
-        try {
-          const participant = await fetchGuestCompetitionParticipantByToken({
-            competitionId: competition.id,
-            token: guestTokenInfo.token,
-          });
-          if (!active) return;
-          // null means the token no longer matches a row (deleted); drop it
-          // from state so the generic preview shows instead.
-          setGuestParticipant(participant);
-        } catch (err) {
-          console.error('Failed to load guest competition participant', err);
-          if (active) setGuestParticipant(null);
-        } finally {
-          if (active) setGuestLoading(false);
-        }
-      } else if (active) {
-        setGuestParticipant(null);
-        setGuestLoading(false);
-      }
-
-      if (!isStudent || loadingSubscriptions) return;
-
-      const regState = getCompetitionRegistrationState(competition);
-      
-      // If they are subscribed or pending, they might have an assignment or rejected request
-      if (regState.reason === 'subscribed' || regState.reason === 'pending') {
-        setStudentDataLoading(true);
-        try {
-          const [assignmentData, rejectedData] = await Promise.all([
-            fetchMyStageAssignment(competition.id),
-            fetchMyRejectedRequest(competition.id)
-          ]);
-          
-          if (!active) return;
-          setStageAssignment(assignmentData);
-          setRejectedRequest(rejectedData);
-        } catch (err) {
-          console.error('Failed to load student competition data', err);
-        } finally {
-          if (active) setStudentDataLoading(false);
-        }
-      } else if (active) {
-        setStageAssignment(null);
-        setRejectedRequest(null);
-      }
     }
 
     loadPersonalizedData();
     return () => { active = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [competition?.id, isStudent, loadingSubscriptions]);
 
   // Set Document Title
@@ -190,27 +134,7 @@ export default function CompetitionDetailsPage() {
   }, [competition, error, loading]);
 
   const refreshGuestParticipant = async () => {
-    if (!competition?.id) return;
-
-    const guestTokenInfo = getGuestCompetitionToken(competition.id);
-    if (!guestTokenInfo?.token) {
-      setGuestParticipant(null);
-      return;
-    }
-
-    setGuestLoading(true);
-    try {
-      const participant = await fetchGuestCompetitionParticipantByToken({
-        competitionId: competition.id,
-        token: guestTokenInfo.token,
-      });
-      setGuestParticipant(participant);
-    } catch (err) {
-      console.error('Failed to refresh guest competition participant', err);
-      setGuestParticipant(null);
-    } finally {
-      setGuestLoading(false);
-    }
+    await markCompetitionRequestPending();
   };
 
   if (loading) {
@@ -270,24 +194,13 @@ export default function CompetitionDetailsPage() {
 
   const registrationState = getCompetitionRegistrationState(competition);
   const isStudentSubscribed = Boolean(
-    isStudent && (registrationState.reason === 'subscribed' || stageAssignment)
+    isStudent && registrationState.reason === 'subscribed'
   );
   const isCompetitionStarted = hasCompetitionStarted(competition.start_date);
   const hideDates = isCompetitionStarted && isStudentSubscribed;
 
-  // State priority: signed-in student first, then guest token/recovery,
-  // then the generic visitor preview. A signed-in student with their own
-  // application state (pending request, subscription, assignment or
-  // rejection) never gets shadowed by an old guest token on this device.
-  const hasStudentApplicationState = Boolean(
-    isStudent && (
-      stageAssignment ||
-      rejectedRequest ||
-      registrationState.reason === 'subscribed' ||
-      registrationState.reason === 'pending'
-    )
-  );
-  const activeGuest = (!hasStudentApplicationState) ? guestParticipant : null;
+  // Shared lookup already prioritizes the current account over device tokens.
+  const activeGuest = guestParticipant;
 
   // ── Guest status helpers (defined before first use in registrationHint) ──
   const guestStageName = (stageId) =>
@@ -308,16 +221,13 @@ export default function CompetitionDetailsPage() {
     return '';
   }
 
-  const hasRequestedOrAccepted = !rejectedRequest && (
+  const hasRequestedOrAccepted = (
     registrationState.reason === 'pending' ||
     registrationState.reason === 'subscribed' ||
-    Boolean(stageAssignment) ||
     Boolean(activeGuest)
   );
 
-  const registrationHint = (registrationState.reason === 'subscribed' || Boolean(stageAssignment))
-    ? 'تم اعتماد اشتراكك في هذه المسابقة.'
-    : activeGuest
+  const registrationHint = activeGuest
       ? guestStatusHint(activeGuest)
       : registrationState.reason === 'pending'
         ? 'تم استلام طلبك وهو بانتظار مراجعة الإدارة.'
@@ -338,11 +248,6 @@ export default function CompetitionDetailsPage() {
     if (isPersonalizedStageStatus(activeGuest.status)) {
       progressCurrentStageId = activeGuest.current_stage_id;
     }
-  } else if (stageAssignment) {
-    progressStatus = stageAssignment.status;
-    if (isPersonalizedStageStatus(stageAssignment.status)) {
-      progressCurrentStageId = stageAssignment.current_stage_id;
-    }
   } else if (registrationState.reason === 'pending') {
     progressStatus = 'pending';
   }
@@ -352,15 +257,15 @@ export default function CompetitionDetailsPage() {
     ? {
         pending: { disabled: true, label: 'تم إرسال طلب الاشتراك' },
         rejected: { disabled: true, label: 'تم رفض الطلب' },
-        accepted: { disabled: true, label: 'أنت مشترك بالفعل' },
-        active: { disabled: true, label: 'أنت مشترك بالفعل' },
-        failed: { disabled: true, label: 'أنت مشترك بالفعل' },
-        completed: { disabled: true, label: 'أنت مشترك بالفعل' },
+        accepted: { disabled: true, label: 'مشترك بالفعل' },
+        active: { disabled: true, label: 'مشترك بالفعل' },
+        failed: { disabled: true, label: 'مشترك بالفعل' },
+        completed: { disabled: true, label: 'مشترك بالفعل' },
       }[activeGuest.status] ?? null
     : null;
 
   const renderGuestStatusCard = () => {
-    if (!activeGuest || guestLoading) return null;
+    if (!activeGuest) return null;
 
     if (activeGuest.status === 'pending') {
       return (
@@ -435,141 +340,12 @@ export default function CompetitionDetailsPage() {
             competitionName={competition?.name || 'المسابقة القرآنية'}
             level={activeGuest.level || 'المستوى العام'}
             finalRank={activeGuest.final_rank || 1}
-            teacherName=""
+            teacherName={isStudent ? studentProfile?.teachers?.name || '' : ''}
           />
         </div>
       );
     }
 
-    return null;
-  };
-
-  const renderStatusCard = () => {
-    // Guest card takes priority only when there is no signed-in record.
-    if (activeGuest) {
-      return renderGuestStatusCard();
-    }
-
-    if (!isStudent || studentDataLoading) return null;
-
-    const regState = getCompetitionRegistrationState(competition);
-    if (regState.reason !== 'subscribed' && regState.reason !== 'pending') {
-      return null;
-    }
-
-    if (rejectedRequest) {
-      return (
-        <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: '#fffbeb', borderColor: '#fde68a' }}>
-          <AlertTriangle className="text-amber-500 mt-1 shrink-0" size={28} />
-          <div>
-            <h3 className="font-bold text-amber-800 text-lg mb-1">طلب مرفوض</h3>
-            <p className="text-amber-700 text-sm leading-relaxed">
-              لقد فحصنا طلبك ووجدنا ان مستواك غير مناسب للاشتراك في هذه المسابقة، ننصحك بفحص باقي المسابقات ومتابعة التحديثات
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    if (regState.reason === 'pending' && !stageAssignment) {
-      return (
-        <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border-gold)' }}>
-          <Clock className="text-amber-500 mt-1 shrink-0" size={28} />
-          <div>
-            <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--t-primary)' }}>طلب الاشتراك قيد المراجعة</h3>
-            <p className="text-sm" style={{ color: 'var(--t-text-muted)' }}>
-              تم إرسال طلب الاشتراك
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    if (stageAssignment) {
-      if (stageAssignment.status === 'failed') {
-        // The stage the student was in when they were marked failed is kept on the
-        // assignment, so we can name it instead of showing a generic message.
-        const failedStageName =
-          stageAssignment.competition_stages?.name
-          || stages.find((s) => s.id === stageAssignment.current_stage_id)?.name
-          || '';
-
-        return (
-          <div className="mb-8 p-6 rounded-2xl border flex items-start gap-4 shadow-sm" style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}>
-            <XCircle className="text-red-500 mt-1 shrink-0" size={28} />
-            <div>
-              <h3 className="font-bold text-red-800 text-lg mb-1">
-                {failedStageName ? `لم تجتاز ${failedStageName}` : 'لم يجتاز'}
-              </h3>
-              <p className="text-red-700 text-sm leading-relaxed">
-                للأسف، لم تجتاز هذه المرحلة، استعد جيدا للمسابقات القادمة
-              </p>
-            </div>
-          </div>
-        );
-      }
-
-      if (stageAssignment.status === 'completed') {
-        return (
-          <div className="mb-8">
-            <StudentCompetitionCelebration
-              studentName={studentProfile?.full_name || 'طالب القرآن الكريم'}
-              competitionName={competition?.name || 'المسابقة القرآنية'}
-              level={stageAssignment.level || 'المستوى العام'}
-              finalRank={stageAssignment.final_rank || 1}
-              teacherName={studentProfile?.teachers?.name || ''}
-            />
-          </div>
-        );
-      }
-
-
-      // Active
-      if (stageAssignment.status === 'active') {
-        const currentStageIndex = stages.findIndex(s => s.id === stageAssignment.current_stage_id);
-        const stageNum = currentStageIndex >= 0 ? currentStageIndex + 1 : 1;
-        const totalStages = stages.length > 0 ? stages.length : 1;
-        
-        return (
-          <div className="mb-8 p-6 rounded-2xl border shadow-sm relative overflow-hidden" style={{ backgroundColor: 'var(--t-primary-light)', borderColor: 'var(--t-primary)' }}>
-            <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: 'var(--t-primary)' }}></div>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <BookOpen className="mt-1 shrink-0" style={{ color: 'var(--t-primary)' }} size={28} />
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-lg" style={{ color: 'var(--t-primary)' }}>أنت مشارك في المسابقة</h3>
-                    {stageAssignment.level && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--t-primary)', color: 'white' }}>
-                        مستوى: {stageAssignment.level}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm font-semibold" style={{ color: 'var(--t-primary)' }}>
-                    المرحلة الحالية: {stageAssignment.competition_stages?.name || '---'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 bg-white/50 px-4 py-2 rounded-xl">
-                <div className="flex gap-1.5" dir="ltr">
-                  {Array.from({ length: totalStages }).map((_, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`w-3 h-3 rounded-full ${idx < stageNum ? 'bg-[var(--t-primary)]' : 'bg-[var(--t-primary)]/20'}`}
-                    ></div>
-                  ))}
-                </div>
-                <span className="text-xs font-bold mr-2" style={{ color: 'var(--t-primary)' }}>
-                  المرحلة {stageNum} من {totalStages}
-                </span>
-              </div>
-            </div>
-          </div>
-        );
-      }
-    }
-    
     return null;
   };
 
@@ -634,6 +410,7 @@ export default function CompetitionDetailsPage() {
 
             {/* Progress Line — generic preview for visitors, personalized
                 for pending/active/failed/completed participants. */}
+            <section id="progress" className="scroll-mt-6" aria-label="تقدمك في المسابقة">
             {stages.length > 0 && (
               <CompetitionProgressLine
                 stages={stages}
@@ -643,7 +420,8 @@ export default function CompetitionDetailsPage() {
             )}
 
             {/* Status Card */}
-            {renderStatusCard()}
+            {renderGuestStatusCard()}
+            </section>
 
             {/* Descriptions & Details */}
             <div className="space-y-8">
@@ -724,14 +502,14 @@ export default function CompetitionDetailsPage() {
                     تحديث الحالة
                   </button>
                 )}
-                {!activeGuest && !isStudentSubscribed && !stageAssignment && (
+                {!activeGuest && !isStudentSubscribed && (
                   <button
                     onClick={openRecoverModal}
                     className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-bold text-center transition-all duration-300 hover:opacity-95 border flex items-center justify-center gap-2"
                     style={{ borderColor: 'var(--t-border-gold)', color: 'var(--t-primary)' }}
                   >
                     <KeyRound size={16} />
-                    <span>مسجل بالفعل</span>
+                    <span>مشترك بالفعل</span>
                   </button>
                 )}
                 <button
@@ -742,12 +520,9 @@ export default function CompetitionDetailsPage() {
                   }}
                   disabled={registrationState.disabled || Boolean(guestButtonState?.disabled)}
                   className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-white text-center transition-all duration-300 disabled:cursor-not-allowed ${registrationState.reason === 'available' && !guestButtonState ? 'hover:opacity-95 hover:shadow-md' : ''} ${registrationState.reason === 'closed' || registrationState.reason === 'loading' ? 'disabled:opacity-50' : ''}`}
-                  style={{ backgroundColor: (registrationState.reason === 'subscribed' || stageAssignment) ? 'var(--t-primary)' : 'var(--t-secondary)' }}
+                  style={{ backgroundColor: registrationState.reason === 'subscribed' ? 'var(--t-primary)' : 'var(--t-secondary)' }}
                 >
-                  {guestButtonState?.label
-                    ?? (stageAssignment && registrationState.reason !== 'subscribed'
-                      ? 'أنت مشترك بالفعل'
-                      : registrationState.label)}
+                  {guestButtonState?.label ?? registrationState.label}
                 </button>
               </div>
             </div>
@@ -761,7 +536,6 @@ export default function CompetitionDetailsPage() {
           competition={competition}
           initialMode={modalMode}
           onSubmitted={() => {
-            markCompetitionRequestPending(competition.id);
             refreshGuestParticipant();
           }}
           onClose={() => setModalOpen(false)}
