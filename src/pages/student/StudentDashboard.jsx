@@ -7,8 +7,7 @@ import { fetchPublishedCourses } from '../../services/coursesService';
 import { fetchPublishedCompetitions } from '../../services/competitionsService';
 import QuranNav from '../quran/QuranNav';
 import QuranFooter from '../quran/QuranFooter';
-import { BookOpen, Trophy, Calendar, Phone, User, ArrowLeft } from 'lucide-react';
-import { WHATSAPP_NUMBER } from '../../lib/constants';
+import { BookOpen, Trophy, Calendar, User, ArrowLeft } from 'lucide-react';
 
 export default function StudentDashboard() {
   const { studentProfile, signOut } = useAuth();
@@ -51,12 +50,6 @@ export default function StudentDashboard() {
     }
     loadDashboardData();
   }, []);
-
-  const handleContactTeacher = (teacherName) => {
-    const text = `السلام عليكم ورحمة الله وبركاته، أنا الطالب (${studentProfile?.full_name}) المتابع مع الشيخ (${teacherName})، أود التواصل بخصوص الحلقات الحالية.`;
-    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
 
   const handleLogout = async () => {
     await signOut();
