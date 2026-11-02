@@ -14,6 +14,8 @@
  *   - No Twilio / Phone Provider required in Supabase.
  */
 import { supabase } from '../lib/supabase';
+import { fetchMyCompetitionParticipants, SUBSCRIBED_STATUSES } from './competitionParticipation';
+import { subscribeStudentToCompetition as subscribeCompetitionParticipant } from './competitionsService';
 
 // ─── Helpers ───────────────────────────────────────────────────
 
@@ -301,7 +303,7 @@ export async function fetchAllStudents() {
       id, full_name, phone, teacher_id, created_at, gender, country, birth_date,
       teachers(id, name),
       student_course_subscriptions(count),
-      student_competition_subscriptions(count)
+      student_competition_subscriptions:competition_guest_participants(count)
     `)
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -316,11 +318,14 @@ export async function fetchStudentById(studentId) {
       id, full_name, phone, teacher_id, created_at, gender, country, birth_date,
       teachers(id, name, photo_url),
       student_course_subscriptions(*, quran_courses(id, name, slug, is_free, is_published)),
-      student_competition_subscriptions(*, quran_competitions(id, name, slug))
+      student_competition_subscriptions:competition_guest_participants(*, quran_competitions(id, name, slug))
     `)
     .eq('id', studentId)
     .single();
   if (error) throw error;
+  data.student_competition_subscriptions = data.student_competition_subscriptions.map((row) => ({
+    ...row, is_active: SUBSCRIBED_STATUSES.includes(row.status),
+  }));
   return data;
 }
 
@@ -428,22 +433,13 @@ export async function checkMyCourseAccess(courseId) {
 // ─── Competition Subscription ──────────────────────────────────
 
 export async function subscribeStudentToCompetition(studentId, competitionId) {
-  const { data, error } = await supabase
-    .from('student_competition_subscriptions')
-    .upsert(
-      [{ student_id: studentId, competition_id: competitionId, is_active: true }],
-      { onConflict: 'student_id,competition_id' }
-    )
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+  return subscribeCompetitionParticipant(studentId, competitionId);
 }
 
 export async function unsubscribeStudentFromCompetition(studentId, competitionId) {
   const { data, error } = await supabase
-    .from('student_competition_subscriptions')
-    .update({ is_active: false })
+    .from('competition_guest_participants')
+    .update({ status: 'rejected' })
     .match({ student_id: studentId, competition_id: competitionId })
     .select()
     .single();
@@ -466,33 +462,10 @@ export async function fetchMySubscribedCourses() {
 }
 
 export async function fetchMySubscribedCompetitions() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const [subsRes, assignmentsRes] = await Promise.all([
-    supabase
-      .from('student_competition_subscriptions')
-      .select('*, quran_competitions(id, slug, name, short_description, start_date)')
-      .eq('student_id', user.id)
-      .eq('is_active', true),
-    supabase
-      .from('student_stage_assignments')
-      .select('status, level, current_stage_id, final_rank, competition_id, competition_stages(name)')
-      .eq('student_id', user.id)
-  ]);
-
-  if (subsRes.error) throw subsRes.error;
-  if (assignmentsRes.error) {
-    console.error('Error fetching stage assignments:', assignmentsRes.error);
-  }
-
-  const assignmentsByCompId = new Map();
-  (assignmentsRes.data || []).forEach((a) => {
-    assignmentsByCompId.set(a.competition_id, a);
-  });
-
-  return (subsRes.data || []).map((sub) => ({
-    ...sub,
-    student_stage_assignments: assignmentsByCompId.get(sub.competition_id) || null,
+  const rows = await fetchMyCompetitionParticipants();
+  return rows.filter((row) => SUBSCRIBED_STATUSES.includes(row.status)).map((row) => ({
+    ...row,
+    is_active: true,
+    student_stage_assignments: row.current_stage_id ? row : null,
   }));
 }

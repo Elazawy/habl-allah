@@ -8,6 +8,7 @@ import { fetchPublishedCompetitions } from '../../services/competitionsService';
 import QuranNav from '../quran/QuranNav';
 import QuranFooter from '../quran/QuranFooter';
 import { BookOpen, Trophy, Calendar, User, ArrowLeft } from 'lucide-react';
+import { useVisibleRefresh } from '../../hooks/useVisibleRefresh';
 
 export default function StudentDashboard() {
   const { studentProfile, signOut } = useAuth();
@@ -19,6 +20,14 @@ export default function StudentDashboard() {
   const [otherCompetitions, setOtherCompetitions] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useVisibleRefresh(async () => {
+    const competitions = await fetchMySubscribedCompetitions();
+    const published = await fetchPublishedCompetitions();
+    setMyCompetitions(competitions);
+    const ids = new Set(competitions.map((row) => row.competition_id));
+    setOtherCompetitions(published.filter((row) => !ids.has(row.id)));
+  });
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -376,7 +385,7 @@ export default function StudentDashboard() {
                         return (
                         <Link
                           key={sub.id}
-                          to={`/quran/competition/${sub.quran_competitions.slug}`}
+                          to={`/quran/competition/${sub.quran_competitions.slug}#progress`}
                           className="block border rounded-2xl p-4 shadow-sm transition-all group hover:shadow-md hover:border-[var(--t-primary)]"
                           style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}
                         >
@@ -410,7 +419,7 @@ export default function StudentDashboard() {
                                 {sub.quran_competitions.name}
                               </h3>
                             </div>
-                            <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--t-secondary)' }}>تفاصيل</span>
+                            <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--t-secondary)' }}>تابع تقدمك</span>
                           </div>
                         </Link>
                         );
