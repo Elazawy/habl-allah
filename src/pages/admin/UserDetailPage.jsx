@@ -437,8 +437,8 @@ export default function UserDetailPage() {
         {activeTab === 'courses' && (
           <div>
             <h3 className="admin-section-title">صلاحيات الوصول لدورات الطالب</h3>
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
+            <div className="admin-table-wrapper admin-table-wrapper--cards">
+              <table className="admin-table admin-table--cards">
                 <thead>
                   <tr>
                     <th>اسم الدورة</th>
@@ -452,13 +452,13 @@ export default function UserDetailPage() {
                     const hasAccess = Boolean(activeCourseSubs[course.id]);
                     return (
                       <tr key={course.id}>
-                        <td style={{ fontWeight: 600 }}>{course.name}</td>
-                        <td>
+                        <td data-label="اسم الدورة" style={{ fontWeight: 600 }}>{course.name}</td>
+                        <td data-label="نوع الدورة">
                           <span className={`admin-badge ${course.is_free ? 'admin-badge--neutral' : 'admin-badge--male'}`}>
                             {course.is_free ? 'مجانية' : 'مدفوعة'}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="حالة الوصول">
                           {course.is_free ? (
                             <span className="admin-badge admin-badge--male" style={{ color: 'var(--admin-accent)', background: 'rgba(78,173,136,0.1)' }}>
                               مفتوحة تلقائياً (مجانية)
@@ -473,7 +473,7 @@ export default function UserDetailPage() {
                             </span>
                           )}
                         </td>
-                        <td>
+                        <td data-label="التحكم">
                           {!course.is_free && (
                             <button
                               id={`toggle-course-${course.id}`}
@@ -499,8 +499,8 @@ export default function UserDetailPage() {
         {activeTab === 'competitions' && (
           <div>
             <h3 className="admin-section-title">اشتراكات الطالب في المسابقات</h3>
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
+            <div className="admin-table-wrapper admin-table-wrapper--cards">
+              <table className="admin-table admin-table--cards">
                 <thead>
                   <tr>
                     <th>اسم المسابقة</th>
@@ -513,8 +513,8 @@ export default function UserDetailPage() {
                     const hasSub = Boolean(activeCompSubs[comp.id]);
                     return (
                       <tr key={comp.id}>
-                        <td style={{ fontWeight: 600 }}>{comp.name}</td>
-                        <td>
+                        <td data-label="اسم المسابقة" style={{ fontWeight: 600 }}>{comp.name}</td>
+                        <td data-label="الحالة">
                           {hasSub ? (
                             <span className="admin-badge admin-badge--male" style={{ color: 'var(--admin-accent)', background: 'rgba(78,173,136,0.1)' }}>
                               مشترك ✅
@@ -525,7 +525,7 @@ export default function UserDetailPage() {
                             </span>
                           )}
                         </td>
-                        <td>
+                        <td data-label="التحكم">
                           <button
                             id={`toggle-comp-${comp.id}`}
                             type="button"
@@ -566,8 +566,8 @@ export default function UserDetailPage() {
                 <p>لا يوجد تقارير دروس مسجلة لهذا الطالب بعد.</p>
               </div>
             ) : (
-              <div className="admin-table-wrapper">
-                <table className="admin-table" id="lessons-table">
+              <div className="admin-table-wrapper admin-table-wrapper--cards">
+                <table className="admin-table admin-table--cards" id="lessons-table">
                   <thead>
                     <tr>
                       <th>التاريخ الميلادي</th>
@@ -582,25 +582,25 @@ export default function UserDetailPage() {
                   <tbody>
                     {lessons.map((lesson) => (
                       <tr key={lesson.id} id={`lesson-row-${lesson.id}`}>
-                        <td>{new Date(lesson.lesson_date).toLocaleDateString('ar-EG')}</td>
-                        <td>{lesson.hijri_date ?? '—'}</td>
-                        <td>
+                        <td data-label="التاريخ الميلادي">{new Date(lesson.lesson_date).toLocaleDateString('ar-EG')}</td>
+                        <td data-label="التاريخ الهجري">{lesson.hijri_date ?? '—'}</td>
+                        <td data-label="تسميع اليوم (الحاضر)">
                           {lesson.recitation_today_surah ? (
                             <span>
                               {lesson.recitation_today_surah} (من {lesson.recitation_today_from || '١'} إلى {lesson.recitation_today_to || 'الآخر'})
                             </span>
                           ) : '—'}
                         </td>
-                        <td>
+                        <td data-label="مستوى الحفظ">
                           {lesson.recitation_today_level ? (
                             <span className="admin-badge admin-badge--male" style={{ background: 'rgba(78,173,136,0.1)', color: 'var(--admin-accent)' }}>
                               {lesson.recitation_today_level}
                             </span>
                           ) : '—'}
                         </td>
-                        <td>{lesson.recitation_past_surah ?? '—'}</td>
-                        <td>{lesson.interaction_level ?? '—'}</td>
-                        <td>
+                        <td data-label="الماضي">{lesson.recitation_past_surah ?? '—'}</td>
+                        <td data-label="التفاعل">{lesson.interaction_level ?? '—'}</td>
+                        <td data-label="الإجراءات">
                           <div className="admin-row-actions">
                             <button
                               id={`edit-lesson-${lesson.id}`}

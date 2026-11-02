@@ -126,8 +126,8 @@ export default function TeachersManagementPage() {
           <p>لا يوجد معلمون مطابقون</p>
         </div>
       ) : (
-        <div className="admin-table-wrapper">
-          <table className="admin-table" id="teachers-table">
+        <div className="admin-table-wrapper admin-table-wrapper--cards">
+          <table className="admin-table admin-table--cards" id="teachers-table">
             <thead>
               <tr>
                 <th>المعلم</th>
@@ -140,7 +140,7 @@ export default function TeachersManagementPage() {
             <tbody>
               {filtered.map((teacher) => (
                 <tr key={teacher.id} id={`teacher-row-${teacher.id}`}>
-                  <td>
+                  <td data-label="المعلم">
                     <div className="admin-teacher-cell">
                       {teacher.photo_url ? (
                         <img
@@ -161,15 +161,15 @@ export default function TeachersManagementPage() {
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="النوع">
                     <span className={`admin-badge admin-badge--${teacher.gender}`}>
                       {teacher.gender === 'male' ? 'معلم' : 'معلمة'}
                     </span>
                   </td>
-                  <td className="admin-reviews-count">
+                  <td className="admin-reviews-count" data-label="التقييمات">
                     {teacher.teacher_reviews?.length ?? 0}
                   </td>
-                  <td>
+                  <td data-label="التلاوة">
                     {teacher.recitation_type ? (
                       <span className="admin-badge admin-badge--neutral">
                         {teacher.recitation_type === 'audio' ? '🔊 صوت' : '🎥 فيديو'}
@@ -178,7 +178,7 @@ export default function TeachersManagementPage() {
                       <span className="admin-muted">—</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الإجراءات">
                     <div className="admin-row-actions">
                       <button
                         id={`manage-reviews-${teacher.id}`}

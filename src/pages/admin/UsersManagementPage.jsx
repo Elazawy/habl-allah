@@ -9,7 +9,7 @@ import {
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
 import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
-import { Plus, Search, User, Loader, ChevronLeft, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Search, User, Loader, ChevronLeft, ChevronDown, Trash2, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import QuranLessonFormModal from './QuranLessonFormModal';
 
@@ -24,6 +24,43 @@ function calcAgeInYears(dateString) {
     age -= 1;
   }
   return age;
+}
+
+function StudentMobileCards({ students, onLesson, onView, onDelete }) {
+  return (
+    <div className="student-mobile-list">
+      {students.map((student) => {
+        const age = calcAgeInYears(student.birth_date);
+        return (
+          <details className="student-disclosure" key={student.id}>
+            <summary className="student-disclosure-summary" aria-label={`تفاصيل الطالب ${student.full_name}`}>
+              <span className="student-summary-fields">
+                <span className="student-summary-name">{student.full_name}</span>
+                <span className="student-summary-phone" dir="ltr">{student.phone}</span>
+                <span className="student-summary-teacher"><span className="student-field-label">المعلم المتابع</span>{student.teachers?.name || '--بدون معلم'}</span>
+                <span className="student-summary-age"><span className="student-field-label">العمر</span>{age !== null ? `${age} سنة` : '--'}</span>
+              </span>
+              <ChevronDown className="student-disclosure-arrow" size={20} aria-hidden="true" />
+            </summary>
+            <div className="student-disclosure-content">
+              <dl className="student-extra-fields">
+                <div><dt>الدولة</dt><dd>{student.country ? getCountryName(student.country) : '--'}</dd></div>
+                <div><dt>الجنس</dt><dd>{student.gender ? (student.gender === 'male' ? 'ذكر' : 'أنثى') : '--'}</dd></div>
+                <div><dt>الدورات</dt><dd>{student.student_course_subscriptions?.[0]?.count ?? 0} دورات</dd></div>
+                <div><dt>المسابقات</dt><dd>{student.student_competition_subscriptions?.[0]?.count ?? 0} مسابقات</dd></div>
+                <div><dt>تاريخ التسجيل</dt><dd>{new Date(student.created_at).toLocaleDateString('ar-EG')}</dd></div>
+              </dl>
+              <div className="student-mobile-actions">
+                <button type="button" className="admin-btn admin-btn--ghost" onClick={() => onLesson(student)} aria-label={`إضافة حصة قرآن للطالب ${student.full_name}`}><BookOpen size={16} />إضافة حصة</button>
+                <button type="button" className="admin-btn admin-btn--ghost" onClick={() => onView(student)} aria-label={`عرض تفاصيل ${student.full_name}`}>عرض التفاصيل<ChevronLeft size={16} /></button>
+                <button type="button" className="admin-icon-btn admin-icon-btn--delete" onClick={() => onDelete(student)} aria-label={`حذف حساب ${student.full_name}`}><Trash2 size={16} /></button>
+              </div>
+            </div>
+          </details>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function UsersManagementPage() {
@@ -186,7 +223,7 @@ export default function UsersManagementPage() {
   };
 
   return (
-    <div className="admin-page" dir="rtl">
+    <div className="admin-page student-responsive-page" dir="rtl">
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -298,8 +335,15 @@ export default function UsersManagementPage() {
           <p>لا يوجد طلاب مطابقون للبحث</p>
         </div>
       ) : (
-        <div className="admin-table-wrapper">
-          <table className="admin-table" id="students-table">
+        <div className="student-results">
+            <StudentMobileCards
+              students={filtered}
+              onLesson={setLessonModalStudent}
+              onView={(student) => navigate(`/admin/quran/users/${student.id}`)}
+              onDelete={setDeleteTarget}
+            />
+        <div className="admin-table-wrapper admin-table-wrapper--cards student-desktop-table">
+          <table className="admin-table admin-table--cards" id="students-table">
             <thead>
               <tr>
                 <th>اسم الطالب</th>
@@ -319,9 +363,9 @@ export default function UsersManagementPage() {
                 const age = calcAgeInYears(student.birth_date);
                 return (
                 <tr key={student.id} id={`student-row-${student.id}`}>
-                  <td style={{ fontWeight: 600 }}>{student.full_name}</td>
-                  <td dir="ltr" style={{ textAlign: 'right' }}>{student.phone}</td>
-                  <td>
+                  <td data-label="اسم الطالب" style={{ fontWeight: 600 }}>{student.full_name}</td>
+                  <td data-label="رقم الهاتف" dir="ltr" style={{ textAlign: 'right' }}>{student.phone}</td>
+                  <td data-label="المعلم المتابع">
                     {student.teachers ? (
                       <span className="admin-badge admin-badge--neutral" style={{ color: 'var(--admin-accent)' }}>
                         {student.teachers.name}
@@ -330,7 +374,7 @@ export default function UsersManagementPage() {
                       <span className="admin-muted">--بدون معلم</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الجنس">
                     {student.gender ? (
                       <span className={`admin-badge ${student.gender === 'male' ? 'admin-badge--male' : 'admin-badge--female'}`}>
                         {student.gender === 'male' ? 'ذكر' : 'أنثى'}
@@ -339,62 +383,38 @@ export default function UsersManagementPage() {
                       <span className="admin-muted">--</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الدولة">
                     {student.country ? (
                       <span className="admin-badge admin-badge--neutral">{getCountryName(student.country)}</span>
                     ) : (
                       <span className="admin-muted">--</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="العمر">
                     {age !== null ? (
                       <span className="admin-badge admin-badge--neutral">{age} سنة</span>
                     ) : (
                       <span className="admin-muted">--</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الدورات">
                     <span className="admin-badge admin-badge--neutral">
                       {student.student_course_subscriptions?.[0]?.count ?? 0} دورات
                     </span>
                   </td>
-                  <td>
+                  <td data-label="المسابقات">
                     <span className="admin-badge admin-badge--neutral">
                       {student.student_competition_subscriptions?.[0]?.count ?? 0} مسابقات
                     </span>
                   </td>
-                  <td style={{ fontSize: '0.8rem', color: 'var(--admin-muted)' }}>
+                  <td data-label="تاريخ التسجيل" style={{ fontSize: '0.8rem', color: 'var(--admin-muted)' }}>
                     {new Date(student.created_at).toLocaleDateString('ar-EG')}
                   </td>
-                  <td>
-                    <div className="admin-row-actions">
-                      <button
-                        id={`add-lesson-student-${student.id}`}
-                        className="admin-icon-btn admin-icon-btn--lesson"
-                        onClick={() => setLessonModalStudent(student)}
-                        title="إضافة حصة قرآن جديدة للطالب"
-                        aria-label={`إضافة حصة قرآن للطالب ${student.full_name}`}
-                      >
-                        <BookOpen size={15} />
-                      </button>
-                      <button
-                        id={`view-student-${student.id}`}
-                        className="admin-icon-btn admin-icon-btn--edit"
-                        onClick={() => navigate(`/admin/quran/users/${student.id}`)}
-                        title="عرض التفاصيل وإدارة الاشتراكات والدروس"
-                        aria-label={`عرض تفاصيل ${student.full_name}`}
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                      <button
-                        id={`delete-student-${student.id}`}
-                        className="admin-icon-btn admin-icon-btn--delete"
-                        onClick={() => setDeleteTarget(student)}
-                        title="حذف حساب الطالب"
-                        aria-label={`حذف حساب ${student.full_name}`}
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                  <td data-label="الإجراءات">
+                    <div className="admin-row-actions student-actions-spread">
+                      <button id={`add-lesson-student-${student.id}`} type="button" className="admin-icon-btn admin-icon-btn--lesson" onClick={() => setLessonModalStudent(student)} title="إضافة حصة قرآن جديدة للطالب" aria-label={`إضافة حصة قرآن للطالب ${student.full_name}`}><BookOpen size={15} /></button>
+                      <button id={`view-student-${student.id}`} type="button" className="admin-icon-btn admin-icon-btn--edit" onClick={() => navigate(`/admin/quran/users/${student.id}`)} title="عرض التفاصيل وإدارة الاشتراكات والدروس" aria-label={`عرض تفاصيل ${student.full_name}`}><ChevronLeft size={16} /></button>
+                      <button id={`delete-student-${student.id}`} type="button" className="admin-icon-btn admin-icon-btn--delete" onClick={() => setDeleteTarget(student)} title="حذف حساب الطالب" aria-label={`حذف حساب ${student.full_name}`}><Trash2 size={15} /></button>
                     </div>
                   </td>
                 </tr>
@@ -402,6 +422,7 @@ export default function UsersManagementPage() {
               })}
             </tbody>
           </table>
+        </div>
         </div>
       )}
 
@@ -456,7 +477,7 @@ export default function UsersManagementPage() {
 
               <div className="admin-field-group">
                 <label htmlFor="student-password" className="admin-label">كلمة المرور *</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="admin-input-action">
                   <input
                     id="student-password"
                     type="text"
@@ -622,4 +643,5 @@ export default function UsersManagementPage() {
       )}
     </div>
   );
+
 }

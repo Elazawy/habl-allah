@@ -1,0 +1,518 @@
+/* Shared adaptations for both admin platforms; public pages are unaffected. */
+.student-mobile-list {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .student-actions-spread {
+    flex-wrap: nowrap;
+    min-width: 164px;
+    width: 100%;
+    justify-content: space-between;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 767px) {
+  .student-responsive-page .student-desktop-table { display: none; }
+  .student-mobile-list { display: grid; gap: 16px; }
+  .student-disclosure { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); overflow: clip; }
+  .student-disclosure-summary { display: flex; align-items: flex-start; gap: 8px; padding: 16px; cursor: pointer; list-style: none; min-height: 44px; }
+  .student-disclosure-summary::-webkit-details-marker { display: none; }
+  .student-disclosure-summary::marker { content: ''; }
+  .student-summary-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto; flex: 1; min-width: 0; gap: 12px 16px; }
+  .student-summary-name { grid-column: 1 / -1; font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
+  .student-summary-phone { grid-column: 1 / -1; justify-self: start; font-variant-numeric: tabular-nums; }
+  .student-summary-teacher, .student-summary-age { display: grid; gap: 4px; font-size: .875rem; overflow-wrap: anywhere; }
+  .student-field-label, .student-extra-fields dt { color: #a9b8b0; font-size: .8rem; }
+  .student-disclosure-arrow { flex-shrink: 0; color: var(--admin-accent); margin-top: 2px; }
+  .student-disclosure[open] .student-disclosure-arrow { transform: rotate(180deg); }
+  .student-disclosure-summary:hover { background: rgba(255, 255, 255, .03); }
+  .student-disclosure-summary:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: -3px; }
+  .student-disclosure-content { padding: 16px; border-top: 1px solid var(--admin-border); }
+  .student-extra-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; font-size: .875rem; }
+  .student-extra-fields dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+  .student-mobile-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; gap: 8px; margin-top: 20px; }
+  .student-mobile-actions .admin-btn { min-width: 0; padding-inline: 4px; font-size: .8rem; }
+  .student-mobile-actions .admin-btn svg { flex-shrink: 0; }
+}
+
+body:has(.admin-layout .admin-modal-backdrop) {
+  overflow: hidden;
+}
+
+.admin-layout,
+.admin-login-root,
+.admin-modal-backdrop {
+  color-scheme: dark;
+  scrollbar-color: var(--admin-muted) var(--admin-surface);
+}
+
+.admin-layout {
+  --admin-text-muted: var(--admin-muted);
+  --admin-bg-light: var(--admin-surface2);
+  --admin-bg-card: var(--admin-surface);
+  min-height: 100dvh;
+}
+
+.admin-layout :is(button, a, input, select, textarea):focus-visible,
+.admin-login-root :is(button, a, input):focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 3px;
+}
+
+.admin-layout ::selection,
+.admin-login-root ::selection {
+  background: var(--admin-accent);
+  color: var(--admin-bg);
+}
+
+.admin-page,
+.admin-modal-body,
+.admin-confirm-dialog {
+  overflow-wrap: anywhere;
+}
+
+.admin-modal-actions {
+  flex-shrink: 0;
+}
+
+.admin-page-header > *,
+.admin-field-row > *,
+.admin-field-group,
+.admin-teacher-cell > div,
+.admin-page-card-header > div {
+  min-width: 0;
+}
+
+.admin-btn,
+.admin-nav-link,
+.admin-filter-tab,
+.admin-platform-switch,
+.admin-login-btn {
+  min-height: 44px;
+}
+
+.admin-btn {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.admin-icon-btn,
+.admin-signout-btn,
+.admin-modal-close,
+.admin-drawer-close {
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-row-actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-input {
+  min-width: 0;
+  min-height: 44px;
+  font-size: 1rem;
+  caret-color: var(--admin-accent);
+}
+
+.admin-photo-clear,
+.admin-radio-label,
+.admin-checkbox-label,
+button.admin-badge {
+  min-height: 44px;
+}
+
+.admin-radio-group {
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+
+.admin-input-action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-input-action > .admin-input {
+  flex: 1 1 180px;
+}
+
+.admin-pages-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+.admin-page-card-meta {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-table {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-table .admin-badge,
+.admin-table td[dir='ltr'] {
+  white-space: nowrap;
+}
+
+#students-table {
+  min-width: 1050px;
+}
+
+.admin-table-wrapper {
+  max-width: 100%;
+}
+
+.admin-mobile-header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 68px;
+  padding: 0.5rem max(1rem, env(safe-area-inset-right)) 0.5rem max(1rem, env(safe-area-inset-left));
+  background: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-mobile-header > span {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-mobile-header .admin-hamburger {
+  display: flex;
+  position: static;
+  box-shadow: none;
+}
+
+.admin-layout {
+  display: block;
+}
+
+.admin-sidebar {
+  height: 100dvh;
+}
+
+.admin-main {
+  padding-top: 0;
+}
+
+.admin-page {
+  padding: 1.25rem max(1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  overflow-x: visible;
+}
+
+.admin-page-title {
+  font-size: 1.35rem;
+  line-height: 1.6;
+}
+
+.admin-page-header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-sidebar-brand {
+  padding-inline-end: 2.75rem;
+}
+
+.admin-sidebar-nav {
+  flex: 1 0 auto;
+  margin-bottom: 1rem;
+}
+
+.admin-sidebar-footer {
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.admin-loading,
+.admin-empty {
+  padding: 3rem 1rem;
+}
+
+.admin-search-wrapper {
+  min-width: 0;
+}
+
+.admin-stats-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-stat-card {
+  min-width: 0;
+}
+
+.admin-quick-actions {
+  width: 100%;
+}
+
+.admin-quick-actions .admin-btn {
+  flex: 1 1 200px;
+}
+
+.admin-modal-backdrop {
+  padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+}
+
+.admin-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 1rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.admin-modal-header {
+  flex-shrink: 0;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.admin-modal-header > :first-child {
+  min-width: 0;
+}
+
+.admin-modal-title {
+  font-size: 1rem;
+}
+
+.admin-modal-title svg {
+  flex-shrink: 0;
+}
+
+.admin-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 1rem;
+}
+
+.admin-confirm-dialog {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem 1rem;
+}
+
+.admin-lesson-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-competition-details {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.admin-competition-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.admin-competition-tabs > button {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
+.admin-competition-content {
+  padding: 1rem;
+}
+
+.admin-ranking-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.admin-rank-grip {
+  align-self: center;
+}
+
+.admin-login-root {
+  min-height: 100dvh;
+  padding: 1rem;
+}
+
+.admin-login-card {
+  padding: 1.5rem;
+}
+
+@media (max-width: 1023px) {
+  .admin-sidebar {
+    width: min(300px, calc(100vw - 2rem));
+    right: 0;
+    transform: translateX(110%);
+    transition: transform 0.25s ease-out;
+  }
+
+  .admin-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .admin-table--cards tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .admin-table--cards td {
+    min-width: 0;
+    padding-bottom: 0.75rem;
+  }
+
+  .admin-table--cards td:first-child,
+  .admin-table--cards td:last-child {
+    grid-column: 1 / -1;
+  }
+
+  #students-table {
+    min-width: 0;
+  }
+
+  .admin-table--cards td[dir='ltr']::before {
+    direction: rtl;
+    align-self: stretch;
+    text-align: right;
+  }
+
+  .admin-table--cards .admin-row-actions,
+  #faqs-table .admin-row-actions {
+    width: 100%;
+  }
+
+  .admin-table--cards .admin-icon-btn,
+  #faqs-table .admin-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .admin-table--cards td > * {
+    max-width: 100%;
+  }
+
+  .admin-field-row {
+    align-items: stretch;
+  }
+
+  .admin-rank-grip {
+    display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .admin-page {
+    padding: 1.5rem;
+  }
+
+  .admin-lesson-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-lesson-grid--recitation {
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  }
+
+  .admin-lesson-grid--homework {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+
+  .admin-login-card {
+    padding: 2.5rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-table--cards tbody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-users-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-users-search {
+    grid-column: 1 / -1;
+  }
+
+  .admin-field-row {
+    flex-direction: row;
+  }
+
+  .admin-modal-actions {
+    flex-direction: row;
+  }
+
+  .admin-modal-actions .admin-btn {
+    width: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-layout {
+    display: flex;
+  }
+
+  .admin-mobile-header {
+    display: none;
+  }
+
+  .admin-page {
+    padding: 2rem;
+  }
+
+  .admin-page-title {
+    font-size: 1.6rem;
+  }
+
+  .admin-sidebar-brand {
+    padding-inline-end: 0.5rem;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .admin-modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .admin-modal-body,
+  .admin-competition-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-layout *,
+  .admin-login-root *,
+  .admin-modal-backdrop * {
+    animation: none;
+    transition: none;
+  }
+}

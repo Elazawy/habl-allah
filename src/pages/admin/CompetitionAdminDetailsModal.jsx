@@ -339,7 +339,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
         role="dialog"
         aria-modal="true"
       >
-        <div className="admin-modal admin-modal--wide" style={{ maxWidth: '900px', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+        <div className="admin-modal admin-modal--wide" style={{ maxWidth: '900px' }}>
           <div className="admin-modal-header" style={{ flexShrink: 0 }}>
             <div>
               <h2 className="admin-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -359,7 +359,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+          <div className="admin-competition-details">
             <div style={{ padding: '1rem 1.5rem', background: 'var(--admin-bg-light)', borderBottom: '1px solid var(--admin-border)', flexShrink: 0 }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--admin-text)' }}>المستويات المتاحة: </span>
               {Array.isArray(competition.available_levels) && competition.available_levels.length > 0 ? (
@@ -385,7 +385,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
               )}
             </div>
 
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--admin-border)', background: 'var(--admin-bg)', flexShrink: 0 }}>
+            <div className="admin-competition-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--admin-border)', background: 'var(--admin-bg)', flexShrink: 0 }}>
               <button
                 onClick={() => setActiveTab('subscribers')}
                 style={{
@@ -429,7 +429,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
               </button>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
+            <div className="admin-competition-content">
               {loading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem 0' }}>
                   <Loader size={32} className="admin-spin mb-3" style={{ color: 'var(--admin-accent)' }} />
@@ -444,8 +444,8 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                     <p>لا يوجد طلاب مشتركون معتمدون في هذه المسابقة حتى الآن.</p>
                   </div>
                 ) : (
-                  <div className="admin-table-wrapper">
-                    <table className="admin-table">
+                  <div className="admin-table-wrapper admin-table-wrapper--cards">
+                    <table className="admin-table admin-table--cards">
                       <thead>
                         <tr>
                           <th>الاسم</th>
@@ -457,16 +457,16 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                       <tbody>
                         {subscribers.map((subscriber) => (
                           <tr key={subscriber.id}>
-                            <td>
+                            <td data-label="الاسم">
                               <strong>{subscriber.student_profiles?.full_name || 'طالب غير معروف'}</strong>
                             </td>
-                            <td dir="ltr" style={{ textAlign: 'right' }}>
+                            <td data-label="رقم الهاتف" dir="ltr" style={{ textAlign: 'right' }}>
                               {subscriber.student_profiles?.phone || '—'}
                             </td>
-                            <td>
+                            <td data-label="تاريخ الاشتراك">
                               <span style={{ fontSize: '0.8rem' }}>{formatDateTime(subscriber.subscribed_at)}</span>
                             </td>
-                            <td>
+                            <td data-label="الحالة">
                               <span className="admin-badge admin-badge--published" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                                 <CheckCircle size={10} /> نشط
                               </span>
@@ -483,8 +483,8 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                   <p>لا توجد طلبات معلقة لهذه المسابقة.</p>
                 </div>
               ) : (
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
+                <div className="admin-table-wrapper admin-table-wrapper--cards">
+                  <table className="admin-table admin-table--cards">
                     <thead>
                       <tr>
                         <th>مقدم الطلب</th>
@@ -504,7 +504,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
 
                       return (
                           <tr key={request.id}>
-                            <td>
+                            <td data-label="مقدم الطلب">
                               <div>
                                 <strong style={{ display: 'block' }}>{request.student_name}</strong>
                                 <span style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
@@ -512,7 +512,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                                 </span>
                               </div>
                             </td>
-                            <td>
+                            <td data-label="الدولة / الجنس / العمر">
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', fontSize: '0.8rem' }}>
                                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                                   <MapPin size={11} className="text-amber-500" /> {getCountryName(request.country)}
@@ -528,15 +528,15 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                                 </span>
                               </div>
                             </td>
-                            <td>
+                            <td data-label="المستوى">
                               <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{request.level}</span>
                             </td>
-                            <td>
+                            <td data-label="تاريخ التقديم">
                               <span style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                                 <Clock size={11} /> {formatDateTime(request.created_at)}
                               </span>
                             </td>
-                            <td>
+                            <td data-label="الحساب">
                               {isLinkedStudent ? (
                                 <span className="admin-badge admin-badge--published" style={{ fontSize: '0.7rem' }}>
                                   طالب مسجّل
@@ -547,7 +547,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                                 </span>
                               )}
                             </td>
-                            <td>
+                            <td data-label="الإجراءات">
                               <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                                 {isLinkedStudent ? (
                                   <button
@@ -680,7 +680,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
 
               <div className="admin-field-group">
                 <label htmlFor="competition-student-password" className="admin-label">كلمة المرور *</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="admin-input-action">
                   <input
                     id="competition-student-password"
                     type="text"
