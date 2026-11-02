@@ -1488,7 +1488,7 @@ body {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .admin-hamburger {
     display: flex;
   }
@@ -1604,7 +1604,7 @@ body {
     box-sizing: border-box;
   }
 
-  /* Table → Card layout on mobile */
+  /* Table → Card layout on compact screens */
   .admin-table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -1695,7 +1695,8 @@ body {
   }
 
   .admin-table--cards td[dir='ltr'] {
-    text-align: left;
+    direction: rtl;
+    text-align: right;
   }
 
   .admin-table--cards .admin-row-actions {
@@ -1722,7 +1723,7 @@ body {
 
 @media (max-width: 480px) {
   .admin-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .faq-hero-title {
@@ -1772,7 +1773,7 @@ body {
   line-height: 1.4;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .admin-faq-table-wrapper {
     overflow: visible;
     border: none;

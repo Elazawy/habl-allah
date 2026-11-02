@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
+import './pages/admin/admin-responsive.css';
 import Hero from './components/Hero';
 import Portals from './components/Portals';
 import About from './components/About';

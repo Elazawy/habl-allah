@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -44,18 +44,49 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const sidebarRef = useRef(null);
+  const menuButtonRef = useRef(null);
 
   const platform = detectPlatform(location.pathname);
   const links = NAV_LINKS[platform];
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
+    const media = window.matchMedia('(max-width: 1023px)');
+    const sidebar = sidebarRef.current;
+    const menuButton = menuButtonRef.current;
+    const syncDrawer = () => {
+      sidebar.inert = media.matches && !mobileOpen;
+      if (!media.matches) setMobileOpen(false);
+    };
+    syncDrawer();
+    media.addEventListener('change', syncDrawer);
+    if (!mobileOpen) return () => media.removeEventListener('change', syncDrawer);
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    sidebar.querySelector('button')?.focus({ preventScroll: true });
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setMobileOpen(false);
+      if (event.key !== 'Tab') return;
+      const controls = [...sidebar.querySelectorAll('a[href], button:not(:disabled)')];
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      media.removeEventListener('change', syncDrawer);
+      menuButton?.focus();
+    };
   }, [mobileOpen]);
 
   const closeMobileDrawer = () => {
@@ -104,7 +135,7 @@ export default function AdminLayout({ children }) {
       </button>
 
       {/* Navigation */}
-      <nav className="admin-sidebar-nav">
+      <nav className="admin-sidebar-nav" aria-label="التنقل في لوحة الإدارة">
         {links.map((link) =>
           link.external ? (
             <a
@@ -150,6 +181,7 @@ export default function AdminLayout({ children }) {
           className="admin-signout-btn"
           onClick={handleSignOut}
           title="تسجيل الخروج"
+          aria-label="تسجيل الخروج"
         >
           <LogOut size={18} />
         </button>
@@ -159,15 +191,21 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="admin-layout" dir="rtl">
-      {/* Mobile hamburger button */}
+      <header className="admin-mobile-header" inert={mobileOpen}>
       <button
+        ref={menuButtonRef}
         className="admin-hamburger"
         onClick={() => setMobileOpen(true)}
         aria-label="فتح القائمة"
         id="admin-hamburger-btn"
+        aria-expanded={mobileOpen}
+        aria-controls="admin-sidebar"
       >
         <Menu size={24} />
       </button>
+        <span>{PLATFORM_LABELS[platform]}</span>
+        <img src={logoGold} alt="حبل الله" width="32" height="32" />
+      </header>
 
       {/* Mobile drawer overlay */}
       {mobileOpen && (
@@ -179,7 +217,14 @@ export default function AdminLayout({ children }) {
       )}
 
       {/* Sidebar — desktop: static, mobile: drawer */}
-      <aside className={`admin-sidebar ${mobileOpen ? 'admin-sidebar--open' : ''}`}>
+      <aside
+        ref={sidebarRef}
+        id="admin-sidebar"
+        className={`admin-sidebar ${mobileOpen ? 'admin-sidebar--open' : ''}`}
+        role={mobileOpen ? 'dialog' : undefined}
+        aria-modal={mobileOpen ? true : undefined}
+        aria-label="قائمة الإدارة"
+      >
         {/* Mobile close button */}
         <button
           className="admin-drawer-close"
@@ -192,7 +237,7 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main content */}
-      <main className="admin-main">
+      <main className="admin-main" inert={mobileOpen}>
         {children}
       </main>
     </div>

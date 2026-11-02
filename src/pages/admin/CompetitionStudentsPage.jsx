@@ -18,6 +18,8 @@ import {
   ArrowLeftRight,
   Filter,
   GripVertical,
+  ArrowUp,
+  ArrowDown,
   Save,
   RotateCcw,
   SlidersHorizontal,
@@ -596,6 +598,16 @@ export default function CompetitionStudentsPage() {
     setRanksChanged(true);
   };
 
+  const moveRank = (assignmentId, direction) => {
+    const index = rankedStudents.findIndex((item) => item.id === assignmentId);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= rankedStudents.length) return;
+    const items = [...rankedStudents];
+    [items[index], items[target]] = [items[target], items[index]];
+    setRankedStudents(items);
+    setRanksChanged(true);
+  };
+
   const handleSaveRanks = async () => {
     setSavingRanks(true);
     try {
@@ -704,7 +716,7 @@ export default function CompetitionStudentsPage() {
       )}
 
       {/* Tabs */}
-      <div style={{
+      <div className="admin-competition-tabs" style={{
         display: 'flex',
         borderBottom: '2px solid var(--admin-border)',
         background: 'var(--admin-bg)',
@@ -758,8 +770,8 @@ export default function CompetitionStudentsPage() {
                 <p>{levelFilter ? 'لا توجد طلبات معلقة لهذا المستوى.' : 'لا توجد طلبات معلقة لهذه المسابقة.'}</p>
               </div>
             ) : (
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
+              <div className="admin-table-wrapper admin-table-wrapper--cards">
+                <table className="admin-table admin-table--cards">
                   <thead>
                     <tr>
                       <th>مقدم الطلب</th>
@@ -778,7 +790,7 @@ export default function CompetitionStudentsPage() {
 
                       return (
                         <tr key={request.id}>
-                          <td>
+                          <td data-label="مقدم الطلب">
                             <div>
                               <strong style={{ display: 'block' }}>{request.student_name}</strong>
                               <span style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
@@ -786,7 +798,7 @@ export default function CompetitionStudentsPage() {
                               </span>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="الدولة / الجنس / العمر">
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', fontSize: '0.8rem' }}>
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                                 <MapPin size={11} className="text-amber-500" /> {getCountryName(request.country)}
@@ -802,10 +814,10 @@ export default function CompetitionStudentsPage() {
                               </span>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="المستوى">
                             <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{request.level}</span>
                           </td>
-                          <td>
+                          <td data-label="الحساب">
                             {isLinkedStudent ? (
                               <span className="admin-badge admin-badge--published" style={{ fontSize: '0.7rem' }}>
                                 طالب مسجّل
@@ -816,7 +828,7 @@ export default function CompetitionStudentsPage() {
                               </span>
                             )}
                           </td>
-                          <td>
+                          <td data-label="الإجراءات">
                             <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                               {isLinkedStudent ? (
                                 <button
@@ -881,8 +893,8 @@ export default function CompetitionStudentsPage() {
                 <p>لا يوجد طلاب مشتركون معتمدون حتى الآن.</p>
               </div>
             ) : (
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
+              <div className="admin-table-wrapper admin-table-wrapper--cards">
+                <table className="admin-table admin-table--cards">
                   <thead>
                     <tr>
                       <th>الاسم</th>
@@ -893,9 +905,9 @@ export default function CompetitionStudentsPage() {
                   <tbody>
                     {subscribers.map((sub) => (
                       <tr key={sub.id}>
-                        <td><strong>{sub.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
-                        <td dir="ltr" style={{ textAlign: 'right' }}>{sub.student_profiles?.phone || '—'}</td>
-                        <td>
+                        <td data-label="الاسم"><strong>{sub.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
+                        <td data-label="رقم الهاتف" dir="ltr" style={{ textAlign: 'right' }}>{sub.student_profiles?.phone || '—'}</td>
+                        <td data-label="الحالة">
                           <span className="admin-badge admin-badge--published" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                             <CheckCircle size={10} /> نشط
                           </span>
@@ -948,8 +960,8 @@ export default function CompetitionStudentsPage() {
                   <p>لا يوجد طلاب في هذه المرحلة حالياً.</p>
                 </div>
               ) : (
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
+                <div className="admin-table-wrapper admin-table-wrapper--cards">
+                  <table className="admin-table admin-table--cards">
                     <thead>
                       <tr>
                         <th>الاسم</th>
@@ -963,9 +975,9 @@ export default function CompetitionStudentsPage() {
                         const isBusy = processingId === assignment.id;
                         return (
                           <tr key={assignment.id}>
-                            <td><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
-                            <td dir="ltr" style={{ textAlign: 'right' }}>{assignment.student_profiles?.phone || '—'}</td>
-                            <td>
+                            <td data-label="الاسم"><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
+                            <td data-label="الرقم" dir="ltr" style={{ textAlign: 'right' }}>{assignment.student_profiles?.phone || '—'}</td>
+                            <td data-label="المستوى">
                               {Array.isArray(competition?.available_levels) && competition.available_levels.length > 0 ? (
                                 <select
                                   className="admin-input admin-select"
@@ -999,7 +1011,7 @@ export default function CompetitionStudentsPage() {
                                 </button>
                               )}
                             </td>
-                            <td>
+                            <td data-label="الإجراءات">
                               <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                                 {isLast ? (
                                   <button
@@ -1065,10 +1077,10 @@ export default function CompetitionStudentsPage() {
                         const isBusy = processingId === assignment.id;
                         return (
                           <tr key={assignment.id}>
-                            <td style={{ opacity: 0.5 }}><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
-                            <td dir="ltr" style={{ textAlign: 'right', opacity: 0.5 }}>{assignment.student_profiles?.phone || '—'}</td>
-                            <td style={{ opacity: 0.5 }}><span style={{ fontSize: '0.85rem' }}>{assignment.level || '—'}</span></td>
-                            <td>
+                            <td data-label="الاسم" style={{ opacity: 0.5 }}><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
+                            <td data-label="الرقم" dir="ltr" style={{ textAlign: 'right', opacity: 0.5 }}>{assignment.student_profiles?.phone || '—'}</td>
+                            <td data-label="المستوى" style={{ opacity: 0.5 }}><span style={{ fontSize: '0.85rem' }}>{assignment.level || '—'}</span></td>
+                            <td data-label="الإجراءات">
                               <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                                 <span className="admin-badge" style={{ fontSize: '0.7rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
                                   <XCircle size={10} /> لم يجتاز
@@ -1115,9 +1127,9 @@ export default function CompetitionStudentsPage() {
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div className="admin-ranking-toolbar">
                   <p style={{ fontSize: '0.85rem', color: 'var(--admin-text-muted)' }}>
-                    اسحب وأفلت الصفوف لتغيير ترتيب الطلاب
+                    غيّر ترتيب الطلاب بالأسهم أو بسحب الصفوف وإفلاتها
                   </p>
                   <button
                     className="admin-btn admin-btn--primary admin-btn--sm"
@@ -1130,11 +1142,11 @@ export default function CompetitionStudentsPage() {
                   </button>
                 </div>
 
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
+                <div className="admin-table-wrapper admin-table-wrapper--cards">
+                  <table className="admin-table admin-table--cards">
                     <thead>
                       <tr>
-                        <th style={{ width: '40px' }}></th>
+                        <th>تغيير الترتيب</th>
                         <th>الترتيب</th>
                         <th>الاسم</th>
                         <th>الرقم</th>
@@ -1143,7 +1155,9 @@ export default function CompetitionStudentsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filterByLevel(rankedStudents).map((assignment, index) => (
+                      {filterByLevel(rankedStudents).map((assignment) => {
+                        const index = rankedStudents.findIndex((item) => item.id === assignment.id);
+                        return (
                         <tr
                           key={assignment.id}
                           draggable
@@ -1153,18 +1167,22 @@ export default function CompetitionStudentsPage() {
                           onDragOver={(e) => e.preventDefault()}
                           style={{ cursor: 'grab' }}
                         >
-                          <td style={{ textAlign: 'center' }}>
-                            <GripVertical size={16} className="admin-muted" />
+                          <td data-label="تغيير الترتيب">
+                            <div className="admin-row-actions">
+                              <GripVertical size={16} className="admin-rank-grip admin-muted" aria-hidden="true" />
+                              <button type="button" className="admin-icon-btn admin-icon-btn--neutral" onClick={() => moveRank(assignment.id, -1)} disabled={index === 0 || savingRanks} aria-label={`رفع ترتيب ${assignment.student_profiles?.full_name || 'الطالب'}`}><ArrowUp size={16} /></button>
+                              <button type="button" className="admin-icon-btn admin-icon-btn--neutral" onClick={() => moveRank(assignment.id, 1)} disabled={index === rankedStudents.length - 1 || savingRanks} aria-label={`خفض ترتيب ${assignment.student_profiles?.full_name || 'الطالب'}`}><ArrowDown size={16} /></button>
+                            </div>
                           </td>
-                          <td>
+                          <td data-label="الترتيب" aria-live="polite">
                             <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
                               {getRankLabel(index + 1)}
                             </span>
                           </td>
-                          <td><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
-                          <td dir="ltr" style={{ textAlign: 'right' }}>{assignment.student_profiles?.phone || '—'}</td>
-                          <td><span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{assignment.level || '—'}</span></td>
-                          <td>
+                          <td data-label="الاسم"><strong>{assignment.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
+                          <td data-label="الرقم" dir="ltr" style={{ textAlign: 'right' }}>{assignment.student_profiles?.phone || '—'}</td>
+                          <td data-label="المستوى"><span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{assignment.level || '—'}</span></td>
+                          <td data-label="الإجراءات">
                             <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                               <button
                                 className="admin-btn admin-btn--ghost admin-btn--sm"
@@ -1188,7 +1206,7 @@ export default function CompetitionStudentsPage() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      );})}
                     </tbody>
                   </table>
                 </div>
@@ -1392,7 +1410,7 @@ export default function CompetitionStudentsPage() {
 
               <div className="admin-field-group">
                 <label htmlFor="csp-password" className="admin-label">كلمة المرور *</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="admin-input-action">
                   <input id="csp-password" type="text" required className="admin-input" dir="ltr" value={accountModal.password} onChange={(e) => handleAccountField('password', e.target.value)} disabled={accountModal.saving} />
                   <button type="button" className="admin-btn admin-btn--ghost" onClick={() => handleAccountField('password', generatePassword(9))} disabled={accountModal.saving} style={{ whiteSpace: 'nowrap' }}>
                     <RefreshCw size={14} /> توليد جديد

@@ -60,7 +60,7 @@ export default function LectureQuestionsModal({ lectureId, lectureTitle, onClose
       aria-label="الأسئلة والأجوبة للمحاضرة"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="admin-modal" style={{ maxWidth: '650px', width: '90%' }}>
+      <div className="admin-modal" style={{ maxWidth: '650px' }}>
         <div className="admin-modal-header">
           <div>
             <h2 className="admin-modal-title">الأسئلة والأجوبة المطروحة</h2>
@@ -72,12 +72,13 @@ export default function LectureQuestionsModal({ lectureId, lectureTitle, onClose
             id="admin-modal-close-btn"
             className="admin-modal-close"
             onClick={onClose}
+            aria-label="إغلاق"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="admin-modal-body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
+        <div className="admin-modal-body">
           {loading ? (
             <div className="admin-loading" style={{ padding: '2rem' }}>
               <div className="admin-spinner" />
@@ -104,6 +105,8 @@ export default function LectureQuestionsModal({ lectureId, lectureTitle, onClose
                   <div
                     style={{
                       display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       fontSize: '0.78rem',
@@ -125,7 +128,7 @@ export default function LectureQuestionsModal({ lectureId, lectureTitle, onClose
                   {/* Reply Form */}
                   <div className="admin-field-group">
                     <label htmlFor={`reply-to-${q.id}`} className="admin-label">إجابة الشيخ / الإدارة:</label>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="admin-input-action">
                       <textarea
                         id={`reply-to-${q.id}`}
                         rows={2}
@@ -141,6 +144,7 @@ export default function LectureQuestionsModal({ lectureId, lectureTitle, onClose
                         disabled={savingId === q.id || !replyTexts[q.id]?.trim()}
                         style={{ height: 'fit-content', padding: '0.75rem 1rem' }}
                         title="حفظ الإجابة"
+                        aria-label="حفظ الإجابة"
                       >
                         {savingId === q.id ? (
                           <Loader size={16} className="admin-spin" />
