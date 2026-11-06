@@ -7,8 +7,8 @@
 -- What it does: creates a confirmed admin account so you can sign in at
 -- /admin/login without having to hand-craft a user after every reset.
 --
---     email:    admin@hablallah.com
---     password: admin123
+--     email:    hablallah1dev@gmail.com
+--     password: HablAdmin2025!
 --
 -- "Admin" in this app means "has a row in public.admin_users with
 -- is_active = true" (see private.is_admin()). There is no role column, so we
@@ -34,7 +34,7 @@ create extension if not exists pgcrypto with schema extensions;
 -- `users_email_partial_key` unique index instead of hitting the id conflict.
 -- The FKs on auth.identities and public.admin_users are ON DELETE CASCADE.
 delete from auth.users
-where email = 'admin@hablallah.com'
+where email = 'hablallah1dev@gmail.com'
   and id <> '00000000-0000-0000-0000-000000000001'::uuid;
 
 -- 1. The auth user. Only columns that actually exist on auth.users are set;
@@ -70,8 +70,8 @@ values (
   '00000000-0000-0000-0000-000000000001',
   'authenticated',
   'authenticated',
-  'admin@hablallah.com',
-  extensions.crypt('admin123', extensions.gen_salt('bf', 10)),
+  'hablallah1dev@gmail.com',
+  extensions.crypt('HablAdmin2025!', extensions.gen_salt('bf', 10)),
   now(),
   now(),
   now(),
@@ -109,7 +109,7 @@ values (
   '00000000-0000-0000-0000-0000000000a1',
   '00000000-0000-0000-0000-000000000001',
   '00000000-0000-0000-0000-000000000001',
-  '{"sub":"00000000-0000-0000-0000-000000000001","email":"admin@hablallah.com","email_verified":true,"phone_verified":false}'::jsonb,
+  '{"sub":"00000000-0000-0000-0000-000000000001","email":"hablallah1dev@gmail.com","email_verified":true,"phone_verified":false}'::jsonb,
   'email',
   now(),
   now(),
@@ -126,7 +126,7 @@ on conflict (provider_id, provider) do update
 insert into public.admin_users (id, email, is_active)
 values (
   '00000000-0000-0000-0000-000000000001',
-  'admin@hablallah.com',
+  'hablallah1dev@gmail.com',
   true
 )
 on conflict (id) do update

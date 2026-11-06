@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="admin-input"
-              placeholder="admin@hablallah.com"
+              placeholder="hablallah1dev@gmail.com"
               required
               autoComplete="email"
               dir="ltr"
