@@ -12,6 +12,7 @@
 
 import { supabase, publicSupabase } from '../lib/supabase';
 import { mockTeachers } from '../data/teachers';
+import { preparePreferenceRequest, prepareStudentRequest } from '../lib/studentRequestValidation';
 
 function normalizeTeacherReviews(reviews = []) {
   return reviews
@@ -81,7 +82,7 @@ export async function submitPreferenceForm({
   description,
   gender_preference,
 }) {
-  const payload = { student_name, age, whatsapp, description, gender_preference };
+  const payload = preparePreferenceRequest({ student_name, age, whatsapp, description, gender_preference });
 
   if (supabase) {
     const { error } = await supabase
@@ -89,7 +90,7 @@ export async function submitPreferenceForm({
       .insert([payload]);
     if (error) throw error;
   } else {
-    console.log('[preference_request saved]', payload);
+    throw new Error('خدمة إرسال الطلبات غير متاحة حالياً. يرجى المحاولة لاحقاً.');
   }
 }
 
@@ -102,7 +103,7 @@ export async function submitSubscriptionRequest({
   student_name,
   whatsapp,
 }) {
-  const payload = { teacher_id, teacher_name, student_name, whatsapp };
+  const payload = { teacher_id, teacher_name, ...prepareStudentRequest({ student_name, whatsapp }) };
 
   if (supabase) {
     const { error } = await supabase
@@ -110,6 +111,6 @@ export async function submitSubscriptionRequest({
       .insert([payload]);
     if (error) throw error;
   } else {
-    console.log('[subscription_request saved]', payload);
+    throw new Error('خدمة إرسال الطلبات غير متاحة حالياً. يرجى المحاولة لاحقاً.');
   }
 }

@@ -412,3 +412,19 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Admin student creation. The gateway JWT check is disabled so the handler can
+# return its own 401/403; it verifies a bearer session and an active admin_users
+# row before creating anything.
+[functions.admin-create-student]
+verify_jwt = false
+
+# Server-only outbox worker. The gateway JWT check is disabled so pg_cron can
+# invoke it; the function enforces x-request-worker-secret itself.
+[functions.student-request-notifications]
+verify_jwt = false
+
+# Compatibility route for the legacy trigger/webhook URL. It delegates to the
+# same authenticated worker handler and does not accept the old open payload.
+[functions.notify-preference-telegram]
+verify_jwt = false
