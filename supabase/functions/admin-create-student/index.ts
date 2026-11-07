@@ -1,5 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.108.2';
 
+import { isDuplicateAuthUserError } from './errors.ts';
+
 // ─── Supabase Admin Client ────────────────────────────────────────────────────
 function getAdminKey() {
   const secretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
@@ -188,13 +190,20 @@ Deno.serve(async (req: Request) => {
     });
 
     if (authError) {
-      if (
-        authError.message?.toLowerCase().includes('already registered') ||
-        authError.message?.toLowerCase().includes('already exists')
-      ) {
+      if (isDuplicateAuthUserError(authError)) {
         return json({ error: 'رقم الهاتف هذا مسجل بالفعل.' }, { status: 409 });
       }
-      return json({ error: authError.message }, { status: 400 });
+
+      // Do not return or log Auth internals (raw messages can include account
+      // data). The code/status are enough to diagnose the failure server-side.
+      console.error('admin-create-student auth create failed', {
+        code: authError.code ?? null,
+        status: authError.status ?? null,
+      });
+      return json(
+        { error: 'تعذر إنشاء حساب الطالب. يرجى المحاولة مرة أخرى.' },
+        { status: 400 },
+      );
     }
 
     const userId = authData.user.id;

@@ -16,6 +16,8 @@
 import { supabase } from '../lib/supabase';
 import { fetchMyCompetitionParticipants, SUBSCRIBED_STATUSES } from './competitionParticipation';
 import { subscribeStudentToCompetition as subscribeCompetitionParticipant } from './competitionsService';
+import { normalizeStudentPhone, isValidStudentPhone } from '../lib/studentPhone.js';
+export { normalizeStudentPhone, isValidStudentPhone };
 
 // ─── Helpers ───────────────────────────────────────────────────
 
@@ -33,28 +35,6 @@ function normalizeLocalizedDigits(value) {
 
     return digit;
   });
-}
-
-/**
- * Canonical student phone format used across auth + profile storage.
- * Examples:
- *   01128472424   → 201128472424
- *   +201128472424 → 201128472424
- *   201128472424  → 201128472424
- */
-export function normalizeStudentPhone(phone) {
-  const rawPhone = normalizeLocalizedDigits(phone).trim();
-  const hadLeadingPlus = rawPhone.startsWith('+');
-  let digits = rawPhone.replace(/\D/g, '');
-
-  if (!digits) return '';
-  if (hadLeadingPlus) return digits;
-  if (digits.startsWith('0')) return `2${digits}`;
-  return digits;
-}
-
-export function isValidStudentPhone(phone) {
-  return /^\d{10,15}$/.test(normalizeStudentPhone(phone));
 }
 
 /**
@@ -202,16 +182,25 @@ async function invokeAdminFunction(functionName, payload, fallbackMessage) {
   }
 
   if (!res.ok) {
+    const markStatus = (message) => {
+      const error = new Error(message);
+      // Callers need the real HTTP status to distinguish a definitive conflict
+      // (409) from an ambiguous gateway/network failure (5xx).
+      error.status = res.status;
+      error.body = parsedBody;
+      return error;
+    };
+
     // A message our own function authored is already user-facing.
     if (typeof parsedBody?.error === 'string' && parsedBody.error.trim()) {
-      throw new Error(parsedBody.error.trim());
+      throw markStatus(parsedBody.error.trim());
     }
 
     const detail = [parsedBody?.message, parsedBody?.msg, parsedBody?.code, rawBody]
       .map((value) => (typeof value === 'string' ? value.trim() : ''))
       .find(Boolean);
 
-    throw new Error(
+    throw markStatus(
       detail
         ? `${fallbackMessage} (${res.status}: ${detail})`
         : `${fallbackMessage} (${res.status})`

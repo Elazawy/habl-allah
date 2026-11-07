@@ -49,6 +49,7 @@ import StudentProfilePage from './pages/student/StudentProfilePage';
 // Admin Users Pages
 import UsersManagementPage from './pages/admin/UsersManagementPage';
 import UserDetailPage from './pages/admin/UserDetailPage';
+import StudentRequestsPage from './pages/admin/StudentRequestsPage';
 
 function HomePage() {
   return (
@@ -127,6 +128,7 @@ export default function App() {
         <Route path="/admin/quran/courses/:id/lectures" element={<ProtectedAdmin><CourseLecturesManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/users" element={<ProtectedAdmin><UsersManagementPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/users/:id" element={<ProtectedAdmin><UserDetailPage /></ProtectedAdmin>} />
+        <Route path="/admin/quran/requests" element={<ProtectedAdmin><StudentRequestsPage /></ProtectedAdmin>} />
 
         {/* Redirect old /admin/teachers → /admin/quran/teachers */}
         <Route path="/admin/teachers" element={<Navigate to="/admin/quran/teachers" replace />} />
