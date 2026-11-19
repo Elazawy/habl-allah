@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Send, CheckCircle, Loader2, ChevronLeft } from 'lucide-react';
 import { fetchTeachers, submitPreferenceForm } from '../../services/teachersService';
@@ -6,6 +6,7 @@ import { GENDER_LABELS } from '../../lib/constants';
 import TeacherCard from './TeacherCard';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
+import { preparePreferenceRequest } from '../../lib/studentRequestValidation';
 
 /** Inline animation helper — fires immediately regardless of scroll */
 const anim = (delay = 0) => ({
@@ -28,6 +29,7 @@ function PreferenceForm({ gender }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError]     = useState('');
+  const submitting = useRef(false);
 
   function handleChange(e) {
     setValues((v) => ({ ...v, [e.target.name]: e.target.value }));
@@ -35,12 +37,24 @@ function PreferenceForm({ gender }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (submitting.current) return;
+    let payload;
+    try {
+      payload = preparePreferenceRequest({ ...values, gender_preference: gender });
+    } catch (validationError) {
+      setError(validationError.message);
+      return;
+    }
+    submitting.current = true;
     setLoading(true);
     setError('');
     try {
-      await submitPreferenceForm({ ...values, gender_preference: gender });
+      await submitPreferenceForm(payload);
       setSuccess(true);
     } catch {
+      // Only a failed save can be retried; on success the form is replaced,
+      // so keep the guard latched against a late duplicate submit.
+      submitting.current = false;
       setError('حدث خطأ، يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
@@ -82,19 +96,22 @@ function PreferenceForm({ gender }) {
           أخبرنا عن احتياجك
         </h3>
         <p className="text-sm" style={{ color: 'var(--t-text-muted)' }}>
-          جميع الحقول اختيارية — كلما أخبرتنا أكثر، كلما كان اختيارنا أدق
+          الاسم ورقم واتساب مطلوبان للتواصل معك، والعمر ووصف احتياجك اختياريان.
         </p>
       </div>
 
       <div className="flex flex-col gap-5">
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
-            اسم الطالب
+          <label htmlFor="pref-student-name" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
+            اسم الطالب (مطلوب)
           </label>
           <input
             id="pref-student-name"
             name="student_name"
             type="text"
+            required
+            maxLength={200}
+            autoComplete="name"
             placeholder="اكتب اسمك هنا…"
             value={values.student_name}
             onChange={handleChange}
@@ -104,7 +121,7 @@ function PreferenceForm({ gender }) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
+          <label htmlFor="pref-age" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
             العمر
           </label>
           <input
@@ -122,13 +139,16 @@ function PreferenceForm({ gender }) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
-            رقم التواصل (واتساب)
+          <label htmlFor="pref-whatsapp" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
+            رقم التواصل (واتساب، مطلوب)
           </label>
           <input
             id="pref-whatsapp"
             name="whatsapp"
             type="tel"
+            required
+            maxLength={30}
+            autoComplete="tel"
             placeholder="مثال: 01012345678"
             value={values.whatsapp}
             onChange={handleChange}
@@ -137,18 +157,19 @@ function PreferenceForm({ gender }) {
             dir="ltr"
           />
           <p className="text-xs mt-1.5" style={{ color: 'var(--t-text-subtle)' }}>
-            سيُستخدم فقط للتواصل معك من قِبَل فريقنا
+            للتواصل من فريق الأكاديمية. أضف رمز الدولة إذا كان رقمك خارج مصر.
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
+          <label htmlFor="pref-description" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
             ما الذي تبحث عنه في المعلم؟
           </label>
           <textarea
             id="pref-description"
             name="description"
             rows={4}
+            maxLength={4000}
             placeholder="مثال: أريد معلماً متخصصاً في تجويد المبتدئين، يناسب طفل عمره ١٠ سنوات…"
             value={values.description}
             onChange={handleChange}
@@ -158,7 +179,7 @@ function PreferenceForm({ gender }) {
         </div>
 
         {error && (
-          <p className="text-sm text-center font-semibold" style={{ color: '#ef4444' }}>
+          <p role="alert" className="text-sm text-center font-semibold" style={{ color: '#ef4444' }}>
             {error}
           </p>
         )}

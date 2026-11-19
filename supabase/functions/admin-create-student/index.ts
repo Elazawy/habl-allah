@@ -1,5 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.108.2';
 
+import { isDuplicateAuthUserError } from './errors.ts';
+
 // ─── Supabase Admin Client ────────────────────────────────────────────────────
 function getAdminKey() {
   const secretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
@@ -41,10 +43,11 @@ function normalizeLocalizedDigits(value: string): string {
 function normalizeStudentPhone(phone: string): string {
   const rawPhone = normalizeLocalizedDigits(phone).trim();
   const hadLeadingPlus = rawPhone.startsWith('+');
-  let digits = rawPhone.replace(/\D/g, '');
+  const digits = rawPhone.replace(/\D/g, '');
 
   if (!digits) return '';
   if (hadLeadingPlus) return digits;
+  if (digits.startsWith('00')) return digits.slice(2);
   if (digits.startsWith('0')) return `2${digits}`;
   return digits;
 }
@@ -146,7 +149,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const normalizedPhone = normalizeStudentPhone(phone);
-    if (!/^\d{10,15}$/.test(normalizedPhone)) {
+    if (!/^[1-9]\d{9,14}$/.test(normalizedPhone)) {
       return json({ error: 'رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.' }, { status: 400 });
     }
 
@@ -188,13 +191,20 @@ Deno.serve(async (req: Request) => {
     });
 
     if (authError) {
-      if (
-        authError.message?.toLowerCase().includes('already registered') ||
-        authError.message?.toLowerCase().includes('already exists')
-      ) {
+      if (isDuplicateAuthUserError(authError)) {
         return json({ error: 'رقم الهاتف هذا مسجل بالفعل.' }, { status: 409 });
       }
-      return json({ error: authError.message }, { status: 400 });
+
+      // Do not return or log Auth internals (raw messages can include account
+      // data). The code/status are enough to diagnose the failure server-side.
+      console.error('admin-create-student auth create failed', {
+        code: authError.code ?? null,
+        status: authError.status ?? null,
+      });
+      return json(
+        { error: 'تعذر إنشاء حساب الطالب. يرجى المحاولة مرة أخرى.' },
+        { status: 400 },
+      );
     }
 
     const userId = authData.user.id;

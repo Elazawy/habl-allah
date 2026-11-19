@@ -1,7 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X, Loader2, ExternalLink } from 'lucide-react';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { submitSubscriptionRequest } from '../../services/teachersService';
+import { prepareStudentRequest } from '../../lib/studentRequestValidation';
+
+/**
+ * Opens the WhatsApp tab synchronously, while the submit click still counts as
+ * a user gesture. The save below is async; opening after it would be blocked by
+ * popup blockers in most browsers.
+ *
+ * `noopener` is passed to window.open only when we don't need a handle. Here we
+ * need one to navigate after saving, so we sever `opener` immediately instead.
+ */
+function openWhatsAppTarget() {
+  try {
+    const target = window.open('about:blank', '_blank');
+    if (target) {
+      try {
+        target.opener = null;
+      } catch {
+        // Some browsers refuse the assignment; the target itself is still usable.
+      }
+    }
+    return target;
+  } catch {
+    return null;
+  }
+}
+
+/** Navigate the prepared target. Same-tab fallback is only for a blocked popup. */
+function navigateToWhatsApp(target, url) {
+  // `window.open` returning null is the only signal that the popup was blocked.
+  if (!target) {
+    window.location.assign(url);
+    return;
+  }
+
+  // A real target that the user closed is their decision. Never hijack the
+  // current tab as a fallback in that case.
+  if (target.closed) return;
+
+  try {
+    target.location.replace(url);
+  } catch {
+    // The target can disappear between the check and navigation. Do not fall
+    // back to the current tab; close a surviving blank target instead.
+    try {
+      target.close();
+    } catch {
+      // Already closed.
+    }
+  }
+}
 
 /**
  * SubscribeModal
@@ -16,6 +66,85 @@ export default function SubscribeModal({ teacher, onClose }) {
   const [values, setValues] = useState({ student_name: '', whatsapp: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
+  const submitting = useRef(false);
+  const panelRef = useRef(null);
+  const whatsappTargetRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  // Basic dialog behavior: Escape closes, Tab stays inside, background scroll is locked.
+  useEffect(() => {
+    mountedRef.current = true;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const panel = panelRef.current;
+    panel?.querySelector('#sub-student-name')?.focus();
+
+    function getFocusableElements() {
+      if (!panel) return [];
+      return [...panel.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )];
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const focusable = getFocusableElements();
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (!panel?.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      mountedRef.current = false;
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+
+      // A pending blank tab is closed if the modal goes away before the save
+      // finishes, so we never leave an un-navigated tab behind.
+      const pendingTarget = whatsappTargetRef.current;
+      whatsappTargetRef.current = null;
+      if (pendingTarget && !pendingTarget.closed) {
+        try {
+          pendingTarget.close();
+        } catch {
+          // The browser may already have closed it.
+        }
+      }
+
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    };
+  }, []);
 
   function handleChange(e) {
     setValues((v) => ({ ...v, [e.target.name]: e.target.value }));
@@ -23,32 +152,44 @@ export default function SubscribeModal({ teacher, onClose }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!values.student_name.trim()) {
-      setError('من فضلك أدخل اسمك.');
+    if (submitting.current) return;
+    let contact;
+    try {
+      contact = prepareStudentRequest(values);
+    } catch (validationError) {
+      setError(validationError.message);
       return;
     }
 
+    submitting.current = true;
     setLoading(true);
     setError('');
+
+    // Build WhatsApp message: teacher name + student name only
+    const message = `مرحباً، أود الاشتراك مع ${teacher.name}.\nالاسم: ${contact.student_name}`;
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+    // Must happen before the await to stay inside the click's user activation.
+    const target = openWhatsAppTarget();
+    whatsappTargetRef.current = target;
 
     try {
       // Save to backend (WhatsApp number stored for follow-up — NOT sent in message)
       await submitSubscriptionRequest({
         teacher_id:   teacher.id,
         teacher_name: teacher.name,
-        student_name: values.student_name,
-        whatsapp:     values.whatsapp,
+        ...contact,
       });
     } catch {
-      // Non-blocking — still open WhatsApp even if save fails
+      // Non-blocking — still open WhatsApp even if save fails.
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
 
-    // Build WhatsApp message: teacher name + student name only
-    const message = `مرحباً، أود الاشتراك مع ${teacher.name}.\nالاسم: ${values.student_name}`;
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, '_blank', 'noopener,noreferrer');
+    if (!mountedRef.current) return;
+
+    whatsappTargetRef.current = null;
+    navigateToWhatsApp(target, whatsappUrl);
     onClose();
   }
 
@@ -70,6 +211,7 @@ export default function SubscribeModal({ teacher, onClose }) {
     >
       {/* Panel */}
       <div
+        ref={panelRef}
         className="w-full max-w-md rounded-3xl p-8 relative"
         style={{
           backgroundColor: 'var(--t-bg-card)',
@@ -131,6 +273,8 @@ export default function SubscribeModal({ teacher, onClose }) {
               name="student_name"
               type="text"
               required
+              maxLength={200}
+              autoComplete="name"
               placeholder="اكتب اسمك الكامل…"
               value={values.student_name}
               onChange={handleChange}
@@ -146,12 +290,15 @@ export default function SubscribeModal({ teacher, onClose }) {
               className="block text-xs font-semibold mb-1.5"
               style={{ color: 'var(--t-text-muted)' }}
             >
-              رقم واتساب (للتواصل معك في حالة الاستفسار)
+              رقم واتساب <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               id="sub-whatsapp"
               name="whatsapp"
               type="tel"
+              required
+              maxLength={30}
+              autoComplete="tel"
               placeholder="مثال: 01012345678"
               value={values.whatsapp}
               onChange={handleChange}
@@ -160,13 +307,13 @@ export default function SubscribeModal({ teacher, onClose }) {
               dir="ltr"
             />
             <p className="text-[11px] mt-1.5" style={{ color: 'var(--t-text-subtle)' }}>
-              لن يُشارك رقمك — فقط للمتابعة من فريقنا إذا احتجت
+              للمتابعة من فريق الأكاديمية. أضف رمز الدولة إذا كان رقمك خارج مصر.
             </p>
           </div>
 
           {/* Error */}
           {error && (
-            <p className="text-xs text-center font-semibold" style={{ color: '#ef4444' }}>
+            <p role="alert" className="text-xs text-center font-semibold" style={{ color: '#ef4444' }}>
               {error}
             </p>
           )}

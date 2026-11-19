@@ -43,10 +43,11 @@ function normalizeLocalizedDigits(value: string): string {
 function normalizeStudentPhone(phone: string): string {
   const rawPhone = normalizeLocalizedDigits(phone).trim();
   const hadLeadingPlus = rawPhone.startsWith('+');
-  let digits = rawPhone.replace(/\D/g, '');
+  const digits = rawPhone.replace(/\D/g, '');
 
   if (!digits) return '';
   if (hadLeadingPlus) return digits;
+  if (digits.startsWith('00')) return digits.slice(2);
   if (digits.startsWith('0')) return `2${digits}`;
   return digits;
 }
@@ -136,7 +137,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const normalizedPhone = normalizeStudentPhone(phone);
-    if (!/^\d{10,15}$/.test(normalizedPhone)) {
+    if (!/^[1-9]\d{9,14}$/.test(normalizedPhone)) {
       return json({ error: 'رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.' }, { status: 400 });
     }
 
