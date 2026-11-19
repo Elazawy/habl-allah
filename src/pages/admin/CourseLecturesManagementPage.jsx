@@ -12,6 +12,7 @@ import {
   Search,
   Trash2,
   HelpCircle,
+  ChevronDown,
 } from 'lucide-react';
 import { fetchCourseAdminById } from '../../services/coursesService';
 import {
@@ -65,6 +66,16 @@ export default function CourseLecturesManagementPage() {
   const [questionsModalState, setQuestionsModalState] = useState({ open: false, lectureId: '', lectureTitle: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (lectureId) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(lectureId)) next.delete(lectureId);
+      else next.add(lectureId);
+      return next;
+    });
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -338,14 +349,31 @@ export default function CourseLecturesManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((lecture) => (
-                <tr key={lecture.id} id={`course-lecture-row-${lecture.id}`}>
-                  <td data-label="المحاضرة">
-                    <div>
-                      <div className="admin-teacher-name">{lecture.title}</div>
-                      <div className="admin-teacher-bio-preview" style={{ lineHeight: 1.7 }}>
-                        {lecture.description || getLectureSourceSummary(lecture, course.is_free)}
+              {filtered.map((lecture) => {
+                const isExpanded = expandedIds.has(lecture.id);
+                return (
+                <tr
+                  key={lecture.id}
+                  id={`course-lecture-row-${lecture.id}`}
+                  className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                >
+                  <td data-label="المحاضرة" className="admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                    <div className="admin-card-title-bar">
+                      <div>
+                        <div className="admin-teacher-name">{lecture.title}</div>
+                        <div className="admin-teacher-bio-preview admin-card-detail-only" style={{ lineHeight: 1.7 }}>
+                          {lecture.description || getLectureSourceSummary(lecture, course.is_free)}
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        className="admin-card-toggle-btn"
+                        onClick={() => toggleExpand(lecture.id)}
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? `إخفاء تفاصيل ${lecture.title}` : `عرض تفاصيل ${lecture.title}`}
+                      >
+                        <ChevronDown size={18} className="admin-card-toggle-icon" />
+                      </button>
                     </div>
                   </td>
                   <td data-label="النوع">
@@ -401,7 +429,8 @@ export default function CourseLecturesManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

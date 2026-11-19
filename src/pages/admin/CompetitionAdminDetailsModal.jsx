@@ -9,6 +9,7 @@ import {
   Trash2,
   Trophy,
   UserCheck,
+  ChevronDown,
 } from 'lucide-react';
 import {
   fetchSubscribedStudents,
@@ -48,6 +49,16 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [processingId, setProcessingId] = useState(null);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (rowKey) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowKey)) next.delete(rowKey);
+      else next.add(rowKey);
+      return next;
+    });
+  };
 
   const loadDetails = async () => {
     setLoading(true);
@@ -216,7 +227,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
       role="dialog"
       aria-modal="true"
     >
-      <div className="admin-modal admin-modal--wide" style={{ maxWidth: '900px', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+      <div className="admin-modal admin-modal--wide" style={{ maxWidth: '900px', display: 'flex', flexDirection: 'column', maxHeight: '90dvh' }}>
         <div className="admin-modal-header" style={{ flexShrink: 0 }}>
           <div>
             <h2 className="admin-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -237,7 +248,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-          <div style={{ padding: '1rem 1.5rem', background: 'var(--admin-bg-light)', borderBottom: '1px solid var(--admin-border)', flexShrink: 0 }}>
+          <div style={{ padding: '1rem 1.25rem', background: 'var(--admin-bg-light)', borderBottom: '1px solid var(--admin-border)', flexShrink: 0 }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--admin-text)' }}>المستويات المتاحة: </span>
             {Array.isArray(competition.available_levels) && competition.available_levels.length > 0 ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.4rem' }}>
@@ -262,12 +273,12 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
             )}
           </div>
 
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--admin-border)', background: 'var(--admin-bg)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--admin-border)', background: 'var(--admin-bg)', flexShrink: 0, overflowX: 'auto' }}>
             <button
               onClick={() => setActiveTab('subscribers')}
               style={{
-                flex: 1,
-                padding: '1rem',
+                flex: '1 0 auto',
+                padding: '0.85rem 1rem',
                 border: 'none',
                 background: activeTab === 'subscribers' ? 'var(--admin-bg-light)' : 'transparent',
                 borderBottom: activeTab === 'subscribers' ? '2px solid var(--admin-accent)' : 'none',
@@ -278,6 +289,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.5rem',
+                whiteSpace: 'nowrap',
               }}
             >
               <Users size={16} />
@@ -287,8 +299,8 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
             <button
               onClick={() => setActiveTab('requests')}
               style={{
-                flex: 1,
-                padding: '1rem',
+                flex: '1 0 auto',
+                padding: '0.85rem 1rem',
                 border: 'none',
                 background: activeTab === 'requests' ? 'var(--admin-bg-light)' : 'transparent',
                 borderBottom: activeTab === 'requests' ? '2px solid var(--admin-accent)' : 'none',
@@ -299,6 +311,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.5rem',
+                whiteSpace: 'nowrap',
               }}
             >
               <FileText size={16} />
@@ -306,7 +319,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
             </button>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
             {loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem 0' }}>
                 <Loader size={32} className="admin-spin mb-3" style={{ color: 'var(--admin-accent)' }} />
@@ -321,8 +334,8 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                   <p>لا يوجد طلاب مشتركون معتمدون في هذه المسابقة حتى الآن.</p>
                 </div>
               ) : (
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
+                <div className="admin-table-wrapper admin-table-wrapper--cards">
+                  <table className="admin-table admin-table--cards">
                     <thead>
                       <tr>
                         <th>الاسم</th>
@@ -332,24 +345,43 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {subscribers.map((subscriber) => (
-                        <tr key={subscriber.id}>
-                          <td>
-                            <strong>{subscriber.student_profiles?.full_name || 'طالب غير معروف'}</strong>
+                      {subscribers.map((subscriber) => {
+                        const rowKey = `sub-${subscriber.id}`;
+                        const isExpanded = expandedIds.has(rowKey);
+                        const subName = subscriber.student_profiles?.full_name || 'طالب غير معروف';
+                        return (
+                        <tr
+                          key={subscriber.id}
+                          className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                        >
+                          <td data-label="الاسم" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                            <div className="admin-card-title-bar">
+                              <strong>{subName}</strong>
+                              <button
+                                type="button"
+                                className="admin-card-toggle-btn"
+                                onClick={() => toggleExpand(rowKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={isExpanded ? `إخفاء تفاصيل ${subName}` : `عرض تفاصيل ${subName}`}
+                              >
+                                <ChevronDown size={18} className="admin-card-toggle-icon" />
+                              </button>
+                            </div>
                           </td>
-                          <td dir="ltr" style={{ textAlign: 'right' }}>
+                          <td data-label="رقم الهاتف" dir="ltr">
                             {subscriber.student_profiles?.phone || '—'}
                           </td>
-                          <td>
+                          <td data-label="تاريخ الاشتراك">
                             <span style={{ fontSize: '0.8rem' }}>{formatDateTime(subscriber.subscribed_at)}</span>
                           </td>
-                          <td>
+                          <td data-label="الحالة">
                             <span className="admin-badge admin-badge--published" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <CheckCircle size={10} /> نشط
                             </span>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -360,8 +392,8 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                 <p>لا توجد طلبات معلقة لهذه المسابقة.</p>
               </div>
             ) : (
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
+              <div className="admin-table-wrapper admin-table-wrapper--cards">
+                <table className="admin-table admin-table--cards">
                   <thead>
                     <tr>
                       <th>مقدم الطلب</th>
@@ -378,18 +410,34 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                       const isBusy = processingId === request.id;
                       const requestAge = calcAgeInYears(request.birth_date);
                       const requestGender = getGenderLabel(request.gender);
+                      const rowKey = `req-student-${request.id}`;
+                      const isExpanded = expandedIds.has(rowKey);
 
                       return (
-                        <tr key={`student-${request.id}`}>
-                          <td>
-                            <div>
-                              <strong style={{ display: 'block' }}>{request.student_name}</strong>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
-                                {request.student_phone}
-                              </span>
+                        <tr
+                          key={`student-${request.id}`}
+                          className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                        >
+                          <td data-label="مقدم الطلب" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                            <div className="admin-card-title-bar">
+                              <div>
+                                <strong style={{ display: 'block' }}>{request.student_name}</strong>
+                                <span className="admin-card-detail-only" style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
+                                  {request.student_phone}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="admin-card-toggle-btn"
+                                onClick={() => toggleExpand(rowKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={isExpanded ? `إخفاء تفاصيل ${request.student_name}` : `عرض تفاصيل ${request.student_name}`}
+                              >
+                                <ChevronDown size={18} className="admin-card-toggle-icon" />
+                              </button>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="بيانات إضافية">
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', fontSize: '0.8rem' }}>
                               {requestGender && (
                                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -403,15 +451,15 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                               )}
                             </div>
                           </td>
-                          <td>
+                          <td data-label="المستوى">
                             <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{request.level}</span>
                           </td>
-                          <td>
+                          <td data-label="تاريخ التقديم">
                             <span style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Clock size={11} /> {formatDateTime(request.created_at)}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="النوع">
                             {isLinkedStudent ? (
                               <span className="admin-badge admin-badge--published" style={{ fontSize: '0.7rem' }}>
                                 <UserCheck size={10} /> طالب مسجّل
@@ -422,7 +470,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                               </span>
                             )}
                           </td>
-                          <td>
+                          <td data-label="الإجراءات">
                             <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                               {isLinkedStudent && (
                                 <button
@@ -452,34 +500,50 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                     })}
                     {guestParticipants.map((guest) => {
                       const isBusy = processingId === guest.id;
+                      const rowKey = `req-guest-${guest.id}`;
+                      const isExpanded = expandedIds.has(rowKey);
 
                       return (
-                        <tr key={`guest-${guest.id}`}>
-                          <td>
-                            <div>
-                              <strong style={{ display: 'block' }}>{guest.student_name}</strong>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
-                                {guest.student_phone}
-                              </span>
+                        <tr
+                          key={`guest-${guest.id}`}
+                          className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                        >
+                          <td data-label="مقدم الطلب" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                            <div className="admin-card-title-bar">
+                              <div>
+                                <strong style={{ display: 'block' }}>{guest.student_name}</strong>
+                                <span className="admin-card-detail-only" style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
+                                  {guest.student_phone}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="admin-card-toggle-btn"
+                                onClick={() => toggleExpand(rowKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={isExpanded ? `إخفاء تفاصيل ${guest.student_name}` : `عرض تفاصيل ${guest.student_name}`}
+                              >
+                                <ChevronDown size={18} className="admin-card-toggle-icon" />
+                              </button>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="بيانات إضافية">
                             <span className="admin-muted" style={{ fontSize: '0.8rem' }}>—</span>
                           </td>
-                          <td>
+                          <td data-label="المستوى">
                             <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{guest.level}</span>
                           </td>
-                          <td>
+                          <td data-label="تاريخ التقديم">
                             <span style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Clock size={11} /> {formatDateTime(guest.created_at)}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="النوع">
                             <span className="admin-badge admin-badge--draft" style={{ fontSize: '0.7rem' }}>
                                 {guest.student_id ? 'طالب مسجل' : 'طلب زائر'}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="الإجراءات">
                             <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                               <button
                                 className="admin-btn admin-btn--primary admin-btn--sm"
@@ -495,7 +559,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
                                 className="admin-btn admin-btn--sm"
                                 onClick={() => handleRejectGuest(guest)}
                                 disabled={processingId !== null}
-                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'var(--admin-bg-light)', color: '#dc2626', border: '1px solid #fecaca' }}
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'rgba(248, 81, 73, 0.12)', color: '#fca5a5', border: '1px solid rgba(248, 81, 73, 0.28)' }}
                                 title="رفض الطلب"
                               >
                                 <X size={12} />
@@ -522,7 +586,7 @@ export default function CompetitionAdminDetailsModal({ competition, onClose }) {
           </div>
         </div>
 
-        <div className="admin-modal-footer" style={{ borderTop: '1px solid var(--admin-border)', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: 'var(--admin-bg-light)' }}>
+        <div className="admin-modal-footer" style={{ borderTop: '1px solid var(--admin-border)', padding: '1rem 1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: 'var(--admin-bg-light)' }}>
           <span className="admin-muted" style={{ fontSize: '0.75rem' }}>
             لإدارة مراحل المشاركين ونقلهم بين المراحل، استخدم صفحة الطلاب الخاصة بالمسابقة.
           </span>

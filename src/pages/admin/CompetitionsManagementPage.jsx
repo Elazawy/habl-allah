@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllCompetitions, deleteCompetition, updateCompetition } from '../../services/competitionsService';
 import CompetitionFormModal from './CompetitionFormModal';
-import { Plus, Pencil, Trash2, Search, Trophy, Eye, EyeOff, Calendar, Clock, RefreshCcw, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Trophy, Eye, EyeOff, Calendar, Clock, RefreshCcw, Users, ChevronDown } from 'lucide-react';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -22,6 +22,16 @@ export default function CompetitionsManagementPage() {
   const [modalState, setModalState] = useState({ open: false, competition: null });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const loadCompetitions = async () => {
     setLoading(true);
@@ -233,14 +243,31 @@ export default function CompetitionsManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} id={`competition-row-${c.id}`}>
-                  <td data-label="المسابقة">
-                    <div>
-                      <div className="admin-teacher-name">{c.name}</div>
-                      <div className="admin-muted" style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                        {c.slug}
+              {filtered.map((c) => {
+                const isExpanded = expandedIds.has(c.id);
+                return (
+                <tr
+                  key={c.id}
+                  id={`competition-row-${c.id}`}
+                  className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                >
+                  <td data-label="المسابقة" className="admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                    <div className="admin-card-title-bar">
+                      <div>
+                        <div className="admin-teacher-name">{c.name}</div>
+                        <div className="admin-muted admin-card-detail-only" style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                          {c.slug}
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        className="admin-card-toggle-btn"
+                        onClick={() => toggleExpand(c.id)}
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? `إخفاء تفاصيل ${c.name}` : `عرض تفاصيل ${c.name}`}
+                      >
+                        <ChevronDown size={18} className="admin-card-toggle-icon" />
+                      </button>
                     </div>
                   </td>
                   <td data-label="التواريخ">
@@ -309,7 +336,8 @@ export default function CompetitionsManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

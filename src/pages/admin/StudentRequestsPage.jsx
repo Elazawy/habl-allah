@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -320,6 +321,16 @@ export default function StudentRequestsPage() {
   const [creating, setCreating] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState(null);
   const [credentialsCopied, setCredentialsCopied] = useState(false);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (rowKey) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowKey)) next.delete(rowKey);
+      else next.add(rowKey);
+      return next;
+    });
+  };
 
   const isPending = Boolean(pendingAction) || creating;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -1263,16 +1274,32 @@ export default function StudentRequestsPage() {
               <tbody>
                 {requests.map((item) => {
                   const canMessage = isValidStudentPhone(item.whatsapp);
+                  const rowKey = `${item.request_type}-${item.id}`;
+                  const isExpanded = expandedIds.has(rowKey);
                   return (
-                    <tr key={`${item.request_type}-${item.id}`}>
-                      <td data-label="الطالب">
-                        <div className="sr-name-cell">
-                          <strong>{item.student_name || 'بدون اسم'}</strong>
-                          {item.student_id && <span className="sr-linked-hint">مرتبط بحساب</span>}
+                    <tr
+                      key={rowKey}
+                      className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                    >
+                      <td data-label="الطالب" className="admin-card-cell--summary admin-card-cell--title">
+                        <div className="admin-card-title-bar">
+                          <div className="sr-name-cell">
+                            <strong>{item.student_name || 'بدون اسم'}</strong>
+                            {item.student_id && <span className="sr-linked-hint admin-card-detail-only">مرتبط بحساب</span>}
+                          </div>
+                          <button
+                            type="button"
+                            className="admin-card-toggle-btn"
+                            onClick={() => toggleExpand(rowKey)}
+                            aria-expanded={isExpanded}
+                            aria-label={isExpanded ? `إخفاء تفاصيل ${item.student_name || 'الطالب'}` : `عرض تفاصيل ${item.student_name || 'الطالب'}`}
+                          >
+                            <ChevronDown size={18} className="admin-card-toggle-icon" />
+                          </button>
                         </div>
                       </td>
-                      <td data-label="النوع"><TypeBadge type={item.request_type} /></td>
-                      <td data-label="الطلب">
+                      <td data-label="النوع" className="admin-card-cell--summary"><TypeBadge type={item.request_type} /></td>
+                      <td data-label="الطلب" className="admin-card-cell--summary">
                         <span className="sr-requested-teacher">{getRequestedTeacherLabel(item)}</span>
                       </td>
                       <td data-label="الهاتف">
@@ -1282,7 +1309,7 @@ export default function StudentRequestsPage() {
                       <td data-label="التاريخ">
                         <span className="sr-date">{formatDateTime(item.created_at)}</span>
                       </td>
-                      <td data-label="إجراءات">
+                      <td data-label="إجراءات" className="admin-card-cell--summary admin-card-cell--summary-last">
                         <div className="admin-row-actions sr-row-actions">
                           {canMessage ? (
                             <a

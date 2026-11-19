@@ -106,7 +106,7 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
       aria-label={isEdit ? 'تعديل درس القرآن' : 'إضافة درس قرآن جديد'}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="admin-modal" style={{ maxWidth: '700px', width: '90%' }}>
+      <div className="admin-modal admin-modal--wide">
         <div className="admin-modal-header">
           <h2 className="admin-modal-title">
             {isEdit ? 'تعديل تقرير درس القرآن' : studentName ? `إضافة حصة قرآن جديدة للطالب: ${studentName}` : 'إضافة تقرير درس قرآن جديد'}
@@ -115,15 +115,16 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             id="admin-modal-close-btn"
             className="admin-modal-close"
             onClick={onClose}
+            aria-label="إغلاق"
           >
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="admin-modal-body" id="quran-lesson-form" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
+        <form onSubmit={handleSubmit} className="admin-modal-body" id="quran-lesson-form">
           
           {/* Date Fields */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+          <div className="admin-form-grid-2" style={{ marginBottom: '0.25rem' }}>
             <div className="admin-field-group">
               <label htmlFor="lesson-date" className="admin-label">التاريخ الميلادي *</label>
               <input
@@ -148,12 +149,12 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             </div>
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '1.5rem 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '0.5rem 0' }} />
 
           {/* Today's Recitation */}
-          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)' }}>📌 تسميع اليوم (الحاضر)</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div className="admin-field-group">
+          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)', margin: 0 }}>📌 تسميع اليوم (الحاضر)</h3>
+          <div className="admin-form-grid-4">
+            <div className="admin-field-group admin-field-group--span-full-mobile">
               <label htmlFor="rec-today-surah" className="admin-label">السورة</label>
               <input
                 id="rec-today-surah"
@@ -188,7 +189,7 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
                 dir="ltr"
               />
             </div>
-            <div className="admin-field-group">
+            <div className="admin-field-group admin-field-group--level-mobile">
               <label htmlFor="rec-today-level" className="admin-label">مستوى الحفظ</label>
               <select
                 id="rec-today-level"
@@ -203,11 +204,11 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             </div>
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '1.5rem 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '0.5rem 0' }} />
 
           {/* Past Recitation */}
-          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)' }}>📌 تسميع اليوم (الماضي)</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr', gap: '1rem', marginBottom: '1rem' }}>
+          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)', margin: 0 }}>📌 تسميع اليوم (الماضي)</h3>
+          <div className="admin-form-grid-past">
             <div className="admin-field-group">
               <label htmlFor="rec-past-surah" className="admin-label">السورة / الجزء</label>
               <input
@@ -234,12 +235,12 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             </div>
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '1.5rem 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '0.5rem 0' }} />
 
           {/* Reading */}
-          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)' }}>📌 القراءة</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div className="admin-field-group">
+          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)', margin: 0 }}>📌 القراءة</h3>
+          <div className="admin-form-grid-4">
+            <div className="admin-field-group admin-field-group--span-full-mobile">
               <label htmlFor="reading-surah" className="admin-label">السورة</label>
               <input
                 id="reading-surah"
@@ -274,7 +275,7 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
                 dir="ltr"
               />
             </div>
-            <div className="admin-field-group">
+            <div className="admin-field-group admin-field-group--level-mobile">
               <label htmlFor="reading-level" className="admin-label">مستوى القراءة</label>
               <select
                 id="reading-level"
@@ -289,10 +290,10 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             </div>
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '1.5rem 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '0.5rem 0' }} />
 
           {/* Other Fields */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+          <div className="admin-form-grid-2">
             <div className="admin-field-group">
               <label htmlFor="tajweed-lesson" className="admin-label">التجويد</label>
               <input
@@ -319,7 +320,7 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             </div>
           </div>
 
-          <div className="admin-field-group" style={{ marginBottom: '1rem' }}>
+          <div className="admin-field-group">
             <label htmlFor="general-notes" className="admin-label">ملاحظات عامة</label>
             <textarea
               id="general-notes"
@@ -331,12 +332,12 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             />
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '1.5rem 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)', margin: '0.5rem 0' }} />
 
           {/* Homework */}
-          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)' }}>📌 الواجبات</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div className="admin-field-group">
+          <h3 className="admin-section-title" style={{ color: 'var(--admin-accent)', margin: 0 }}>📌 الواجبات</h3>
+          <div className="admin-form-grid-3">
+            <div className="admin-field-group admin-field-group--span-full-mobile">
               <label htmlFor="hw-today-surah" className="admin-label">الواجب (الحاضر): السورة</label>
               <input
                 id="hw-today-surah"
@@ -373,7 +374,7 @@ export default function QuranLessonFormModal({ lesson, studentId, studentName, o
             </div>
           </div>
 
-          <div className="admin-field-group" style={{ marginBottom: '1rem' }}>
+          <div className="admin-field-group">
             <label htmlFor="hw-past-surah" className="admin-label">الواجب (الماضي): السورة / الجزء</label>
             <input
               id="hw-past-surah"

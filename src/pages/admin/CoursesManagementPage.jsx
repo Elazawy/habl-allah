@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchAllCourses, deleteCourse, updateCourse, deleteCourseImage } from '../../services/coursesService';
 import { fetchCourseLecturesAdmin, deleteCourseLectureVideoAssets } from '../../services/courseLecturesService';
 import CourseFormModal from './CourseFormModal';
-import { Plus, Pencil, Trash2, Search, BookOpen, Eye, EyeOff, PlayCircle, RefreshCcw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, BookOpen, Eye, EyeOff, PlayCircle, RefreshCcw, ChevronDown } from 'lucide-react';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -22,6 +22,16 @@ export default function CoursesManagementPage() {
   const [modalState, setModalState] = useState({ open: false, course: null });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const loadCourses = useCallback(async (activeRef) => {
     setLoading(true);
@@ -210,27 +220,46 @@ export default function CoursesManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} id={`course-row-${c.id}`}>
-                  <td data-label="الدورة">
-                    <div className="admin-teacher-cell">
-                      {c.image_url ? (
-                        <img
-                          src={c.image_url}
-                          alt={c.name}
-                          className="admin-teacher-avatar"
-                        />
-                      ) : (
-                        <div className="admin-teacher-avatar-fallback">
-                          <BookOpen size={16} />
+              {filtered.map((c) => {
+                const isExpanded = expandedIds.has(c.id);
+                return (
+                <tr
+                  key={c.id}
+                  id={`course-row-${c.id}`}
+                  className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                >
+                  <td data-label="الدورة" className="admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                    <div className="admin-card-title-bar">
+                      <div className="admin-teacher-cell">
+                        <div className="admin-card-detail-only">
+                          {c.image_url ? (
+                            <img
+                              src={c.image_url}
+                              alt={c.name}
+                              className="admin-teacher-avatar"
+                            />
+                          ) : (
+                            <div className="admin-teacher-avatar-fallback">
+                              <BookOpen size={16} />
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <div>
-                        <div className="admin-teacher-name">{c.name}</div>
-                        <div className="admin-muted" style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                          {c.slug}
+                        <div>
+                          <div className="admin-teacher-name">{c.name}</div>
+                          <div className="admin-muted admin-card-detail-only" style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                            {c.slug}
+                          </div>
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        className="admin-card-toggle-btn"
+                        onClick={() => toggleExpand(c.id)}
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? `إخفاء تفاصيل ${c.name}` : `عرض تفاصيل ${c.name}`}
+                      >
+                        <ChevronDown size={18} className="admin-card-toggle-icon" />
+                      </button>
                     </div>
                   </td>
                   <td data-label="التكلفة / السعر">
@@ -286,7 +315,8 @@ export default function CoursesManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
