@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAllTeachers, deleteTeacher } from '../../services/adminService';
 import TeacherFormModal from './TeacherFormModal';
-import { Plus, Pencil, Trash2, Search, Users, Images } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Users, Images, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function TeachersManagementPage() {
@@ -13,6 +13,16 @@ export default function TeachersManagementPage() {
   const [modalState, setModalState] = useState({ open: false, teacher: null });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const loadTeachers = () => {
     setLoading(true);
@@ -126,8 +136,8 @@ export default function TeachersManagementPage() {
           <p>لا يوجد معلمون مطابقون</p>
         </div>
       ) : (
-        <div className="admin-table-wrapper">
-          <table className="admin-table" id="teachers-table">
+        <div className="admin-table-wrapper admin-table-wrapper--cards">
+          <table className="admin-table admin-table--cards" id="teachers-table">
             <thead>
               <tr>
                 <th>المعلم</th>
@@ -138,38 +148,57 @@ export default function TeachersManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((teacher) => (
-                <tr key={teacher.id} id={`teacher-row-${teacher.id}`}>
-                  <td>
-                    <div className="admin-teacher-cell">
-                      {teacher.photo_url ? (
-                        <img
-                          src={teacher.photo_url}
-                          alt={teacher.name}
-                          className="admin-teacher-avatar"
-                        />
-                      ) : (
-                        <div className="admin-teacher-avatar-fallback">
-                          {teacher.name[0]}
+              {filtered.map((teacher) => {
+                const isExpanded = expandedIds.has(teacher.id);
+                return (
+                <tr
+                  key={teacher.id}
+                  id={`teacher-row-${teacher.id}`}
+                  className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                >
+                  <td data-label="المعلم" className="admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                    <div className="admin-card-title-bar">
+                      <div className="admin-teacher-cell">
+                        <div className="admin-card-detail-only">
+                          {teacher.photo_url ? (
+                            <img
+                              src={teacher.photo_url}
+                              alt={teacher.name}
+                              className="admin-teacher-avatar"
+                            />
+                          ) : (
+                            <div className="admin-teacher-avatar-fallback">
+                              {teacher.name[0]}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <div>
-                        <div className="admin-teacher-name">{teacher.name}</div>
-                        <div className="admin-teacher-bio-preview">
-                          {teacher.bio?.slice(0, 60)}{teacher.bio?.length > 60 ? '…' : ''}
+                        <div>
+                          <div className="admin-teacher-name">{teacher.name}</div>
+                          <div className="admin-teacher-bio-preview admin-card-detail-only">
+                            {teacher.bio?.slice(0, 60)}{teacher.bio?.length > 60 ? '…' : ''}
+                          </div>
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        className="admin-card-toggle-btn"
+                        onClick={() => toggleExpand(teacher.id)}
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? `إخفاء تفاصيل ${teacher.name}` : `عرض تفاصيل ${teacher.name}`}
+                      >
+                        <ChevronDown size={18} className="admin-card-toggle-icon" />
+                      </button>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="النوع">
                     <span className={`admin-badge admin-badge--${teacher.gender}`}>
                       {teacher.gender === 'male' ? 'معلم' : 'معلمة'}
                     </span>
                   </td>
-                  <td className="admin-reviews-count">
+                  <td className="admin-reviews-count" data-label="التقييمات">
                     {teacher.teacher_reviews?.length ?? 0}
                   </td>
-                  <td>
+                  <td data-label="التلاوة">
                     {teacher.recitation_type ? (
                       <span className="admin-badge admin-badge--neutral">
                         {teacher.recitation_type === 'audio' ? '🔊 صوت' : '🎥 فيديو'}
@@ -178,7 +207,7 @@ export default function TeachersManagementPage() {
                       <span className="admin-muted">—</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الإجراءات">
                     <div className="admin-row-actions">
                       <button
                         id={`manage-reviews-${teacher.id}`}
@@ -210,7 +239,8 @@ export default function TeachersManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

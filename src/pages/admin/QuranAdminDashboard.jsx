@@ -121,7 +121,7 @@ export default function QuranAdminDashboard() {
 
           {/* الارقام المسجلة — Recent subscribers preview */}
           <div className="admin-dashboard-quick" style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem', width: '100%' }}>
               <h2 className="admin-section-title" style={{ margin: 0 }}>
                 <Phone size={18} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '0.375rem' }} />
                 الأرقام المسجلة

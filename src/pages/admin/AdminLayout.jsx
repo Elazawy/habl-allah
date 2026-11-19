@@ -59,6 +59,23 @@ export default function AdminLayout({ children }) {
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile drawer on Escape
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
+
   const closeMobileDrawer = () => {
     setMobileOpen(false);
   };
@@ -160,15 +177,25 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="admin-layout" dir="rtl">
-      {/* Mobile hamburger button */}
-      <button
-        className="admin-hamburger"
-        onClick={() => setMobileOpen(true)}
-        aria-label="فتح القائمة"
-        id="admin-hamburger-btn"
-      >
-        <Menu size={24} />
-      </button>
+      {/* Mobile / tablet sticky top bar */}
+      <header className="admin-mobile-topbar">
+        <div className="admin-mobile-topbar-brand">
+          <button
+            className="admin-hamburger"
+            onClick={() => setMobileOpen(true)}
+            aria-label="فتح القائمة"
+            aria-expanded={mobileOpen}
+            id="admin-hamburger-btn"
+          >
+            <Menu size={22} />
+          </button>
+          <img src={logoGold} alt="شعار حبل الله" className="admin-sidebar-logo-img" />
+          <div className="admin-mobile-topbar-text">
+            <span className="admin-mobile-topbar-title">حبل الله</span>
+            <span className="admin-mobile-topbar-platform">{PLATFORM_LABELS[platform]}</span>
+          </div>
+        </div>
+      </header>
 
       {/* Mobile drawer overlay */}
       {mobileOpen && (

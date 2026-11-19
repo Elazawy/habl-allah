@@ -250,7 +250,7 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
             <div className="admin-photo-upload" style={{ margin: '0 auto 1.5rem', width: '100%', maxWidth: '360px' }}>
               <div
                 className="admin-photo-preview"
-                style={{ height: '180px', borderRadius: '16px' }}
+                style={{ width: '100%', height: '180px', borderRadius: '16px' }}
                 onClick={() => fileInputRef.current?.click()}
                 role="button"
                 tabIndex={0}
@@ -382,7 +382,7 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
           </div>
 
           {/* Is Free & Price Row */}
-          <div className="admin-field-row" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div className="admin-field-row">
             <div className="admin-field-group" style={{ flex: 1 }}>
               <label className="admin-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                 <input
@@ -417,13 +417,13 @@ export default function CourseFormModal({ course, onClose, onSaved }) {
 
           {/* Learning Outcomes (Dynamic list) */}
           <div className="admin-field-group" style={{ gap: '0.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <label className="admin-label">مخرجات التعلم والمهارات المكتسبة</label>
               <button
                 type="button"
                 onClick={addOutcome}
                 className="admin-btn admin-btn--ghost admin-btn--sm"
-                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', display: 'flex', items: 'center', gap: '0.25rem' }}
+                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
               >
                 <Plus size={14} />
                 إضافة مخرج

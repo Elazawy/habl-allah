@@ -856,7 +856,8 @@
 
   .admin-modal.sr-detail-modal {
     max-width: 100%;
-    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100vh - 1rem);
+    max-height: calc(100dvh - 1rem);
   }
 
   .sr-detail-header {
@@ -865,6 +866,7 @@
 
   .sr-detail-body {
     padding: 1rem;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
 
   .sr-detail-top {

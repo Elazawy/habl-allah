@@ -9,7 +9,7 @@ import {
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
 import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
-import { Plus, Search, User, Loader, ChevronLeft, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Search, User, Loader, ChevronLeft, Trash2, BookOpen, X, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import QuranLessonFormModal from './QuranLessonFormModal';
 
@@ -52,6 +52,16 @@ export default function UsersManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [lessonModalStudent, setLessonModalStudent] = useState(null);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -298,8 +308,8 @@ export default function UsersManagementPage() {
           <p>لا يوجد طلاب مطابقون للبحث</p>
         </div>
       ) : (
-        <div className="admin-table-wrapper">
-          <table className="admin-table" id="students-table">
+        <div className="admin-table-wrapper admin-table-wrapper--cards">
+          <table className="admin-table admin-table--cards" id="students-table">
             <thead>
               <tr>
                 <th>اسم الطالب</th>
@@ -317,11 +327,29 @@ export default function UsersManagementPage() {
             <tbody>
               {filtered.map((student) => {
                 const age = calcAgeInYears(student.birth_date);
+                const isExpanded = expandedIds.has(student.id);
                 return (
-                <tr key={student.id} id={`student-row-${student.id}`}>
-                  <td style={{ fontWeight: 600 }}>{student.full_name}</td>
-                  <td dir="ltr" style={{ textAlign: 'right' }}>{student.phone}</td>
-                  <td>
+                <tr
+                  key={student.id}
+                  id={`student-row-${student.id}`}
+                  className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                >
+                  <td data-label="اسم الطالب" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title" style={{ fontWeight: 600 }}>
+                    <div className="admin-card-title-bar">
+                      <span>{student.full_name}</span>
+                      <button
+                        type="button"
+                        className="admin-card-toggle-btn"
+                        onClick={() => toggleExpand(student.id)}
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? `إخفاء تفاصيل ${student.full_name}` : `عرض تفاصيل ${student.full_name}`}
+                      >
+                        <ChevronDown size={18} className="admin-card-toggle-icon" />
+                      </button>
+                    </div>
+                  </td>
+                  <td data-label="رقم الهاتف" dir="ltr">{student.phone}</td>
+                  <td data-label="المعلم المتابع" className="admin-card-cell--summary admin-card-cell--summary-last">
                     {student.teachers ? (
                       <span className="admin-badge admin-badge--neutral" style={{ color: 'var(--admin-accent)' }}>
                         {student.teachers.name}
@@ -330,7 +358,7 @@ export default function UsersManagementPage() {
                       <span className="admin-muted">--بدون معلم</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الجنس">
                     {student.gender ? (
                       <span className={`admin-badge ${student.gender === 'male' ? 'admin-badge--male' : 'admin-badge--female'}`}>
                         {student.gender === 'male' ? 'ذكر' : 'أنثى'}
@@ -339,34 +367,34 @@ export default function UsersManagementPage() {
                       <span className="admin-muted">--</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الدولة">
                     {student.country ? (
                       <span className="admin-badge admin-badge--neutral">{getCountryName(student.country)}</span>
                     ) : (
                       <span className="admin-muted">--</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="العمر" className="admin-card-cell--summary">
                     {age !== null ? (
                       <span className="admin-badge admin-badge--neutral">{age} سنة</span>
                     ) : (
                       <span className="admin-muted">--</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="الدورات">
                     <span className="admin-badge admin-badge--neutral">
                       {student.student_course_subscriptions?.[0]?.count ?? 0} دورات
                     </span>
                   </td>
-                  <td>
+                  <td data-label="المسابقات">
                     <span className="admin-badge admin-badge--neutral">
                       {student.student_competition_subscriptions?.[0]?.count ?? 0} مسابقات
                     </span>
                   </td>
-                  <td style={{ fontSize: '0.8rem', color: 'var(--admin-muted)' }}>
+                  <td data-label="تاريخ التسجيل" style={{ fontSize: '0.8rem', color: 'var(--admin-muted)' }}>
                     {new Date(student.created_at).toLocaleDateString('ar-EG')}
                   </td>
-                  <td>
+                  <td data-label="الإجراءات">
                     <div className="admin-row-actions">
                       <button
                         id={`add-lesson-student-${student.id}`}
@@ -421,8 +449,9 @@ export default function UsersManagementPage() {
                 id="admin-modal-close-btn"
                 className="admin-modal-close"
                 onClick={() => setModalOpen(false)}
+                aria-label="إغلاق"
               >
-                &times;
+                <X size={20} />
               </button>
             </div>
 
@@ -456,7 +485,7 @@ export default function UsersManagementPage() {
 
               <div className="admin-field-group">
                 <label htmlFor="student-password" className="admin-label">كلمة المرور *</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="admin-input-action-row">
                   <input
                     id="student-password"
                     type="text"

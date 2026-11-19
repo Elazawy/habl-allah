@@ -17,6 +17,9 @@ import {
   RotateCcw,
   SlidersHorizontal,
   UserCheck,
+  ArrowUp,
+  ArrowDown,
+  ChevronDown,
 } from 'lucide-react';
 import {
   fetchCompetitionBySlugAdmin,
@@ -88,6 +91,16 @@ export default function CompetitionStudentsPage() {
   const [processingId, setProcessingId] = useState(null);
   const [levelFilter, setLevelFilter] = useState('');
   const [assignmentModal, setAssignmentModal] = useState(null);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const toggleExpand = (rowKey) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowKey)) next.delete(rowKey);
+      else next.add(rowKey);
+      return next;
+    });
+  };
 
   // Drag-and-drop state for results tab
   const [rankedParticipants, setRankedParticipants] = useState([]);
@@ -565,6 +578,20 @@ export default function CompetitionStudentsPage() {
     setRanksChanged(true);
   };
 
+  const moveRankedParticipant = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= rankedParticipants.length) return;
+
+    setRankedParticipants((prev) => {
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[targetIndex];
+      next[targetIndex] = temp;
+      return next;
+    });
+    setRanksChanged(true);
+  };
+
   const handleSaveRanks = async () => {
     setSavingRanks(true);
     try {
@@ -751,8 +778,8 @@ export default function CompetitionStudentsPage() {
                 <p>{levelFilter ? 'لا توجد طلبات معلقة لهذا المستوى.' : 'لا توجد طلبات معلقة لهذه المسابقة.'}</p>
               </div>
             ) : (
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
+              <div className="admin-table-wrapper admin-table-wrapper--cards">
+                <table className="admin-table admin-table--cards">
                   <thead>
                     <tr>
                       <th>مقدم الطلب</th>
@@ -766,31 +793,47 @@ export default function CompetitionStudentsPage() {
                     {/* Signed-in student pending requests */}
                     {filterByLevel(requests).map((request) => {
                       const isBusy = processingId === request.id;
+                      const rowKey = `req-student-${request.id}`;
+                      const isExpanded = expandedIds.has(rowKey);
 
                       return (
-                        <tr key={`student-${request.id}`}>
-                          <td>
-                            <div>
-                              <strong style={{ display: 'block' }}>{request.student_name}</strong>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
-                                {request.student_phone}
-                              </span>
+                        <tr
+                          key={`student-${request.id}`}
+                          className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                        >
+                          <td data-label="مقدم الطلب" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                            <div className="admin-card-title-bar">
+                              <div>
+                                <strong style={{ display: 'block' }}>{request.student_name}</strong>
+                                <span className="admin-card-detail-only" style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
+                                  {request.student_phone}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="admin-card-toggle-btn"
+                                onClick={() => toggleExpand(rowKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={isExpanded ? `إخفاء تفاصيل ${request.student_name}` : `عرض تفاصيل ${request.student_name}`}
+                              >
+                                <ChevronDown size={18} className="admin-card-toggle-icon" />
+                              </button>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="المستوى">
                             <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{request.level}</span>
                           </td>
-                          <td>
+                          <td data-label="النوع">
                             <span className="admin-badge admin-badge--published" style={{ fontSize: '0.7rem' }}>
                               طالب مسجّل
                             </span>
                           </td>
-                          <td>
+                          <td data-label="تاريخ التقديم">
                             <span style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Clock size={11} /> {formatDateTime(request.created_at)}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="الإجراءات">
                             <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                               <button
                                 className="admin-btn admin-btn--primary admin-btn--sm"
@@ -806,7 +849,7 @@ export default function CompetitionStudentsPage() {
                                 className="admin-btn admin-btn--sm"
                                 onClick={() => handleRejectRequest(request)}
                                 disabled={processingId !== null}
-                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'var(--admin-bg-light)', color: '#dc2626', border: '1px solid #fecaca' }}
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'rgba(248, 81, 73, 0.12)', color: '#fca5a5', border: '1px solid rgba(248, 81, 73, 0.28)' }}
                                 title="رفض الطلب"
                               >
                                 <XCircle size={12} />
@@ -829,31 +872,47 @@ export default function CompetitionStudentsPage() {
                     {/* Pending guest participants */}
                     {filterByLevel(pendingGuests).map((guest) => {
                       const isBusy = processingId === guest.id;
+                      const rowKey = `req-guest-${guest.id}`;
+                      const isExpanded = expandedIds.has(rowKey);
 
                       return (
-                        <tr key={`guest-${guest.id}`}>
-                          <td>
-                            <div>
-                              <strong style={{ display: 'block' }}>{guest.student_name}</strong>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
-                                {guest.student_phone}
-                              </span>
+                        <tr
+                          key={`guest-${guest.id}`}
+                          className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                        >
+                          <td data-label="مقدم الطلب" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                            <div className="admin-card-title-bar">
+                              <div>
+                                <strong style={{ display: 'block' }}>{guest.student_name}</strong>
+                                <span className="admin-card-detail-only" style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }} dir="ltr">
+                                  {guest.student_phone}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="admin-card-toggle-btn"
+                                onClick={() => toggleExpand(rowKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={isExpanded ? `إخفاء تفاصيل ${guest.student_name}` : `عرض تفاصيل ${guest.student_name}`}
+                              >
+                                <ChevronDown size={18} className="admin-card-toggle-icon" />
+                              </button>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="المستوى">
                             <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{guest.level}</span>
                           </td>
-                          <td>
+                          <td data-label="النوع">
                             <span className="admin-badge admin-badge--draft" style={{ fontSize: '0.7rem' }}>
                                {guest.student_id ? 'طالب مسجل' : 'طلب زائر'}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="تاريخ التقديم">
                             <span style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Clock size={11} /> {formatDateTime(guest.created_at)}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="الإجراءات">
                             <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                               <button
                                 className="admin-btn admin-btn--primary admin-btn--sm"
@@ -869,7 +928,7 @@ export default function CompetitionStudentsPage() {
                                 className="admin-btn admin-btn--sm"
                                 onClick={() => handleRejectGuestParticipant(guest)}
                                 disabled={processingId !== null}
-                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'var(--admin-bg-light)', color: '#dc2626', border: '1px solid #fecaca' }}
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'rgba(248, 81, 73, 0.12)', color: '#fca5a5', border: '1px solid rgba(248, 81, 73, 0.28)' }}
                                 title="رفض الطلب"
                               >
                                 <XCircle size={12} />
@@ -905,8 +964,8 @@ export default function CompetitionStudentsPage() {
                 <p>لا يوجد طلاب مشتركون معتمدون حتى الآن.</p>
               </div>
             ) : (
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
+              <div className="admin-table-wrapper admin-table-wrapper--cards">
+                <table className="admin-table admin-table--cards">
                   <thead>
                     <tr>
                       <th>الاسم</th>
@@ -915,17 +974,38 @@ export default function CompetitionStudentsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {subscribers.map((sub) => (
-                      <tr key={sub.id}>
-                        <td><strong>{sub.student_profiles?.full_name || 'طالب غير معروف'}</strong></td>
-                        <td dir="ltr" style={{ textAlign: 'right' }}>{sub.student_profiles?.phone || '—'}</td>
-                        <td>
+                    {subscribers.map((sub) => {
+                      const rowKey = `sub-${sub.id}`;
+                      const isExpanded = expandedIds.has(rowKey);
+                      const subName = sub.student_profiles?.full_name || 'طالب غير معروف';
+                      return (
+                      <tr
+                        key={sub.id}
+                        className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+                      >
+                        <td data-label="الاسم" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                          <div className="admin-card-title-bar">
+                            <strong>{subName}</strong>
+                            <button
+                              type="button"
+                              className="admin-card-toggle-btn"
+                              onClick={() => toggleExpand(rowKey)}
+                              aria-expanded={isExpanded}
+                              aria-label={isExpanded ? `إخفاء تفاصيل ${subName}` : `عرض تفاصيل ${subName}`}
+                            >
+                              <ChevronDown size={18} className="admin-card-toggle-icon" />
+                            </button>
+                          </div>
+                        </td>
+                        <td data-label="رقم الهاتف" dir="ltr">{sub.student_profiles?.phone || '—'}</td>
+                        <td data-label="الحالة">
                           <span className="admin-badge admin-badge--published" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                             <CheckCircle size={10} /> نشط
                           </span>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -945,16 +1025,35 @@ export default function CompetitionStudentsPage() {
 
           const renderActiveRow = (participant) => {
             const isBusy = processingId === participant.id;
+            const rowKey = `stage-${stage.id}-${participant.participantType}-${participant.id}`;
+            const isExpanded = expandedIds.has(rowKey);
+            const displayName = participant.displayName || 'غير معروف';
             return (
-              <tr key={`${participant.participantType}-${participant.id}`}>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <strong>{participant.displayName || 'غير معروف'}</strong>
-                    {renderParticipantTypeBadge(participant.participantType)}
+              <tr
+                key={`${participant.participantType}-${participant.id}`}
+                className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+              >
+                <td data-label="الاسم" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                  <div className="admin-card-title-bar">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <strong>{displayName}</strong>
+                      <span className="admin-card-detail-only">
+                        {renderParticipantTypeBadge(participant.participantType)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-card-toggle-btn"
+                      onClick={() => toggleExpand(rowKey)}
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? `إخفاء تفاصيل ${displayName}` : `عرض تفاصيل ${displayName}`}
+                    >
+                      <ChevronDown size={18} className="admin-card-toggle-icon" />
+                    </button>
                   </div>
                 </td>
-                <td dir="ltr" style={{ textAlign: 'right' }}>{participant.phone || '—'}</td>
-                <td>
+                <td data-label="الرقم" dir="ltr">{participant.phone || '—'}</td>
+                <td data-label="المستوى">
                   {Array.isArray(competition?.available_levels) && competition.available_levels.length > 0 ? (
                     <select
                       className="admin-input admin-select"
@@ -988,7 +1087,7 @@ export default function CompetitionStudentsPage() {
                     </button>
                   )}
                 </td>
-                <td>
+                <td data-label="الإجراءات">
                   <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                     {isLast ? (
                       <button
@@ -1017,7 +1116,7 @@ export default function CompetitionStudentsPage() {
                       className="admin-btn admin-btn--sm"
                       onClick={() => handleMarkFailed(participant)}
                       disabled={processingId !== null}
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'var(--admin-bg-light)', color: '#dc2626', border: '1px solid #fecaca' }}
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', background: 'rgba(248, 81, 73, 0.12)', color: '#fca5a5', border: '1px solid rgba(248, 81, 73, 0.28)' }}
                       title="لم يجتز هذه المرحلة"
                     >
                       <XCircle size={12} />
@@ -1036,7 +1135,7 @@ export default function CompetitionStudentsPage() {
                       </button>
                     )}
                     <button
-                      className="admin-icon-btn"
+                      className="admin-icon-btn admin-icon-btn--neutral"
                       onClick={() => openAssignmentModal(participant)}
                       disabled={processingId !== null}
                       title="تعديل الحالة أو نقل المشارك إلى أي مرحلة"
@@ -1052,19 +1151,38 @@ export default function CompetitionStudentsPage() {
 
           const renderFailedRow = (participant) => {
             const isBusy = processingId === participant.id;
+            const rowKey = `stage-${stage.id}-failed-${participant.participantType}-${participant.id}`;
+            const isExpanded = expandedIds.has(rowKey);
+            const displayName = participant.displayName || 'غير معروف';
             return (
-              <tr key={`${participant.participantType}-${participant.id}`}>
-                <td style={{ opacity: 0.5 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <strong>{participant.displayName || 'غير معروف'}</strong>
-                    {renderParticipantTypeBadge(participant.participantType)}
+              <tr
+                key={`${participant.participantType}-${participant.id}`}
+                className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
+              >
+                <td data-label="الاسم" className="admin-card-primary-cell admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last" style={{ opacity: 0.6 }}>
+                  <div className="admin-card-title-bar">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <strong>{displayName}</strong>
+                      <span className="admin-card-detail-only">
+                        {renderParticipantTypeBadge(participant.participantType)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-card-toggle-btn"
+                      onClick={() => toggleExpand(rowKey)}
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? `إخفاء تفاصيل ${displayName}` : `عرض تفاصيل ${displayName}`}
+                    >
+                      <ChevronDown size={18} className="admin-card-toggle-icon" />
+                    </button>
                   </div>
                 </td>
-                <td dir="ltr" style={{ textAlign: 'right', opacity: 0.5 }}>{participant.phone || '—'}</td>
-                <td style={{ opacity: 0.5 }}><span style={{ fontSize: '0.85rem' }}>{participant.level || '—'}</span></td>
-                <td>
+                <td data-label="الرقم" dir="ltr" style={{ opacity: 0.6 }}>{participant.phone || '—'}</td>
+                <td data-label="المستوى" style={{ opacity: 0.6 }}><span style={{ fontSize: '0.85rem' }}>{participant.level || '—'}</span></td>
+                <td data-label="الإجراءات">
                   <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
-                    <span className="admin-badge" style={{ fontSize: '0.7rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                    <span className="admin-badge" style={{ fontSize: '0.7rem', background: 'rgba(248, 81, 73, 0.12)', color: '#fca5a5', border: '1px solid rgba(248, 81, 73, 0.28)' }}>
                       <XCircle size={10} /> لم يجتز
                     </span>
                     <button
@@ -1078,7 +1196,7 @@ export default function CompetitionStudentsPage() {
                       تراجع
                     </button>
                     <button
-                      className="admin-icon-btn"
+                      className="admin-icon-btn admin-icon-btn--neutral"
                       onClick={() => openAssignmentModal(participant)}
                       disabled={processingId !== null}
                       title="تعديل الحالة أو نقل المشارك إلى أي مرحلة"
@@ -1121,8 +1239,8 @@ export default function CompetitionStudentsPage() {
                   <p>لا يوجد مشاركون في هذه المرحلة حالياً.</p>
                 </div>
               ) : (
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
+                <div className="admin-table-wrapper admin-table-wrapper--cards">
+                  <table className="admin-table admin-table--cards">
                     <thead>
                       <tr>
                         <th>الاسم</th>
@@ -1153,9 +1271,9 @@ export default function CompetitionStudentsPage() {
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--admin-text-muted)' }}>
-                    اسحب وأفلت الصفوف لتغيير ترتيب المشاركين
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--admin-text-muted)', margin: 0 }}>
+                    اسحب الصفوف أو استخدم أسهم التحريك لتغيير ترتيب المشاركين
                   </p>
                   <button
                     className="admin-btn admin-btn--primary admin-btn--sm"
@@ -1168,11 +1286,11 @@ export default function CompetitionStudentsPage() {
                   </button>
                 </div>
 
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
+                <div className="admin-table-wrapper admin-table-wrapper--cards">
+                  <table className="admin-table admin-table--cards">
                     <thead>
                       <tr>
-                        <th style={{ width: '40px' }}></th>
+                        <th style={{ width: '96px' }}>تحريك</th>
                         <th>الترتيب</th>
                         <th>الاسم</th>
                         <th>الرقم</th>
@@ -1181,33 +1299,76 @@ export default function CompetitionStudentsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filterByLevel(rankedParticipants).map((participant, index) => (
+                      {filterByLevel(rankedParticipants).map((participant) => {
+                        const globalIndex = rankedParticipants.findIndex(
+                          (p) => p.participantType === participant.participantType && p.id === participant.id
+                        );
+                        const rowKey = `res-${participant.participantType}-${participant.id}`;
+                        const isExpanded = expandedIds.has(rowKey);
+                        const displayName = participant.displayName || 'غير معروف';
+                        return (
                         <tr
                           key={`${participant.participantType}-${participant.id}`}
+                          className={`admin-card-row--collapsible ${isExpanded ? 'admin-card-row--expanded' : ''}`}
                           draggable
-                          onDragStart={() => handleDragStart(index)}
-                          onDragEnter={() => handleDragEnter(index)}
+                          onDragStart={() => handleDragStart(globalIndex)}
+                          onDragEnter={() => handleDragEnter(globalIndex)}
                           onDragEnd={handleDragEnd}
                           onDragOver={(e) => e.preventDefault()}
                           style={{ cursor: 'grab' }}
                         >
-                          <td style={{ textAlign: 'center' }}>
-                            <GripVertical size={16} className="admin-muted" />
-                          </td>
-                          <td>
-                            <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
-                              {getRankLabel(index + 1)}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                              <strong>{participant.displayName || 'غير معروف'}</strong>
-                              {renderParticipantTypeBadge(participant.participantType)}
+                          <td data-label="تحريك">
+                            <div className="admin-row-actions" style={{ alignItems: 'center' }}>
+                              <GripVertical size={16} className="admin-muted" aria-hidden="true" />
+                              <button
+                                type="button"
+                                className="admin-icon-btn admin-icon-btn--neutral"
+                                onClick={() => moveRankedParticipant(globalIndex, -1)}
+                                disabled={globalIndex <= 0}
+                                aria-label="تحريك لأعلى"
+                                title="تحريك لأعلى"
+                              >
+                                <ArrowUp size={15} />
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-icon-btn admin-icon-btn--neutral"
+                                onClick={() => moveRankedParticipant(globalIndex, 1)}
+                                disabled={globalIndex < 0 || globalIndex >= rankedParticipants.length - 1}
+                                aria-label="تحريك لأسفل"
+                                title="تحريك لأسفل"
+                              >
+                                <ArrowDown size={15} />
+                              </button>
                             </div>
                           </td>
-                          <td dir="ltr" style={{ textAlign: 'right' }}>{participant.phone || '—'}</td>
-                          <td><span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{participant.level || '—'}</span></td>
-                          <td>
+                          <td data-label="الترتيب">
+                            <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
+                              {getRankLabel(globalIndex + 1)}
+                            </span>
+                          </td>
+                          <td data-label="الاسم" className="admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
+                            <div className="admin-card-title-bar">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <strong>{displayName}</strong>
+                                <span className="admin-card-detail-only">
+                                  {renderParticipantTypeBadge(participant.participantType)}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="admin-card-toggle-btn"
+                                onClick={() => toggleExpand(rowKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={isExpanded ? `إخفاء تفاصيل ${displayName}` : `عرض تفاصيل ${displayName}`}
+                              >
+                                <ChevronDown size={18} className="admin-card-toggle-icon" />
+                              </button>
+                            </div>
+                          </td>
+                          <td data-label="الرقم" dir="ltr">{participant.phone || '—'}</td>
+                          <td data-label="المستوى"><span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{participant.level || '—'}</span></td>
+                          <td data-label="الإجراءات">
                             <div className="admin-row-actions" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                               <button
                                 className="admin-btn admin-btn--ghost admin-btn--sm"
@@ -1220,7 +1381,7 @@ export default function CompetitionStudentsPage() {
                                 تراجع
                               </button>
                               <button
-                                className="admin-icon-btn"
+                                className="admin-icon-btn admin-icon-btn--neutral"
                                 onClick={() => openAssignmentModal(participant)}
                                 disabled={processingId !== null}
                                 title="تعديل الحالة أو نقل المشارك إلى أي مرحلة"
@@ -1231,7 +1392,8 @@ export default function CompetitionStudentsPage() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1342,9 +1504,9 @@ export default function CompetitionStudentsPage() {
                     fontSize: '0.78rem',
                     padding: '0.6rem 0.75rem',
                     borderRadius: 'var(--admin-radius)',
-                    background: '#fffbeb',
-                    border: '1px solid #fde68a',
-                    color: '#92400e',
+                    background: 'rgba(207, 167, 103, 0.12)',
+                    border: '1px solid rgba(207, 167, 103, 0.32)',
+                    color: '#e7c58f',
                   }}
                 >
                   سيتم حذف الترتيب النهائي لهذا المشارك وإعادة ترقيم بقية الفائزين تلقائياً.
