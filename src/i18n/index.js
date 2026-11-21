@@ -59,5 +59,6 @@ export default i18n;
 
 export * from './config.js';
 export * from './routing.js';
+export * from './content.js';
 export * from './hooks.js';
 export { default as LanguageSync } from './LanguageSync.jsx';

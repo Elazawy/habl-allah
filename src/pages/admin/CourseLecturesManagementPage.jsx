@@ -24,6 +24,8 @@ import {
 } from '../../services/courseLecturesService';
 import CourseLectureFormModal from './CourseLectureFormModal';
 import LectureQuestionsModal from './LectureQuestionsModal';
+import TranslationStatusBadge from './components/TranslationStatusBadge';
+import { LECTURE_TRANSLATION_SPECS } from '../../i18n/content.js';
 
 function getLoadErrorMessage(error) {
   const message = error?.message ?? '';
@@ -360,7 +362,13 @@ export default function CourseLecturesManagementPage() {
                   <td data-label="المحاضرة" className="admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
                     <div className="admin-card-title-bar">
                       <div>
-                        <div className="admin-teacher-name">{lecture.title}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <div className="admin-teacher-name">{lecture.title}</div>
+                          <TranslationStatusBadge
+                            record={lecture}
+                            specs={LECTURE_TRANSLATION_SPECS}
+                          />
+                        </div>
                         <div className="admin-teacher-bio-preview admin-card-detail-only" style={{ lineHeight: 1.7 }}>
                           {lecture.description || getLectureSourceSummary(lecture, course.is_free)}
                         </div>

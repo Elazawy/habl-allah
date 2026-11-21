@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sparkles, Share2, Copy, Check, Balloon } from 'lucide-react';
+import { useLocalizedContent } from '../i18n';
 
 
 // Lightweight, Mobile-Optimized Canvas Confetti & Balloons
@@ -443,12 +444,17 @@ function FixedBalloonCluster({ side = 'right', className = '', onClick, title })
 
 export default function StudentCompetitionCelebration({
   studentName,
+  competition,
   competitionName,
+  competitionNameDir,
   level,
+  levelDir,
   finalRank = 1,
+  teacher,
   teacherName = '',
 }) {
   const { t } = useTranslation('student');
+  const { field, latinName, optionLabel } = useLocalizedContent();
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
@@ -456,12 +462,29 @@ export default function StudentCompetitionCelebration({
 
   const resolvedStudentName =
     studentName === undefined ? t('celebration.defaults.studentName') : studentName;
+  const localizedComp = competition ? field(competition, 'name') : null;
   const resolvedCompetitionName =
-    competitionName === undefined
+    localizedComp?.text ||
+    (competitionName === undefined
       ? t('celebration.defaults.competitionName')
-      : competitionName;
+      : competitionName);
+  const resolvedCompetitionDir = localizedComp?.text
+    ? localizedComp.dir
+    : competitionNameDir;
+
+  const localizedLevel = competition && level
+    ? optionLabel(competition, 'available_levels', level)
+    : null;
   const resolvedLevel =
-    level === undefined ? t('celebration.defaults.level') : level;
+    localizedLevel?.text ||
+    (level === undefined ? t('celebration.defaults.level') : level);
+  const resolvedLevelDir = localizedLevel?.text
+    ? localizedLevel.dir
+    : levelDir;
+
+  const resolvedTeacherName = teacher
+    ? latinName(teacher, 'name').text
+    : teacherName;
 
   // Rank metadata
   const getRankData = (rank) => {
@@ -669,17 +692,17 @@ export default function StudentCompetitionCelebration({
             </div>
             
             <p className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-400">
-              <span dir="auto">{resolvedCompetitionName}</span>
+              <span dir={resolvedCompetitionDir}>{resolvedCompetitionName}</span>
               {resolvedLevel ? (
                 <>
                   {' • '}
-                  <span dir="auto">{resolvedLevel}</span>
+                  <span dir={resolvedLevelDir}>{resolvedLevel}</span>
                 </>
               ) : null}
             </p>
-            {teacherName && (
+            {resolvedTeacherName && (
               <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-stone-400">
-                {t('celebration.supervisedBy', { teacherName })}
+                {t('celebration.supervisedBy', { teacherName: resolvedTeacherName })}
               </p>
             )}
           </div>

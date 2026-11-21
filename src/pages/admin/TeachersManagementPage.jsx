@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fetchAllTeachers, deleteTeacher } from '../../services/adminService';
 import TeacherFormModal from './TeacherFormModal';
+import TranslationStatusBadge from './components/TranslationStatusBadge';
+import { TEACHER_TRANSLATION_SPECS } from '../../i18n/content.js';
 import { Plus, Pencil, Trash2, Search, Users, Images, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -173,7 +175,13 @@ export default function TeachersManagementPage() {
                           )}
                         </div>
                         <div>
-                          <div className="admin-teacher-name">{teacher.name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <div className="admin-teacher-name">{teacher.name}</div>
+                            <TranslationStatusBadge
+                              record={teacher}
+                              specs={TEACHER_TRANSLATION_SPECS}
+                            />
+                          </div>
                           <div className="admin-teacher-bio-preview admin-card-detail-only">
                             {teacher.bio?.slice(0, 60)}{teacher.bio?.length > 60 ? '…' : ''}
                           </div>

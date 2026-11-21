@@ -6,7 +6,7 @@ import QuranFooter from './QuranFooter';
 import { fetchPublishedCompetitions } from '../../services/competitionsService';
 import CompetitionRegistrationModal from './CompetitionRegistrationModal';
 import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
-import { LocalizedLink, useFormatters } from '../../i18n';
+import { LocalizedLink, useFormatters, useLocalizedContent } from '../../i18n';
 
 function getLoadErrorKey(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -19,6 +19,7 @@ function getLoadErrorKey(error) {
 export default function CompetitionsPage() {
   const { t } = useTranslation('competitions');
   const { formatDate } = useFormatters();
+  const { field } = useLocalizedContent();
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorKey, setErrorKey] = useState('');
@@ -123,6 +124,9 @@ export default function CompetitionsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {competitions.map((c) => {
                 const registrationState = getCompetitionRegistrationState(c);
+                const compName = field(c, 'name');
+                const shortDescription = field(c, 'short_description');
+                const awardsShortDescription = field(c, 'awards_short_description');
 
                 return (
                   <div
@@ -148,13 +152,13 @@ export default function CompetitionsPage() {
                       </div>
 
                       <LocalizedLink to={`/quran/competition/${c.slug}`} className="block group mb-3">
-                        <h3 dir="auto" className="text-xl font-black tracking-tight transition-colors duration-200 group-hover:text-amber-500" style={{ color: 'var(--t-primary)' }}>
-                          {c.name}
+                        <h3 dir={compName.dir} className="text-xl font-black tracking-tight transition-colors duration-200 group-hover:text-amber-500" style={{ color: 'var(--t-primary)' }}>
+                          {compName.text}
                         </h3>
                       </LocalizedLink>
                       
-                      <p dir="auto" className="text-sm leading-relaxed mb-6" style={{ color: 'var(--t-text-muted)' }}>
-                        {c.short_description}
+                      <p dir={shortDescription.dir} className="text-sm leading-relaxed mb-6" style={{ color: 'var(--t-text-muted)' }}>
+                        {shortDescription.text}
                       </p>
 
                       <div className="space-y-3 mb-8 border-t border-b py-4" style={{ borderColor: 'var(--t-border)' }}>
@@ -166,10 +170,10 @@ export default function CompetitionsPage() {
                           <Clock size={14} className="text-amber-500" />
                           <span>{t('list.registrationEnds', { date: formatCompetitionDate(c.registration_deadline) })}</span>
                         </div>
-                        {c.awards_short_description && (
+                        {awardsShortDescription.text && (
                           <div className="flex items-center gap-2.5 text-xs font-bold" style={{ color: 'var(--t-secondary)' }}>
                             <Award size={14} />
-                            <span dir="auto">{c.awards_short_description}</span>
+                            <span dir={awardsShortDescription.dir}>{awardsShortDescription.text}</span>
                           </div>
                         )}
                       </div>

@@ -303,7 +303,7 @@ export async function fetchMyStudentProfile(userId) {
 
   const { data, error } = await supabase
     .from('student_profiles')
-    .select('*, teachers(id, name, photo_url)')
+    .select('*, teachers(id, name, name_latin, photo_url)')
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
@@ -469,7 +469,7 @@ export async function fetchMySubscribedCourses() {
 
   const { data, error } = await supabase
     .from('student_course_subscriptions')
-    .select('*, quran_courses(id, slug, name, short_description, image_url, is_free)')
+    .select('*, quran_courses(id, slug, name, name_en, name_tr, short_description, short_description_en, short_description_tr, image_url, is_free)')
     .eq('student_id', user.id)
     .eq('is_active', true);
   if (error) throw error;

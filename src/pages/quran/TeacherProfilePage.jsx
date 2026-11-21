@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, PlayCircle, BookOpen, MessageSquare, Play, Pause, Volume2, X, Gift } from 'lucide-react';
-import { DirectionalIcon, LocalizedLink, useLanguage } from '../../i18n';
+import { DirectionalIcon, LocalizedLink, useLanguage, useLocalizedContent } from '../../i18n';
 import { fetchTeacherById } from '../../services/teachersService';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
@@ -226,6 +226,7 @@ function ReviewCarousel({ reviews, onOpen }) {
 export default function TeacherProfilePage() {
   const { gender, id } = useParams();
   const { t } = useTranslation(['teachers', 'common']);
+  const { field, latinName } = useLocalizedContent();
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -294,6 +295,8 @@ export default function TeacherProfilePage() {
   }
 
   const reviews = teacher.reviews ?? teacher.teacher_reviews ?? [];
+  const teacherName = latinName(teacher, 'name');
+  const teacherBio = field(teacher, 'bio');
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
@@ -320,7 +323,7 @@ export default function TeacherProfilePage() {
              <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={14} className="text-white/40" />
              <LocalizedLink to={`/quran/teachers/${gender}`} className="font-semibold text-white/70 hover:text-white transition-colors">{genderLabel}</LocalizedLink>
              <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={14} className="text-white/40" />
-             <span dir="auto" className="font-bold text-white">{teacher.name}</span>
+             <span dir={teacherName.dir} className="font-bold text-white">{teacherName.text}</span>
            </nav>
         </div>
         
@@ -328,8 +331,8 @@ export default function TeacherProfilePage() {
         <div className="relative z-10 w-full max-w-5xl mx-auto px-5 md:px-8 flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-start" style={anim(0.1)}>
           <div className="relative">
             {isMale
-              ? <MalePhoto photoUrl={teacher.photo_url} name={teacher.name} size="lg" />
-              : <FemaleMonogram name={teacher.name} size="lg" />
+              ? <MalePhoto photoUrl={teacher.photo_url} name={teacherName.text} size="lg" />
+              : <FemaleMonogram name={teacherName.text} size="lg" />
             }
             <div className="absolute inset-0 rounded-full border-4 border-black/20" />
           </div>
@@ -337,7 +340,7 @@ export default function TeacherProfilePage() {
             <p className="text-sm md:text-base font-semibold text-white/80 mb-2">
               {isMale ? t('profile.roleMale') : t('profile.roleFemale')}
             </p>
-            <h1 dir="auto" className="text-3xl md:text-5xl font-black mb-4">{teacher.name}</h1>
+            <h1 dir={teacherName.dir} className="text-3xl md:text-5xl font-black mb-4">{teacherName.text}</h1>
             <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
               <button
                 onClick={() => setShowModal(true)}
@@ -349,7 +352,7 @@ export default function TeacherProfilePage() {
               </button>
               {teacher.free_trial_enabled && (
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t(teacher.gender === 'female' ? 'profile.freeTrialWhatsappMessageFemale' : 'profile.freeTrialWhatsappMessageMale', { name: teacher.name }))}`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t(teacher.gender === 'female' ? 'profile.freeTrialWhatsappMessageFemale' : 'profile.freeTrialWhatsappMessageMale', { name: teacherName.text }))}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   id="free-trial-btn"
@@ -376,8 +379,8 @@ export default function TeacherProfilePage() {
             </div>
             {t('profile.aboutTitle')}
           </h2>
-          <p dir="auto" className="text-lg leading-loose" style={{ color: 'var(--t-text-muted)' }}>
-            {teacher.bio}
+          <p dir={teacherBio.dir} className="text-lg leading-loose" style={{ color: 'var(--t-text-muted)' }}>
+            {teacherBio.text}
           </p>
         </section>
 

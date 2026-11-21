@@ -10,11 +10,12 @@ import { checkMyCourseAccess } from '../../services/studentsService';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { useAuth } from '../../context/AuthContext';
 import quranHero from '../../assets/quran-hero.png';
-import { DirectionalIcon, LocalizedLink, useFormatters } from '../../i18n';
+import { DirectionalIcon, LocalizedLink, useFormatters, useLocalizedContent } from '../../i18n';
 
 export default function CourseDetailPage() {
   const { t } = useTranslation('courses');
   const { formatNumber } = useFormatters();
+  const { field, text, latinName, list } = useLocalizedContent();
   const { slug } = useParams();
   const { user, isAdmin, isStudent } = useAuth();
 
@@ -68,16 +69,16 @@ export default function CourseDetailPage() {
   // Document Title Manager
   useEffect(() => {
     if (course) {
-      document.title = t('detail.documentTitle', { name: course.name });
+      document.title = t('detail.documentTitle', { name: text(course, 'name') });
     } else {
       document.title = t('detail.defaultDocumentTitle');
     }
-  }, [course, t]);
+  }, [course, text, t]);
 
   const handleSubscribe = () => {
     if (!course) return;
-    const text = t('detail.whatsappSubscribeMessage', { name: course.name });
-    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
+    const message = t('detail.whatsappSubscribeMessage', { name: text(course, 'name') });
+    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -123,6 +124,13 @@ export default function CourseDetailPage() {
     ? `/quran/courses/${course.slug}/watch/${lectures[0].slug}`
     : `/quran/courses/${course.slug}/watch`;
 
+  const courseName = field(course, 'name');
+  const shortDescription = field(course, 'short_description');
+  const longDescription = field(course, 'long_description');
+  const coursePrice = field(course, 'price');
+  const teacherName = latinName(course, 'teacher_name', 'teacher_name_latin');
+  const learningOutcomes = list(course, 'learning_outcomes');
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
@@ -153,7 +161,7 @@ export default function CourseDetailPage() {
             <div className="relative h-64 md:h-80 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
               <img
                 src={course.image_url || quranHero}
-                alt={course.name}
+                alt={courseName.text}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
@@ -161,43 +169,43 @@ export default function CourseDetailPage() {
                 <span className="inline-block px-3 py-1.5 rounded-full text-xs font-black bg-emerald-600 mb-3">
                   {course.is_free ? t('detail.freeInitiative') : t('detail.educationalCourse')}
                 </span>
-                <h1 dir="auto" className="text-2xl md:text-4xl font-black tracking-tight">{course.name}</h1>
+                <h1 dir={courseName.dir} className="text-2xl md:text-4xl font-black tracking-tight">{courseName.text}</h1>
               </div>
             </div>
 
             {/* Course Information Details */}
             <div className="p-6 md:p-10 space-y-10">
-              {course.teacher_name && course.teacher_name.trim() !== '' && (
+              {teacherName.text.trim() !== '' && (
                 <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>
                   <span>{t('detail.teacherPrefix')}</span>
-                  <span dir="auto" className="font-bold" style={{ color: 'var(--t-primary)' }}>{course.teacher_name}</span>
+                  <span dir={teacherName.dir} className="font-bold" style={{ color: 'var(--t-primary)' }}>{teacherName.text}</span>
                 </div>
               )}
 
               {/* Short / Long Description */}
               <div className="space-y-4">
-                <p dir="auto" className="text-base md:text-lg font-semibold leading-relaxed" style={{ color: 'var(--t-primary)' }}>
-                  {course.short_description}
+                <p dir={shortDescription.dir} className="text-base md:text-lg font-semibold leading-relaxed" style={{ color: 'var(--t-primary)' }}>
+                  {shortDescription.text}
                 </p>
-                {course.long_description && (
-                  <p dir="auto" className="text-sm md:text-base leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
-                    {course.long_description}
+                {longDescription.text && (
+                  <p dir={longDescription.dir} className="text-sm md:text-base leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
+                    {longDescription.text}
                   </p>
                 )}
               </div>
 
               {/* Learning Outcomes */}
-              {course.learning_outcomes && course.learning_outcomes.length > 0 && (
+              {learningOutcomes.items.length > 0 && (
                 <div className="p-6 md:p-8 rounded-2xl border" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border-gold)' }}>
                   <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--t-primary)' }}>
                     <Award className="w-5 h-5 text-amber-500" />
                     <span>{t('detail.learningOutcomesTitle')}</span>
                   </h2>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {course.learning_outcomes.map((outcome, idx) => (
+                    {learningOutcomes.items.map((outcome, idx) => (
                       <li key={idx} className="flex items-start gap-2.5 text-sm leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>
                         <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                        <span dir="auto">{outcome}</span>
+                        <span dir={learningOutcomes.dir}>{outcome}</span>
                       </li>
                     ))}
                   </ul>
@@ -223,7 +231,9 @@ export default function CourseDetailPage() {
                     </span>
                   </div>
                   <ul className="divide-y" style={{ borderColor: 'var(--t-border)' }}>
-                    {lectures.map((lecture, idx) => (
+                    {lectures.map((lecture, idx) => {
+                      const lectureTitle = field(lecture, 'title');
+                      return (
                       <li
                         key={lecture.id}
                         className="flex items-center gap-3 px-5 py-3.5"
@@ -237,12 +247,13 @@ export default function CourseDetailPage() {
                         ) : (
                           <Lock className="w-4 h-4 shrink-0 opacity-40" />
                         )}
-                        <span dir="auto" className="text-sm font-semibold flex-1">{lecture.title}</span>
+                        <span dir={lectureTitle.dir} className="text-sm font-semibold flex-1">{lectureTitle.text}</span>
                         {course.is_free && (
                           <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">{t('detail.freeBadge')}</span>
                         )}
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 </div>
               )}
@@ -271,8 +282,8 @@ export default function CourseDetailPage() {
                   {!course.is_free && !isEnrolledPaidCourse && (
                     <div className="flex items-center justify-between md:justify-end gap-4">
                       <span className="text-sm font-bold" style={{ color: 'var(--t-text-muted)' }}>{t('detail.priceLabel')}</span>
-                      <span dir={course.price ? 'auto' : undefined} className="text-2xl font-black" style={{ color: 'var(--t-secondary)' }}>
-                        {course.price || t('detail.contactForPrice')}
+                      <span dir={coursePrice.text ? coursePrice.dir : undefined} className="text-2xl font-black" style={{ color: 'var(--t-secondary)' }}>
+                        {coursePrice.text || t('detail.contactForPrice')}
                       </span>
                     </div>
                   )}

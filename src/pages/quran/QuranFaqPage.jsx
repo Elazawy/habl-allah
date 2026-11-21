@@ -4,8 +4,13 @@ import { ChevronDown, HelpCircle } from 'lucide-react';
 import { fetchFaqs } from '../../services/faqService';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
+import { useLocalizedContent } from '../../i18n';
 
 function AccordionItem({ faq, isOpen, onToggle }) {
+  const { field } = useLocalizedContent();
+  const question = field(faq, 'question');
+  const answer = field(faq, 'answer');
+
   return (
     <div className="faq-accordion-item" id={`quran-faq-item-${faq.id}`}>
       <button
@@ -14,7 +19,7 @@ function AccordionItem({ faq, isOpen, onToggle }) {
         aria-expanded={isOpen}
         aria-controls={`quran-faq-answer-${faq.id}`}
       >
-        <span className="faq-accordion-question" dir="auto">{faq.question}</span>
+        <span className="faq-accordion-question" dir={question.dir}>{question.text}</span>
         <ChevronDown
           size={20}
           className={`faq-accordion-chevron ${isOpen ? 'faq-accordion-chevron--open' : ''}`}
@@ -25,7 +30,7 @@ function AccordionItem({ faq, isOpen, onToggle }) {
         className={`faq-accordion-panel ${isOpen ? 'faq-accordion-panel--open' : ''}`}
         role="region"
       >
-        <div className="faq-accordion-answer" dir="auto">{faq.answer}</div>
+        <div className="faq-accordion-answer" dir={answer.dir}>{answer.text}</div>
       </div>
     </div>
   );

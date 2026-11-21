@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
-import { DirectionalIcon, LocalizedLink } from '../../i18n';
+import { DirectionalIcon, LocalizedLink, useLocalizedContent } from '../../i18n';
 
 /** Extract first character from a name string */
 function getMonogram(name, fallback = '?') {
@@ -80,7 +80,9 @@ export function MalePhoto({ photoUrl, name, size = 'md' }) {
  */
 export default function TeacherCard({ teacher, index = 0 }) {
   const { t } = useTranslation('teachers');
-  const { id, name, gender } = teacher;
+  const { latinName } = useLocalizedContent();
+  const { id, gender } = teacher;
+  const teacherName = latinName(teacher, 'name');
   const path = `/quran/teachers/${gender}/${id}`;
 
   return (
@@ -109,19 +111,19 @@ export default function TeacherCard({ teacher, index = 0 }) {
       {/* Avatar */}
       <div className="mb-4 transition-transform duration-300 group-hover:scale-105 relative z-10">
         {gender === 'female' ? (
-          <FemaleMonogram name={name} size="md" />
+          <FemaleMonogram name={teacherName.text} size="md" />
         ) : (
-          <MalePhoto photoUrl={teacher.photo_url} name={name} size="md" />
+          <MalePhoto photoUrl={teacher.photo_url} name={teacherName.text} size="md" />
         )}
       </div>
 
       {/* Name only */}
       <h3
-        dir="auto"
+        dir={teacherName.dir}
         className="text-base font-bold leading-snug relative z-10"
         style={{ color: 'var(--t-text)' }}
       >
-        {name}
+        {teacherName.text}
       </h3>
 
       {/* CTA indicator */}

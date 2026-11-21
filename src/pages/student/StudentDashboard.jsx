@@ -13,6 +13,7 @@ import {
   DirectionalIcon,
   LocalizedLink,
   useFormatters,
+  useLocalizedContent,
   useLocalizedNavigate,
 } from '../../i18n';
 
@@ -21,6 +22,7 @@ export default function StudentDashboard() {
   const navigate = useLocalizedNavigate();
   const { t } = useTranslation(['student', 'common']);
   const { formatDate, formatNumber } = useFormatters();
+  const { field, text, latinName } = useLocalizedContent();
 
   const [myCourses, setMyCourses] = useState([]);
   const [otherCourses, setOtherCourses] = useState([]);
@@ -95,7 +97,7 @@ export default function StudentDashboard() {
               </h1>
               {studentProfile?.teachers?.name && (
                 <p className="text-xs md:text-sm mt-1 font-semibold" style={{ color: 'var(--t-text-muted)' }}>
-                  {t('dashboard.assignedTeacher', { name: studentProfile.teachers.name })}
+                  {t('dashboard.assignedTeacher', { name: latinName(studentProfile.teachers, 'name').text })}
                 </p>
               )}
             </div>
@@ -333,7 +335,9 @@ export default function StudentDashboard() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {myCourses.map((sub) => (
+                      {myCourses.map((sub) => {
+                        const courseName = field(sub.quran_courses, 'name');
+                        return (
                         <LocalizedLink
                           key={sub.id}
                           to={`/quran/courses/${sub.quran_courses.slug}/watch`}
@@ -343,14 +347,15 @@ export default function StudentDashboard() {
                           <div className="flex justify-between items-start gap-2">
                             <div>
                               <span className="text-[9px] font-bold block mb-1" style={{ color: 'var(--t-primary)' }}>{t('dashboard.courses.activeBadge')}</span>
-                              <h3 dir="auto" className="font-bold text-sm transition-colors group-hover:text-[var(--t-primary)]" style={{ color: 'var(--t-text)' }}>
-                                {sub.quran_courses.name}
+                              <h3 dir={courseName.dir} className="font-bold text-sm transition-colors group-hover:text-[var(--t-primary)]" style={{ color: 'var(--t-text)' }}>
+                                {courseName.text}
                               </h3>
                             </div>
                             <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--t-primary)' }}>{t('dashboard.courses.watchCta')}</span>
                           </div>
                         </LocalizedLink>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 
@@ -359,14 +364,16 @@ export default function StudentDashboard() {
                     <div className="pt-3 space-y-2">
                       <span className="text-xs font-bold block" style={{ color: 'var(--t-text-muted)' }}>{t('dashboard.courses.suggestedTitle')}</span>
                       <div className="space-y-2">
-                        {otherCourses.slice(0, 2).map((course) => (
+                        {otherCourses.slice(0, 2).map((course) => {
+                          const courseName = field(course, 'name');
+                          return (
                           <div
                             key={course.id}
                             className="rounded-xl p-3 border flex justify-between items-center"
                             style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border)' }}
                           >
                             <div className="min-w-0 flex-1 pe-2">
-                              <h4 dir="auto" className="text-xs font-bold truncate" style={{ color: 'var(--t-text)' }}>{course.name}</h4>
+                              <h4 dir={courseName.dir} className="text-xs font-bold truncate" style={{ color: 'var(--t-text)' }}>{courseName.text}</h4>
                               <span className="text-[10px]" style={{ color: 'var(--t-text-muted)' }}>{course.is_free ? t('dashboard.courses.free') : t('dashboard.courses.paid')}</span>
                             </div>
                             <LocalizedLink
@@ -378,7 +385,8 @@ export default function StudentDashboard() {
                               <DirectionalIcon icon={ArrowLeft} flipIn="ltr" className="w-3 h-3" />
                             </LocalizedLink>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -401,7 +409,10 @@ export default function StudentDashboard() {
                         const assignment = Array.isArray(sub.student_stage_assignments)
                           ? sub.student_stage_assignments[0]
                           : sub.student_stage_assignments;
-                        const stageName = assignment?.competition_stages?.name;
+                        const stageName = assignment?.competition_stages
+                          ? text(assignment.competition_stages, 'name')
+                          : '';
+                        const compName = field(sub.quran_competitions, 'name');
 
                         return (
                         <LocalizedLink
@@ -440,8 +451,8 @@ export default function StudentDashboard() {
                                   </>
                                 )}
                               </span>
-                              <h3 dir="auto" className="font-bold text-sm transition-colors group-hover:text-[var(--t-primary)]" style={{ color: 'var(--t-text)' }}>
-                                {sub.quran_competitions.name}
+                              <h3 dir={compName.dir} className="font-bold text-sm transition-colors group-hover:text-[var(--t-primary)]" style={{ color: 'var(--t-text)' }}>
+                                {compName.text}
                               </h3>
                             </div>
                             <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--t-secondary)' }}>{t('dashboard.competitions.trackProgress')}</span>
@@ -457,14 +468,16 @@ export default function StudentDashboard() {
                     <div className="pt-3 space-y-2">
                       <span className="text-xs font-bold block" style={{ color: 'var(--t-text-muted)' }}>{t('dashboard.competitions.availableTitle')}</span>
                       <div className="space-y-2">
-                        {otherCompetitions.slice(0, 2).map((comp) => (
+                        {otherCompetitions.slice(0, 2).map((comp) => {
+                          const compName = field(comp, 'name');
+                          return (
                           <div
                             key={comp.id}
                             className="rounded-xl p-3 border flex justify-between items-center"
                             style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border)' }}
                           >
                             <div className="min-w-0 flex-1 pe-2">
-                              <h4 dir="auto" className="text-xs font-bold truncate" style={{ color: 'var(--t-text)' }}>{comp.name}</h4>
+                              <h4 dir={compName.dir} className="text-xs font-bold truncate" style={{ color: 'var(--t-text)' }}>{compName.text}</h4>
                               <span className="text-[10px]" style={{ color: 'var(--t-secondary)' }}>{t('dashboard.competitions.clickToRegister')}</span>
                             </div>
                             <LocalizedLink
@@ -476,7 +489,8 @@ export default function StudentDashboard() {
                               <DirectionalIcon icon={ArrowLeft} flipIn="ltr" className="w-3 h-3" />
                             </LocalizedLink>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}

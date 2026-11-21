@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { DirectionalIcon, LocalizedLink, useLocalizedNavigate } from '../../i18n';
+import { DirectionalIcon, LocalizedLink, useLocalizedContent, useLocalizedNavigate } from '../../i18n';
 import { fetchPublishedCourses } from '../../services/coursesService';
 import { useReveal } from '../../hooks/useReveal';
 import quranHero from '../../assets/quran-hero.png';
@@ -9,6 +9,7 @@ import quranHero from '../../assets/quran-hero.png';
 export default function FeaturedCourses() {
   const { t } = useTranslation('quranHome');
   const navigate = useLocalizedNavigate();
+  const { field } = useLocalizedContent();
   const [courses, setCourses] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -50,65 +51,71 @@ export default function FeaturedCourses() {
         {/* Grid — cards use inline animation so they're visible as soon as they mount,
             regardless of when the IntersectionObserver fired */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {courses.map((c, i) => (
-            <div
-              key={c.id}
-              className="rounded-3xl overflow-hidden shadow-sm border flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-              style={{
-                backgroundColor: 'var(--t-bg-card)',
-                borderColor: 'var(--t-border-gold)',
-                animation: 'fadeInUp 0.45s ease both',
-                animationDelay: `${i * 0.1}s`,
-              }}
-            >
-              {/* Image */}
-              <div className="relative h-52 overflow-hidden" style={{ backgroundColor: 'var(--t-bg-surface)' }}>
-                <img
-                  src={c.image_url || quranHero}
-                  alt={c.name}
-                  className="w-full h-full object-cover"
-                />
-                {c.is_free && (
-                  <span className="absolute top-4 start-4 px-3 py-1 rounded-full text-xs font-bold text-white bg-emerald-600">
-                    {t('featuredCourses.freeBadge')}
-                  </span>
-                )}
-              </div>
+          {courses.map((c, i) => {
+            const courseName = field(c, 'name');
+            const shortDescription = field(c, 'short_description');
+            const coursePrice = c.is_free ? null : field(c, 'price');
 
-              {/* Content */}
-              <div className="p-6 flex-1 flex flex-col">
-                <h3 dir="auto" className="text-xl font-black mb-2 leading-snug" style={{ color: 'var(--t-primary)' }}>
-                  {c.name}
-                </h3>
-                <p dir="auto" className="text-sm leading-relaxed flex-1 mb-6" style={{ color: 'var(--t-text-muted)' }}>
-                  {c.short_description}
-                </p>
+            return (
+              <div
+                key={c.id}
+                className="rounded-3xl overflow-hidden shadow-sm border flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                style={{
+                  backgroundColor: 'var(--t-bg-card)',
+                  borderColor: 'var(--t-border-gold)',
+                  animation: 'fadeInUp 0.45s ease both',
+                  animationDelay: `${i * 0.1}s`,
+                }}
+              >
+                {/* Image */}
+                <div className="relative h-52 overflow-hidden" style={{ backgroundColor: 'var(--t-bg-surface)' }}>
+                  <img
+                    src={c.image_url || quranHero}
+                    alt={courseName.text}
+                    className="w-full h-full object-cover"
+                  />
+                  {c.is_free && (
+                    <span className="absolute top-4 start-4 px-3 py-1 rounded-full text-xs font-bold text-white bg-emerald-600">
+                      {t('featuredCourses.freeBadge')}
+                    </span>
+                  )}
+                </div>
 
-                {/* Footer row */}
-                <div
-                  className="flex items-center justify-between border-t pt-4"
-                  style={{ borderColor: 'var(--t-border-gold)' }}
-                >
-                  <span
-                    dir={c.is_free ? undefined : 'auto'}
-                    className="font-black text-base"
-                    style={{ color: 'var(--t-secondary)' }}
+                {/* Content */}
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 dir={courseName.dir} className="text-xl font-black mb-2 leading-snug" style={{ color: 'var(--t-primary)' }}>
+                    {courseName.text}
+                  </h3>
+                  <p dir={shortDescription.dir} className="text-sm leading-relaxed flex-1 mb-6" style={{ color: 'var(--t-text-muted)' }}>
+                    {shortDescription.text}
+                  </p>
+
+                  {/* Footer row */}
+                  <div
+                    className="flex items-center justify-between border-t pt-4"
+                    style={{ borderColor: 'var(--t-border-gold)' }}
                   >
-                    {c.is_free ? t('featuredCourses.completelyFree') : c.price}
-                  </span>
-                  <button
-                    id={`featured-course-${c.id}`}
-                    onClick={() => navigate(`/quran/courses/${c.slug}`)}
-                    className="flex items-center gap-1 font-bold text-sm transition-colors duration-200 hover:opacity-70 cursor-pointer"
-                    style={{ color: 'var(--t-primary)' }}
-                  >
-                    {t('featuredCourses.details')}
-                    <DirectionalIcon icon={ArrowRight} size={14} />
-                  </button>
+                    <span
+                      dir={c.is_free ? undefined : coursePrice.dir}
+                      className="font-black text-base"
+                      style={{ color: 'var(--t-secondary)' }}
+                    >
+                      {c.is_free ? t('featuredCourses.completelyFree') : coursePrice.text}
+                    </span>
+                    <button
+                      id={`featured-course-${c.id}`}
+                      onClick={() => navigate(`/quran/courses/${c.slug}`)}
+                      className="flex items-center gap-1 font-bold text-sm transition-colors duration-200 hover:opacity-70 cursor-pointer"
+                      style={{ color: 'var(--t-primary)' }}
+                    >
+                      {t('featuredCourses.details')}
+                      <DirectionalIcon icon={ArrowRight} size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* CTA */}

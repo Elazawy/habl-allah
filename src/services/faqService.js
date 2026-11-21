@@ -7,13 +7,32 @@
 
 import { supabase, publicSupabase } from '../lib/supabase';
 
+function normalizeOptionalText(value) {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') return value ?? null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
+function normalizeFaqPayload(payload = {}) {
+  const next = { ...payload };
+  for (const field of ['question_en', 'question_tr', 'answer_en', 'answer_tr']) {
+    if (field in payload) {
+      next[field] = normalizeOptionalText(payload[field]);
+    }
+  }
+  return Object.fromEntries(
+    Object.entries(next).filter(([, value]) => value !== undefined)
+  );
+}
+
 /** Fetch published FAQs for a given platform (public) */
 export async function fetchFaqs(platform = 'general') {
   const client = publicSupabase ?? supabase;
   if (!client) return [];
   const { data, error } = await client
     .from('faqs')
-    .select('id, question, answer, sort_order')
+    .select('id, question, question_en, question_tr, answer, answer_en, answer_tr, sort_order')
     .eq('platform', platform)
     .eq('is_published', true)
     .order('sort_order', { ascending: true });
@@ -36,7 +55,7 @@ export async function fetchAllFaqs(platform = 'general') {
 export async function createFaq(payload) {
   const { data, error } = await supabase
     .from('faqs')
-    .insert([payload])
+    .insert([normalizeFaqPayload(payload)])
     .select()
     .single();
   if (error) throw error;
@@ -47,7 +66,7 @@ export async function createFaq(payload) {
 export async function updateFaq(id, payload) {
   const { data, error } = await supabase
     .from('faqs')
-    .update({ ...payload, updated_at: new Date().toISOString() })
+    .update({ ...normalizeFaqPayload(payload), updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
     .single();

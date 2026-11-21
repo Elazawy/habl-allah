@@ -20,7 +20,7 @@ import logoGold from '../../../assets/logo-gold.png';
 import DarkModeToggle from '../../../components/DarkModeToggle';
 import { fetchLectureQuestions, submitQuestion, updateQuestion, replyToQuestion, deleteQuestion } from '../../../services/lectureQuestionsService';
 import { useAuth } from '../../../context/AuthContext';
-import { DirectionalIcon, LocalizedLink, useFormatters } from '../../../i18n';
+import { DirectionalIcon, LocalizedLink, useFormatters, useLocalizedContent } from '../../../i18n';
 
 export default function WatchFocusLayout({
   course,
@@ -38,6 +38,10 @@ export default function WatchFocusLayout({
 }) {
   const { t } = useTranslation('courseWatch');
   const { formatNumber, formatDate } = useFormatters();
+  const { field } = useLocalizedContent();
+  const courseName = field(course, 'name');
+  const selectedLectureTitle = selectedLecture ? field(selectedLecture, 'title') : null;
+  const selectedLectureDescription = selectedLecture ? field(selectedLecture, 'description') : null;
   const [showSidebar, setShowSidebar] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -308,6 +312,7 @@ export default function WatchFocusLayout({
                 lectures.map((lecture, idx) => {
                   const isActive = selectedLecture?.id === lecture.id;
                   const isDone = completedLectures.has(lecture.id);
+                  const lectureTitle = field(lecture, 'title');
 
                   return (
                     <div 
@@ -328,12 +333,12 @@ export default function WatchFocusLayout({
                           {t('layout.lectureLabel', { number: formatNumber(idx + 1) })}
                         </span>
                         <span 
-                          dir="auto"
+                          dir={lectureTitle.dir}
                           className={`text-xs font-bold block truncate transition-colors ${
                             isActive ? 'text-[var(--t-primary)] font-extrabold' : 'text-[var(--t-text)] group-hover:text-[var(--t-primary)]'
                           }`}
                         >
-                          {lecture.title}
+                          {lectureTitle.text}
                         </span>
                       </button>
 
@@ -373,8 +378,8 @@ export default function WatchFocusLayout({
               
               <span className="text-[var(--t-border)]">|</span>
               
-              <h1 dir="auto" className="text-xs md:text-sm font-black truncate text-[var(--t-primary)]">
-                {course.name}
+              <h1 dir={courseName.dir} className="text-xs md:text-sm font-black truncate text-[var(--t-primary)]">
+                {courseName.text}
               </h1>
             </div>
 
@@ -422,7 +427,7 @@ export default function WatchFocusLayout({
                 youtubeEmbedUrl ? (
                   <iframe
                     src={youtubeEmbedUrl}
-                    title={selectedLecture.title}
+                    title={selectedLectureTitle.text}
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -573,6 +578,7 @@ export default function WatchFocusLayout({
                       {lectures.map((lecture, idx) => {
                         const isActive = selectedLecture?.id === lecture.id;
                         const isDone = completedLectures.has(lecture.id);
+                        const lectureTitle = field(lecture, 'title');
 
                         return (
                           <div 
@@ -597,12 +603,12 @@ export default function WatchFocusLayout({
                                 {t('layout.lectureLabel', { number: formatNumber(idx + 1) })}
                               </span>
                               <span 
-                                dir="auto"
+                                dir={lectureTitle.dir}
                                 className={`text-xs md:text-sm font-bold block truncate transition-colors ${
                                   isActive ? 'text-[var(--t-primary)] font-extrabold' : 'text-[var(--t-text)] group-hover:text-[var(--t-primary)]'
                                 }`}
                               >
-                                {lecture.title}
+                                {lectureTitle.text}
                               </span>
                             </button>
 
@@ -638,7 +644,7 @@ export default function WatchFocusLayout({
                               total: formatNumber(lectures.length),
                             })}
                           </span>
-                          <h2 dir="auto" className="text-base sm:text-lg font-black text-[var(--t-primary)] leading-snug">{selectedLecture.title}</h2>
+                          <h2 dir={selectedLectureTitle.dir} className="text-base sm:text-lg font-black text-[var(--t-primary)] leading-snug">{selectedLectureTitle.text}</h2>
                         </div>
                         
                         <button
@@ -654,10 +660,10 @@ export default function WatchFocusLayout({
                         </button>
                       </div>
 
-                      {selectedLecture.description && (
+                      {selectedLectureDescription.text && (
                         <div className="pt-2 border-t border-[var(--t-border)]/50">
-                          <p dir="auto" className="text-xs sm:text-sm text-[var(--t-text-muted)] leading-relaxed">
-                            {selectedLecture.description}
+                          <p dir={selectedLectureDescription.dir} className="text-xs sm:text-sm text-[var(--t-text-muted)] leading-relaxed">
+                            {selectedLectureDescription.text}
                           </p>
                         </div>
                       )}

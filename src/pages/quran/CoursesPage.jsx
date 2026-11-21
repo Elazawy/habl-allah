@@ -7,10 +7,11 @@ import QuranFooter from './QuranFooter';
 import quranHero from '../../assets/quran-hero.png';
 import { useAuth } from '../../context/AuthContext';
 import { fetchMySubscribedCourses } from '../../services/studentsService';
-import { DirectionalIcon, LocalizedLink } from '../../i18n';
+import { DirectionalIcon, LocalizedLink, useLocalizedContent } from '../../i18n';
 
 export default function CoursesPage() {
   const { t } = useTranslation('courses');
+  const { field } = useLocalizedContent();
   const { user, isStudent } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +84,12 @@ export default function CoursesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {courses.map((course) => (
+              {courses.map((course) => {
+                const courseName = field(course, 'name');
+                const shortDescription = field(course, 'short_description');
+                const coursePrice = course.is_free ? null : field(course, 'price');
+
+                return (
                 <div
                   key={course.id}
                   className="flex flex-col rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.04)] border transition-all duration-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1.5"
@@ -96,7 +102,7 @@ export default function CoursesPage() {
                   <div className="relative h-56 overflow-hidden bg-slate-100 dark:bg-slate-800">
                     <img
                       src={course.image_url || quranHero}
-                      alt={course.name}
+                      alt={courseName.text}
                       className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     />
                     {course.is_free && (
@@ -114,11 +120,11 @@ export default function CoursesPage() {
                   {/* Card Body */}
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 dir="auto" className="text-xl font-bold mb-3 leading-snug" style={{ color: 'var(--t-primary)' }}>
-                        {course.name}
+                      <h3 dir={courseName.dir} className="text-xl font-bold mb-3 leading-snug" style={{ color: 'var(--t-primary)' }}>
+                        {courseName.text}
                       </h3>
-                      <p dir="auto" className="text-sm leading-relaxed mb-6 line-clamp-3" style={{ color: 'var(--t-text-muted)' }}>
-                        {course.short_description}
+                      <p dir={shortDescription.dir} className="text-sm leading-relaxed mb-6 line-clamp-3" style={{ color: 'var(--t-text-muted)' }}>
+                        {shortDescription.text}
                       </p>
                     </div>
 
@@ -126,8 +132,8 @@ export default function CoursesPage() {
                     <div className="border-t pt-5 mt-auto" style={{ borderColor: 'var(--t-border)' }}>
                       <div className="flex items-center justify-between mb-5">
                         <span className="text-xs font-medium" style={{ color: 'var(--t-text-subtle)' }}>{t('list.priceLabel')}</span>
-                        <span dir={course.is_free ? undefined : 'auto'} className="text-lg font-black" style={{ color: 'var(--t-secondary)' }}>
-                          {course.is_free ? t('list.freePrice') : course.price}
+                        <span dir={course.is_free ? undefined : coursePrice.dir} className="text-lg font-black" style={{ color: 'var(--t-secondary)' }}>
+                          {course.is_free ? t('list.freePrice') : coursePrice.text}
                         </span>
                       </div>
 
@@ -166,7 +172,8 @@ export default function CoursesPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

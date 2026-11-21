@@ -8,7 +8,7 @@ import {
 } from '../../services/competitionsService';
 import { saveGuestCompetitionToken } from '../../services/guestCompetitionToken';
 import { normalizeStudentPhone } from '../../services/studentsService';
-import { useLanguage } from '../../i18n';
+import { useLanguage, useLocalizedContent } from '../../i18n';
 
 function normalizeLocalizedDigits(value) {
   return String(value ?? '').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
@@ -36,6 +36,7 @@ function normalizePhoneDigits(value) {
 export default function CompetitionRegistrationModal({ competition, onClose, onSubmitted, initialMode = 'apply' }) {
   const { t } = useTranslation('competitions');
   const { isRTL } = useLanguage();
+  const { field, options } = useLocalizedContent();
   const { user, isStudent, studentProfile } = useAuth();
 
   // States
@@ -57,9 +58,8 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
   const [recoveryNotFound, setRecoveryNotFound] = useState(false);
 
   const isClosed = new Date(competition.registration_deadline + 'T23:59:59') < new Date();
-  const availableLevels = Array.isArray(competition.available_levels)
-    ? competition.available_levels.filter(lvl => typeof lvl === 'string' && lvl.trim() !== '')
-    : [];
+  const compName = field(competition, 'name');
+  const levelOptions = options(competition, 'available_levels');
   const isStudentRequester = Boolean(user && isStudent && studentProfile?.id === user.id);
 
   // Initialize and default state
@@ -69,7 +69,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
       : [];
 
     if (nextAvailableLevels.length > 0) {
-      setSelectedLevelOption(nextAvailableLevels[0]);
+      setSelectedLevelOption(nextAvailableLevels[0].trim());
     } else {
       setSelectedLevelOption('custom');
     }
@@ -245,8 +245,8 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
               <h3 className="font-black text-lg" style={{ color: 'var(--t-primary)' }}>
                 {t('registrationModal.title')}
               </h3>
-              <p dir="auto" className="text-xs mt-0.5" style={{ color: 'var(--t-text-muted)' }}>
-                {competition.name}
+              <p dir={compName.dir} className="text-xs mt-0.5" style={{ color: 'var(--t-text-muted)' }}>
+                {compName.text}
               </p>
             </div>
           </div>
@@ -454,7 +454,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   {t('registrationModal.form.levelLabel')}
                 </label>
 
-                {availableLevels.length > 0 ? (
+                {levelOptions.length > 0 ? (
                   <div className="space-y-3">
                     <select
                       id="level-select"
@@ -464,9 +464,9 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                       className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
                       style={inputStyle}
                     >
-                      {availableLevels.map((level, idx) => (
-                        <option key={idx} value={level} dir="auto">
-                          {level}
+                      {levelOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value} dir={opt.dir}>
+                          {opt.label}
                         </option>
                       ))}
                       <option value="custom">{t('registrationModal.form.customLevelOption')}</option>

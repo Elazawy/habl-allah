@@ -4,6 +4,7 @@ import { X, Loader2, ExternalLink } from 'lucide-react';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { submitSubscriptionRequest } from '../../services/teachersService';
 import { prepareStudentRequest } from '../../lib/studentRequestValidation';
+import { useLocalizedContent } from '../../i18n';
 
 /**
  * Opens the WhatsApp tab synchronously, while the submit click still counts as
@@ -65,6 +66,8 @@ function navigateToWhatsApp(target, url) {
  */
 export default function SubscribeModal({ teacher, onClose }) {
   const { t } = useTranslation('teachers');
+  const { latinName } = useLocalizedContent();
+  const teacherName = latinName(teacher, 'name');
   const [values, setValues] = useState({ student_name: '', whatsapp: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
@@ -169,7 +172,7 @@ export default function SubscribeModal({ teacher, onClose }) {
 
     // Build WhatsApp message: teacher name + student name only
     const message = t('subscribeModal.whatsappMessage', {
-      teacherName: teacher.name,
+      teacherName: teacherName.text,
       studentName: contact.student_name,
     });
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -249,9 +252,9 @@ export default function SubscribeModal({ teacher, onClose }) {
             <Trans
               i18nKey="subscribeModal.withTeacher"
               ns="teachers"
-              values={{ name: teacher.name }}
+              values={{ name: teacherName.text }}
               components={{
-                teacher: <span dir="auto" className="font-bold" style={{ color: 'var(--t-primary)' }} />,
+                teacher: <span dir={teacherName.dir} className="font-bold" style={{ color: 'var(--t-primary)' }} />,
               }}
             />
           </p>
@@ -264,11 +267,11 @@ export default function SubscribeModal({ teacher, onClose }) {
               {t('subscribeModal.teacherLabel')}
             </label>
             <div
-              dir="auto"
+              dir={teacherName.dir}
               className="w-full rounded-xl px-4 py-3 text-sm border font-semibold"
               style={{ ...inputStyle, opacity: 0.75, cursor: 'default' }}
             >
-              {teacher.name}
+              {teacherName.text}
             </div>
           </div>
 

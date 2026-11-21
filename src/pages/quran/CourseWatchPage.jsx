@@ -18,7 +18,7 @@ import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import WatchFocusLayout from './watch/WatchFocusLayout';
 import { useAuth } from '../../context/AuthContext';
 import { checkMyCourseAccess } from '../../services/studentsService';
-import { LocalizedLink, useLocalizedNavigate, useLocalizedPath } from '../../i18n';
+import { LocalizedLink, useLocalizedContent, useLocalizedNavigate, useLocalizedPath } from '../../i18n';
 
 function getCompletedLecturesStorageKey(courseId) {
   return courseId ? `completed_lectures_${courseId}` : '';
@@ -89,6 +89,7 @@ function clearCompletedLecturesFromStorage(courseId) {
 
 export default function CourseWatchPage() {
   const { t } = useTranslation('courseWatch');
+  const { text } = useLocalizedContent();
   const { courseSlug, lectureSlug } = useParams();
   const navigate = useLocalizedNavigate();
   const localizedPath = useLocalizedPath();
@@ -303,12 +304,12 @@ export default function CourseWatchPage() {
   // Update Page Document Title
   useEffect(() => {
     if (course) {
-      document.title = t('watch.documentTitle', { name: course.name });
+      document.title = t('watch.documentTitle', { name: text(course, 'name') });
       return;
     }
 
     document.title = t('watch.defaultDocumentTitle');
-  }, [course, t]);
+  }, [course, text, t]);
 
   // Keep the watch URL canonical with the lecture slug in the pathname.
   useEffect(() => {
@@ -376,8 +377,8 @@ export default function CourseWatchPage() {
   const handleSubscribe = () => {
     if (!course) return;
 
-    const text = t('watch.whatsappSubscribeMessage', { name: course.name });
-    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
+    const message = t('watch.whatsappSubscribeMessage', { name: text(course, 'name') });
+    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

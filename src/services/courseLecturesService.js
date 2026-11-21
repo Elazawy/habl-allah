@@ -40,6 +40,13 @@ function normalizeLectureIds(lectureIds = []) {
   return [...new Set(lectureIds.filter((lectureId) => typeof lectureId === 'string' && lectureId.trim() !== ''))];
 }
 
+function normalizeOptionalText(value) {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') return value ?? null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
 function normalizeLecture(lecture) {
   if (!lecture) return lecture;
 
@@ -52,7 +59,11 @@ function normalizeLecture(lecture) {
     ...lecture,
     slug: lecture.slug ?? '',
     title: lecture.title ?? '',
+    title_en: lecture.title_en ?? '',
+    title_tr: lecture.title_tr ?? '',
     description: lecture.description ?? '',
+    description_en: lecture.description_en ?? '',
+    description_tr: lecture.description_tr ?? '',
     youtube_url: lecture.youtube_url ?? lecture.video_url ?? '',
     r2_object_key: r2ObjectKey,
     original_file_name: originalFileName,
@@ -67,6 +78,12 @@ function normalizeLecture(lecture) {
 
 function normalizeLecturePayload(payload = {}) {
   const next = { ...payload };
+
+  for (const field of ['title_en', 'title_tr', 'description_en', 'description_tr']) {
+    if (field in payload) {
+      next[field] = normalizeOptionalText(payload[field]);
+    }
+  }
 
   if (next.r2_object_key === undefined && next.video_asset_key !== undefined) {
     next.r2_object_key = next.video_asset_key;

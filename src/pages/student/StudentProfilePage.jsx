@@ -11,6 +11,7 @@ import {
   LocalizedLink,
   useFormatters,
   useLanguage,
+  useLocalizedContent,
   useLocalizedNavigate,
 } from '../../i18n';
 
@@ -19,8 +20,12 @@ export default function StudentProfilePage() {
   const navigate = useLocalizedNavigate();
   const { language } = useLanguage();
   const { formatDate } = useFormatters();
+  const { latinName } = useLocalizedContent();
   const { t } = useTranslation(['student', 'common']);
   const countryOptions = getCountryOptions(language);
+  const teacherName = studentProfile?.teachers
+    ? latinName(studentProfile.teachers, 'name')
+    : null;
 
   const [fullName, setFullName] = useState('');
   const [country, setCountry] = useState('');
@@ -246,7 +251,7 @@ export default function StudentProfilePage() {
                   <span className="inline-flex items-center gap-1"><GraduationCap size={12} /> {t('profile.assignedTeacher')}</span>
                 </span>
                 <div
-                  dir="auto"
+                  dir={teacherName?.text ? teacherName.dir : undefined}
                   className="py-2.5 px-4 rounded-xl border text-sm font-bold"
                   style={{
                     backgroundColor: 'var(--t-bg-page)',
@@ -254,7 +259,7 @@ export default function StudentProfilePage() {
                     color: 'var(--t-text-muted)',
                   }}
                 >
-                  {studentProfile?.teachers?.name ?? t('profile.noTeacher')}
+                  {teacherName?.text || t('profile.noTeacher')}
                 </div>
               </div>
             </div>

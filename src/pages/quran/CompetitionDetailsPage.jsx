@@ -13,7 +13,7 @@ import CompetitionProgressLine from './CompetitionProgressLine';
 import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
 import { useAuth } from '../../context/AuthContext';
 import StudentCompetitionCelebration from '../../components/StudentCompetitionCelebration';
-import { LocalizedLink, DirectionalIcon, useFormatters } from '../../i18n';
+import { LocalizedLink, DirectionalIcon, useFormatters, useLocalizedContent } from '../../i18n';
 
 function getLoadErrorKey(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -37,6 +37,7 @@ export default function CompetitionDetailsPage() {
   const { slug } = useParams();
   const { t } = useTranslation('competitions');
   const { formatDate } = useFormatters();
+  const { field, text, latinName, options, optionLabel } = useLocalizedContent();
   const [resource, setResource] = useState({ slug: null, competition: null, errorKey: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('apply');
@@ -126,13 +127,13 @@ export default function CompetitionDetailsPage() {
     }
 
     if (competition) {
-      document.title = t('details.pageTitleWithName', { name: competition.name });
+      document.title = t('details.pageTitleWithName', { name: text(competition, 'name') });
     } else if (errorKey) {
       document.title = t('details.pageTitleError');
     } else {
       document.title = t('details.pageTitleDefault');
     }
-  }, [competition, errorKey, loading, t]);
+  }, [competition, errorKey, loading, t, text]);
 
   const refreshGuestParticipant = async () => {
     await markCompetitionRequestPending();
@@ -204,8 +205,10 @@ export default function CompetitionDetailsPage() {
   const activeGuest = guestParticipant;
 
   // ── Guest status helpers (defined before first use in registrationHint) ──
-  const guestStageName = (stageId) =>
-    stages.find((s) => s.id === stageId)?.name || '';
+  const guestStageName = (stageId) => {
+    const stage = stages.find((s) => s.id === stageId);
+    return stage ? text(stage, 'name') : '';
+  };
 
   function guestStatusHint(guest) {
     if (guest.status === 'pending') return t('details.guestStatus.pendingHint');
@@ -340,14 +343,20 @@ export default function CompetitionDetailsPage() {
     }
 
     if (activeGuest.status === 'completed') {
+      const compResolved = field(competition, 'name');
+      const levelResolved = activeGuest.level
+        ? optionLabel(competition, 'available_levels', activeGuest.level)
+        : null;
       return (
         <div className="mb-8">
           <StudentCompetitionCelebration
             studentName={activeGuest.student_name || t('details.celebrationFallbacks.participant')}
-            competitionName={competition?.name || t('details.celebrationFallbacks.competition')}
-            level={activeGuest.level || t('details.celebrationFallbacks.level')}
+            competitionName={compResolved.text || t('details.celebrationFallbacks.competition')}
+            competitionNameDir={compResolved.text ? compResolved.dir : undefined}
+            level={levelResolved?.text || t('details.celebrationFallbacks.level')}
+            levelDir={levelResolved?.text ? levelResolved.dir : undefined}
             finalRank={activeGuest.final_rank || 1}
-            teacherName={isStudent ? studentProfile?.teachers?.name || '' : ''}
+            teacherName={isStudent && studentProfile?.teachers ? latinName(studentProfile.teachers, 'name').text : ''}
           />
         </div>
       );
@@ -365,6 +374,12 @@ export default function CompetitionDetailsPage() {
     setModalMode('recover');
     setModalOpen(true);
   };
+
+  const compName = field(competition, 'name');
+  const completeDescription = field(competition, 'complete_description');
+  const awardsCompleteDescription = field(competition, 'awards_complete_description');
+  const participationTerms = field(competition, 'participation_terms');
+  const levelOptions = options(competition, 'available_levels');
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-300" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
@@ -396,8 +411,8 @@ export default function CompetitionDetailsPage() {
             
             {/* Header */}
             <div className="border-b pb-8 mb-8" style={{ borderColor: 'var(--t-border)' }}>
-              <h1 dir="auto" className={`text-2xl md:text-3xl leading-snug font-black ${hideDates ? 'mb-0' : 'mb-4'}`} style={{ color: 'var(--t-primary)' }}>
-                {competition.name}
+              <h1 dir={compName.dir} className={`text-2xl md:text-3xl leading-snug font-black ${hideDates ? 'mb-0' : 'mb-4'}`} style={{ color: 'var(--t-primary)' }}>
+                {compName.text}
               </h1>
               
               {/* Dates Panel */}
@@ -434,23 +449,23 @@ export default function CompetitionDetailsPage() {
             <div className="space-y-8">
               <div>
                 <h2 className="text-lg md:text-xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>{t('details.aboutTitle')}</h2>
-                <p dir="auto" className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
-                  {competition.complete_description}
+                <p dir={completeDescription.dir} className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
+                  {completeDescription.text}
                 </p>
               </div>
 
               {/* Competition Levels */}
-              {competition.available_levels && Array.isArray(competition.available_levels) && competition.available_levels.length > 0 && (
+              {levelOptions.length > 0 && (
                 <div className="p-6 rounded-2xl border" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border-gold)' }}>
                   <h2 className="text-lg md:text-xl font-black mb-3 flex items-center gap-2" style={{ color: 'var(--t-primary)' }}>
                     <Trophy size={20} className="text-amber-500" />
                     <span>{t('details.levelsTitle')}</span>
                   </h2>
                   <div className="flex flex-wrap gap-2.5 mt-2">
-                    {competition.available_levels.map((level, idx) => (
+                    {levelOptions.map((opt) => (
                       <span
-                        key={idx}
-                        dir="auto"
+                        key={opt.value}
+                        dir={opt.dir}
                         className="text-xs font-bold px-4.5 py-2.5 rounded-xl border transition-all duration-300 hover:scale-105"
                         style={{
                           backgroundColor: 'var(--t-bg-card)',
@@ -459,7 +474,7 @@ export default function CompetitionDetailsPage() {
                           boxShadow: '0 4px 12px var(--t-shadow-card)',
                         }}
                       >
-                        {level}
+                        {opt.label}
                       </span>
                     ))}
                   </div>
@@ -467,14 +482,14 @@ export default function CompetitionDetailsPage() {
               )}
 
               {/* Conditional Awards rendering */}
-              {competition.awards_complete_description && (
+              {awardsCompleteDescription.text && (
                 <div className="p-6 rounded-2xl border" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border-gold)' }}>
                   <h2 className="text-lg md:text-xl font-black mb-3 flex items-center gap-2" style={{ color: 'var(--t-secondary)' }}>
                     <Award size={20} />
                     <span>{t('details.awardsTitle')}</span>
                   </h2>
-                  <p dir="auto" className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
-                    {competition.awards_complete_description}
+                  <p dir={awardsCompleteDescription.dir} className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
+                    {awardsCompleteDescription.text}
                   </p>
                 </div>
               )}
@@ -484,8 +499,8 @@ export default function CompetitionDetailsPage() {
                   <ShieldCheck size={20} className="text-amber-500" />
                   <span>{t('details.termsTitle')}</span>
                 </h2>
-                <p dir="auto" className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
-                  {competition.participation_terms}
+                <p dir={participationTerms.dir} className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--t-text-muted)' }}>
+                  {participationTerms.text}
                 </p>
               </div>
             </div>

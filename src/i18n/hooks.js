@@ -2,6 +2,14 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE, LANGUAGE_DIR, LANGUAGE_LOCALE } from './config.js';
+import {
+  getLocalizedField,
+  getLocalizedOptionLabel,
+  resolveLocalizedField,
+  resolveLocalizedLatinName,
+  resolveLocalizedList,
+  resolveLocalizedOptions,
+} from './content.js';
 import { localizePath, normalizeLanguage } from './routing.js';
 
 export { LocalizedLink, LocalizedNavLink, DirectionalIcon } from './components.jsx';
@@ -94,5 +102,27 @@ export function useFormatters() {
   return useMemo(
     () => ({ formatDate, formatNumber, locale }),
     [formatDate, formatNumber, locale],
+  );
+}
+
+/**
+ * Returns memoized DB-content localization helpers bound to the active language.
+ */
+export function useLocalizedContent() {
+  const { language } = useLanguage();
+
+  return useMemo(
+    () => ({
+      language,
+      field: (record, fieldName) => resolveLocalizedField(record, fieldName, language),
+      text: (record, fieldName) => getLocalizedField(record, fieldName, language),
+      latinName: (record, fieldName = 'name', latinField = `${fieldName}_latin`) =>
+        resolveLocalizedLatinName(record, fieldName, latinField, language),
+      list: (record, fieldName) => resolveLocalizedList(record, fieldName, language),
+      options: (record, fieldName) => resolveLocalizedOptions(record, fieldName, language),
+      optionLabel: (record, fieldName, canonicalValue) =>
+        getLocalizedOptionLabel(record, fieldName, canonicalValue, language),
+    }),
+    [language],
   );
 }

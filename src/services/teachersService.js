@@ -28,6 +28,9 @@ function normalizeTeacher(teacher) {
 
   return {
     ...teacher,
+    name_latin: teacher.name_latin ?? null,
+    bio_en: teacher.bio_en ?? null,
+    bio_tr: teacher.bio_tr ?? null,
     teacher_reviews: reviews,
     reviews,
   };
@@ -40,7 +43,7 @@ export async function fetchTeachers(gender) {
     const { data, error } = await client
       .from('teachers')
       .select(`
-        id, name, gender, bio, photo_url,
+        id, name, name_latin, gender, bio, bio_en, bio_tr, photo_url,
         recitation_url, recitation_type, free_trial_enabled,
         teacher_reviews (*)
       `)
@@ -61,7 +64,7 @@ export async function fetchTeacherById(id) {
     const { data, error } = await client
       .from('teachers')
       .select(`
-        id, name, gender, bio, photo_url,
+        id, name, name_latin, gender, bio, bio_en, bio_tr, photo_url,
         recitation_url, recitation_type, free_trial_enabled,
         teacher_reviews (*)
       `)

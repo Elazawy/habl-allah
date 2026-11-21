@@ -8,6 +8,23 @@ function orderCompetitions(query) {
     .order('created_at', { ascending: true });
 }
 
+const OPTIONAL_COMPETITION_TEXT_FIELDS = [
+  'name_en',
+  'name_tr',
+  'short_description_en',
+  'short_description_tr',
+  'complete_description_en',
+  'complete_description_tr',
+  'awards_short_description',
+  'awards_short_description_en',
+  'awards_short_description_tr',
+  'awards_complete_description',
+  'awards_complete_description_en',
+  'awards_complete_description_tr',
+  'participation_terms_en',
+  'participation_terms_tr',
+];
+
 function normalizeOptionalText(value) {
   if (value === undefined) {
     return undefined;
@@ -21,34 +38,91 @@ function normalizeOptionalText(value) {
   return trimmedValue === '' ? null : trimmedValue;
 }
 
-function normalizeArrayOfStrings(value) {
+function normalizeArrayOfStringsWithIndices(value) {
   if (value === undefined) {
-    return undefined;
+    return { normalized: undefined, keptIndices: null };
   }
   if (!Array.isArray(value)) {
-    return [];
+    return { normalized: [], keptIndices: [] };
   }
   const seen = new Set();
   const normalized = [];
-  for (const item of value) {
+  const keptIndices = [];
+  for (let i = 0; i < value.length; i++) {
+    const item = value[i];
     if (typeof item === 'string') {
       const trimmed = item.trim();
       if (trimmed !== '' && !seen.has(trimmed)) {
         seen.add(trimmed);
         normalized.push(trimmed);
+        keptIndices.push(i);
       }
     }
   }
-  return normalized;
+  return { normalized, keptIndices };
+}
+
+/**
+ * Normalize a translation array aligned by index with `available_levels`.
+ * Trims each slot to a string up to `targetLength` (padding missing slots with ''),
+ * preserves empty slots for index alignment, and returns `null` when all slots are empty.
+ */
+function normalizeAlignedStringArray(value, targetLength) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const length = targetLength ?? value.length;
+  const aligned = Array.from({ length }, (_, index) => {
+    const item = value[index];
+    return typeof item === 'string' ? item.trim() : '';
+  });
+  return aligned.every((item) => item === '') ? null : aligned;
+}
+
+function normalizeAlignedLevels(value, rawLevels, keptIndices, targetLength) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const source = Array.isArray(rawLevels) && keptIndices
+    ? keptIndices.map((index) => value[index])
+    : value;
+  return normalizeAlignedStringArray(source, targetLength);
 }
 
 function normalizeCompetitionPayload(payload = {}) {
+  const { normalized: normalizedLevels, keptIndices } = normalizeArrayOfStringsWithIndices(
+    payload.available_levels
+  );
+  const targetLength = Array.isArray(normalizedLevels) ? normalizedLevels.length : undefined;
+
   const normalizedPayload = {
     ...payload,
-    awards_short_description: normalizeOptionalText(payload.awards_short_description),
-    awards_complete_description: normalizeOptionalText(payload.awards_complete_description),
-    available_levels: normalizeArrayOfStrings(payload.available_levels),
+    available_levels: normalizedLevels,
+    available_levels_en: normalizeAlignedLevels(
+      payload.available_levels_en,
+      payload.available_levels,
+      keptIndices,
+      targetLength
+    ),
+    available_levels_tr: normalizeAlignedLevels(
+      payload.available_levels_tr,
+      payload.available_levels,
+      keptIndices,
+      targetLength
+    ),
   };
+
+  for (const field of OPTIONAL_COMPETITION_TEXT_FIELDS) {
+    if (field in payload) {
+      normalizedPayload[field] = normalizeOptionalText(payload[field]);
+    }
+  }
 
   return Object.fromEntries(
     Object.entries(normalizedPayload).filter(([, value]) => value !== undefined)
@@ -77,7 +151,7 @@ export async function fetchPublishedCompetitions() {
   const { data, error } = await orderCompetitions(
     client
       .from('quran_competitions')
-      .select('id, slug, name, short_description, start_date, registration_deadline, awards_short_description, sort_order, created_at, available_levels')
+      .select('id, slug, name, name_en, name_tr, short_description, short_description_en, short_description_tr, start_date, registration_deadline, awards_short_description, awards_short_description_en, awards_short_description_tr, sort_order, created_at, available_levels, available_levels_en, available_levels_tr')
       .eq('is_published', true)
   );
 
@@ -262,15 +336,23 @@ export async function fetchCompetitionStages(competitionId) {
 
 export async function createCompetitionStage(payload) {
   const client = ensureSupabaseClient();
+  const insertPayload = {
+    competition_id: payload.competition_id,
+    name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
+    name_en: normalizeOptionalText(payload.name_en),
+    name_tr: normalizeOptionalText(payload.name_tr),
+    description: normalizeOptionalText(payload.description),
+    description_en: normalizeOptionalText(payload.description_en),
+    description_tr: normalizeOptionalText(payload.description_tr),
+    deadline: payload.deadline || null,
+    sort_order: payload.sort_order ?? 0,
+  };
+  const cleanInsert = Object.fromEntries(
+    Object.entries(insertPayload).filter(([, value]) => value !== undefined)
+  );
   const { data, error } = await client
     .from('competition_stages')
-    .insert([{
-      competition_id: payload.competition_id,
-      name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
-      description: normalizeOptionalText(payload.description),
-      deadline: payload.deadline || null,
-      sort_order: payload.sort_order ?? 0,
-    }])
+    .insert([cleanInsert])
     .select('*')
     .single();
 
@@ -288,8 +370,20 @@ export async function updateCompetitionStage(id, payload) {
   if (payload.name !== undefined) {
     updates.name = typeof payload.name === 'string' ? payload.name.trim() : payload.name;
   }
+  if (payload.name_en !== undefined) {
+    updates.name_en = normalizeOptionalText(payload.name_en);
+  }
+  if (payload.name_tr !== undefined) {
+    updates.name_tr = normalizeOptionalText(payload.name_tr);
+  }
   if (payload.description !== undefined) {
     updates.description = normalizeOptionalText(payload.description);
+  }
+  if (payload.description_en !== undefined) {
+    updates.description_en = normalizeOptionalText(payload.description_en);
+  }
+  if (payload.description_tr !== undefined) {
+    updates.description_tr = normalizeOptionalText(payload.description_tr);
   }
   if (payload.deadline !== undefined) {
     updates.deadline = payload.deadline || null;
@@ -342,7 +436,7 @@ export async function checkStageHasStudents(stageId) {
 export async function fetchStudentStageAssignments(competitionId) {
   const { data, error } = await ensureSupabaseClient()
     .from('competition_guest_participants')
-    .select('*, student_profiles(id, full_name, phone), competition_stages(id, name, sort_order)')
+    .select('*, student_profiles(id, full_name, phone), competition_stages(id, name, name_en, name_tr, description, description_en, description_tr, sort_order)')
     .eq('competition_id', competitionId)
     .not('student_id', 'is', null)
     .in('status', ['active', 'failed', 'completed'])
@@ -560,7 +654,7 @@ export async function fetchMyStageAssignment(competitionId) {
 
   const { data, error } = await client
     .from('competition_guest_participants')
-    .select('*, competition_stages(id, name, sort_order)')
+    .select('*, competition_stages(id, name, name_en, name_tr, description, description_en, description_tr, sort_order)')
     .eq('student_id', user.id)
     .eq('competition_id', competitionId)
     .in('status', ['active', 'failed', 'completed'])

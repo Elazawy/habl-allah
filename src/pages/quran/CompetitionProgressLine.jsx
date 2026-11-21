@@ -1,5 +1,6 @@
 import { Check, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useLocalizedContent } from '../../i18n';
 
 // How each stage renders given the participant status.
 // preview/pending → all neutral; active → past green, current highlighted;
@@ -64,6 +65,7 @@ const TONE_STYLES = {
 // status: preview | pending | accepted | active | rejected | failed | completed
 export default function CompetitionProgressLine({ stages, currentStageId, status = 'preview' }) {
   const { t } = useTranslation('competitionsShared');
+  const { field } = useLocalizedContent();
 
   if (!Array.isArray(stages) || stages.length === 0) {
     return null;
@@ -90,6 +92,7 @@ export default function CompetitionProgressLine({ stages, currentStageId, status
           const tone = TONE_STYLES[visual.tone] ?? TONE_STYLES.neutral;
           const isCurrent = status === 'active' && index === currentIndex;
           const isLast = index === stages.length - 1;
+          const stageName = field(stage, 'name');
 
           return (
             <div key={stage.id} role="listitem" className="flex items-start" style={{ flex: isLast ? '0 0 auto' : '1 1 0' }}>
@@ -117,7 +120,7 @@ export default function CompetitionProgressLine({ stages, currentStageId, status
                   {!visual.icon && <span className="text-xs">{index + 1}</span>}
                 </div>
                 <span
-                  dir="auto"
+                  dir={stageName.dir}
                   className="mt-2 text-center font-semibold leading-snug"
                   style={{
                     fontSize: '0.7rem',
@@ -126,7 +129,7 @@ export default function CompetitionProgressLine({ stages, currentStageId, status
                     overflowWrap: 'break-word',
                   }}
                 >
-                  {stage.name}
+                  {stageName.text}
                 </span>
               </div>
 

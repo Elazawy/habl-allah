@@ -7,11 +7,12 @@ import DarkModeToggle from '../components/DarkModeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import Footer from '../components/Footer';
 import logoGold from '../assets/logo-gold.png';
-import { DirectionalIcon, LocalizedLink, useFormatters } from '../i18n';
+import { DirectionalIcon, LocalizedLink, useFormatters, useLocalizedContent } from '../i18n';
 
 export default function PrivacyPolicyPage() {
   const { t } = useTranslation(['legal', 'common']);
   const { formatDate } = useFormatters();
+  const { field } = useLocalizedContent();
   const [page, setPage] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +26,9 @@ export default function PrivacyPolicyPage() {
   useEffect(() => {
     document.title = t('legal:privacy.pageTitle');
   }, [t]);
+
+  const pageTitle = page ? field(page, 'title') : null;
+  const pageContent = page ? field(page, 'content') : null;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
@@ -53,8 +57,8 @@ export default function PrivacyPolicyPage() {
           <div className="faq-hero-icon-wrap">
             <Shield size={48} />
           </div>
-          <h1 className="faq-hero-title" dir={page?.title ? 'auto' : undefined}>
-            {page?.title ?? t('legal:privacy.heading')}
+          <h1 className="faq-hero-title" dir={pageTitle?.text ? pageTitle.dir : undefined}>
+            {pageTitle?.text || t('legal:privacy.heading')}
           </h1>
           <p className="faq-hero-subtitle">
             {t('legal:privacy.subtitle')}
@@ -76,8 +80,8 @@ export default function PrivacyPolicyPage() {
               <span style={{ color: 'var(--t-text-muted)' }}>{t('legal:loading')}</span>
             </div>
           ) : page ? (
-            <div className="page-content-body" dir="auto">
-              {renderSafeMarkdown(page.content)}
+            <div className="page-content-body" dir={pageContent.dir}>
+              {renderSafeMarkdown(pageContent.text)}
             </div>
           ) : (
             <div className="faq-empty">
