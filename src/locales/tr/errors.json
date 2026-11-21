@@ -1,0 +1,69 @@
+{
+  "validation": {
+    "invalidStudentName": "Lütfen öğrencinin adını girin (en fazla 200 karakter).",
+    "invalidWhatsapp": "Lütfen uluslararası numaralar için ülke kodu dahil 10 ila 15 haneli geçerli bir WhatsApp numarası girin.",
+    "invalidAge": "Lütfen 5 ile 99 arasında geçerli bir yaş girin veya boş bırakın.",
+    "descriptionTooLong": "Lütfen açıklamanızı en fazla 4.000 karakter olacak şekilde kısaltın."
+  },
+  "edge": {
+    "METHOD_NOT_ALLOWED": "Bu istek yöntemine izin verilmiyor.",
+    "INVALID_JSON_BODY": "Geçersiz istek verisi.",
+    "INVALID_REQUEST_BODY": "Geçersiz istek verisi.",
+    "TEACHER_ID_NOT_ACCEPTED": "Kayıt sırasında öğretmen seçimi yapılamaz.",
+    "MISSING_REQUIRED_FIELDS": "Lütfen tüm zorunlu alanları doldurun.",
+    "INVALID_PHONE": "Telefon numarası 10 ile 15 hane arasında olmalıdır.",
+    "INVALID_FULL_NAME": "Ad soyad en az 2 karakter olmalıdır.",
+    "PASSWORD_TOO_SHORT": "Şifre en az 6 karakter olmalıdır.",
+    "INVALID_GENDER": "Lütfen geçerli bir cinsiyet seçin.",
+    "INVALID_COUNTRY": "Lütfen listeden bir ülke seçin.",
+    "INVALID_BIRTH_DATE": "Lütfen geçerli bir doğum tarihi girin.",
+    "PHONE_ALREADY_REGISTERED": "Bu telefon numarası zaten kayıtlı.",
+    "AUTH_CREATE_FAILED": "Hesabınız şu anda oluşturulamıyor. Lütfen tekrar deneyin.",
+    "PROFILE_CREATE_FAILED": "Öğrenci profili otomatik olarak oluşturulamadı.",
+    "INVALID_LECTURE_ID": "Geçersiz ders kimliği.",
+    "LECTURE_NOT_FOUND": "Ders bulunamadı veya kullanılamıyor.",
+    "VIDEO_NOT_AVAILABLE": "Ders videosu şu anda kullanılamıyor.",
+    "INTERNAL_ERROR": "Sunucuda dahili bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+  },
+  "students": {
+    "actionSignUp": "hesap oluşturma",
+    "serviceNotEnabled": "{{action}} hizmeti henüz arka uçta etkin değil. İlgili Edge Function'ı bağlayıp tekrar deneyin.",
+    "actionFailed": "{{action}} işlemi şu anda tamamlanamıyor.",
+    "adminCreateFailed": "Hesap oluşturulurken bir hata oluştu.",
+    "adminResetPasswordFailed": "Şifre sıfırlanırken bir hata oluştu.",
+    "adminDeleteFailed": "Hesap silinirken bir hata oluştu."
+  },
+  "teachers": {
+    "requestsUnavailable": "Talep gönderme hizmeti şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin."
+  },
+  "lectureQuestions": {
+    "loginRequired": "Soru sormak için giriş yapmalısınız."
+  },
+  "courseLectures": {
+    "featureUploadVideo": "video yükleme",
+    "featurePlayVideo": "video oynatma",
+    "featureDeleteVideo": "video dosyasını silme",
+    "featureDeleteVideos": "video dosyalarını silme",
+    "serviceNotEnabled": "{{feature}} hizmeti henüz arka uçta etkin değil. İlgili Edge Function'ı bağlayıp tekrar deneyin.",
+    "actionFailed": "{{feature}} işlemi şu anda tamamlanamıyor.",
+    "storageCorsError": "Video dosyası depolama alanına yüklenemedi. Cloudflare R2 CORS ayarları bu kaynaktan PUT isteklerine henüz izin vermiyor gibi görünüyor. Mevcut Origin ile PUT ve Content-Type değerlerini bucket CORS politikasına ekleyip tekrar deneyin.",
+    "storageConnectionError": "Bağlantı hatası nedeniyle video dosyası depolama alanına yüklenemedi.",
+    "storageSignatureMismatch": "İmzalı yükleme bağlantısı veya gerekli başlıklar beklenen imzayla eşleşmediği için video dosyası yüklenemedi.",
+    "storageAccessDenied": "Depolama hizmeti erişimi reddettiği için video dosyası yüklenemedi.",
+    "storageWithDetails": "Video dosyası depolama alanına yüklenemedi ({{details}}).",
+    "storageHttpStatus": "Video dosyası depolama alanına yüklenemedi (HTTP {{status}}).",
+    "uploadAborted": "Video yükleme işlemi tamamlanmadan iptal edildi.",
+    "selectVideoFirst": "Lütfen önce bir video dosyası seçin.",
+    "mp4Only": "Şu anda yalnızca MP4 video formatı desteklenmektedir.",
+    "invalidUploadUrl": "Video yükleme hizmeti geçerli bir yükleme bağlantısı döndürmedi.",
+    "missingUploadMetadata": "Video yükleme hizmeti kaydetmek için gerekli video bilgilerini döndürmedi.",
+    "invalidPlaybackUrl": "Video oynatma hizmeti geçerli bir izleme bağlantısı döndürmedi."
+  },
+  "competitions": {
+    "studentStageRequired": "Öğrencinin taşınacağı aşama belirtilmelidir.",
+    "invalidStudentStatus": "Öğrenci durumu geçersiz.",
+    "guestStageRequired": "Katılımcının taşınacağı aşama belirtilmelidir.",
+    "invalidGuestStatus": "Katılımcı durumu geçersiz.",
+    "noChangesRequested": "İstenen bir değişiklik yok."
+  }
+}

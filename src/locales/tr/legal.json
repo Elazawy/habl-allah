@@ -1,0 +1,17 @@
+{
+  "backToHomeAria": "Ana sayfaya dön",
+  "homeLink": "Ana Sayfa",
+  "loading": "Yükleniyor…",
+  "notFound": "İçerik bulunamadı",
+  "lastUpdated": "Son güncelleme: {{date}}",
+  "terms": {
+    "pageTitle": "Kullanım Koşulları — Habl Allah Akademisi",
+    "heading": "Kullanım Koşulları",
+    "subtitle": "Habl Allah Akademisi eğitim platformlarının kullanımını düzenleyen şartlar ve koşullar"
+  },
+  "privacy": {
+    "pageTitle": "Gizlilik Politikası — Habl Allah Akademisi",
+    "heading": "Gizlilik Politikası",
+    "subtitle": "Habl Allah Akademisi'nde verilerinizi nasıl koruduğumuz ve gizliliğinize nasıl saygı gösterdiğimiz"
+  }
+}

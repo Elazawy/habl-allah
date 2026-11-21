@@ -34,4 +34,33 @@ export default defineConfig([
       'no-unused-vars': 'warn',
     },
   },
+  {
+    files: ["src/**/*.{js,jsx}"],
+    ignores: [
+      "src/pages/admin/**",
+      "src/locales/**",
+      "src/i18n/**",
+      "src/data/countries.js",
+      "src/data/teachers.js",
+      "src/services/adminService.js",
+      "src/services/studentRequestsService.js",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXText[value=/[\\u0600-\\u06FF]/]",
+          message: "Hardcoded Arabic text: move it to src/locales and use t()",
+        },
+        {
+          selector: "Literal[value=/[\\u0600-\\u06FF]/]",
+          message: "Hardcoded Arabic text: move it to src/locales and use t()",
+        },
+        {
+          selector: "TemplateElement[value.raw=/[\\u0600-\\u06FF]/]",
+          message: "Hardcoded Arabic text: move it to src/locales and use t()",
+        },
+      ],
+    },
+  },
 ]);

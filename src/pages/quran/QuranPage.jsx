@@ -17,7 +17,7 @@ export default function QuranPage() {
   const isStudentWithoutTeacher = isStudent && studentProfile && !studentProfile.teacher_id;
 
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
       <main>
         <QuranHero />

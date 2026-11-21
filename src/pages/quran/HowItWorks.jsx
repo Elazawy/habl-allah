@@ -1,28 +1,29 @@
 import { UserSearch, CalendarDays, PlayCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useFormatters } from '../../i18n';
 import { useReveal } from '../../hooks/useReveal';
 
-const steps = [
+const STEP_ITEMS = [
   {
+    key: 'chooseTeacher',
     icon: <UserSearch size={28} />,
-    title: 'اختر معلمك المفضل',
-    desc: 'تصفح ملفات المعلمين واختر من يناسب أسلوبك',
-    num: '١',
+    number: 1,
   },
   {
+    key: 'schedule',
     icon: <CalendarDays size={28} />,
-    title: 'حدد موعدك المناسب',
-    desc: 'جدولة مرنة تناسب أوقاتك، متاح على مدار الساعة',
-    num: '٢',
+    number: 2,
   },
   {
+    key: 'startLearning',
     icon: <PlayCircle size={28} />,
-    title: 'ابدأ التعلم',
-    desc: 'انطلق في رحلتك القرآنية بجلسات مباشرة وتفاعلية',
-    num: '٣',
+    number: 3,
   },
 ];
 
 export default function HowItWorks() {
+  const { t } = useTranslation('quranHome');
+  const { formatNumber } = useFormatters();
   const ref = useReveal();
 
   return (
@@ -31,7 +32,7 @@ export default function HowItWorks() {
         {/* Header */}
         <div className="text-center mb-16 reveal">
           <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
-            كيف تبدأ رحلتك
+            {t('howItWorks.heading')}
           </h2>
           <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: 'var(--t-secondary)' }} />
         </div>
@@ -40,13 +41,13 @@ export default function HowItWorks() {
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Dashed connector line (desktop only) */}
           <div
-            className="hidden md:block absolute top-10 left-0 right-0 h-px border-t border-dashed"
+            className="hidden md:block absolute top-10 inset-x-0 h-px border-t border-dashed"
             style={{ borderColor: 'rgba(207, 167, 103, 0.3)', zIndex: 0 }}
           />
 
-          {steps.map((s, i) => (
+          {STEP_ITEMS.map((s, i) => (
             <div
-              key={s.num}
+              key={s.key}
               className={`reveal reveal-d${i + 1} relative z-10 flex flex-col items-center text-center`}
             >
               {/* Step circle */}
@@ -61,18 +62,18 @@ export default function HowItWorks() {
                 {s.icon}
                 {/* Step number badge */}
                 <span
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white"
+                  className="absolute -top-2 -start-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white"
                   style={{ backgroundColor: 'var(--t-secondary)' }}
                 >
-                  {s.num}
+                  {formatNumber(s.number)}
                 </span>
               </div>
 
               <h3 className="text-xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>
-                {s.title}
+                {t(`howItWorks.steps.${s.key}.title`)}
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>
-                {s.desc}
+                {t(`howItWorks.steps.${s.key}.desc`)}
               </p>
             </div>
           ))}

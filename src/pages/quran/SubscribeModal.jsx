@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { X, Loader2, ExternalLink } from 'lucide-react';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { submitSubscriptionRequest } from '../../services/teachersService';
@@ -63,6 +64,7 @@ function navigateToWhatsApp(target, url) {
  *  for academy follow-up if the student doesn't complete the WA send).
  */
 export default function SubscribeModal({ teacher, onClose }) {
+  const { t } = useTranslation('teachers');
   const [values, setValues] = useState({ student_name: '', whatsapp: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
@@ -166,7 +168,10 @@ export default function SubscribeModal({ teacher, onClose }) {
     setError('');
 
     // Build WhatsApp message: teacher name + student name only
-    const message = `مرحباً، أود الاشتراك مع ${teacher.name}.\nالاسم: ${contact.student_name}`;
+    const message = t('subscribeModal.whatsappMessage', {
+      teacherName: teacher.name,
+      studentName: contact.student_name,
+    });
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
     // Must happen before the await to stay inside the click's user activation.
@@ -207,7 +212,7 @@ export default function SubscribeModal({ teacher, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       aria-modal="true"
       role="dialog"
-      aria-label="طلب اشتراك"
+      aria-label={t('subscribeModal.title')}
     >
       {/* Panel */}
       <div
@@ -222,9 +227,9 @@ export default function SubscribeModal({ teacher, onClose }) {
         <button
           onClick={onClose}
           id="subscribe-modal-close"
-          className="absolute top-5 left-5 p-2 rounded-full transition-colors hover:opacity-70"
+          className="absolute top-5 end-5 p-2 rounded-full transition-colors hover:opacity-70"
           style={{ color: 'var(--t-text-muted)' }}
-          aria-label="إغلاق"
+          aria-label={t('subscribeModal.closeAriaLabel')}
         >
           <X size={20} />
         </button>
@@ -238,10 +243,17 @@ export default function SubscribeModal({ teacher, onClose }) {
             <ExternalLink size={24} style={{ color: 'var(--t-primary)' }} />
           </div>
           <h2 className="text-xl font-black mb-1" style={{ color: 'var(--t-text)' }}>
-            طلب اشتراك
+            {t('subscribeModal.title')}
           </h2>
           <p className="text-sm" style={{ color: 'var(--t-text-muted)' }}>
-            مع <span className="font-bold" style={{ color: 'var(--t-primary)' }}>{teacher.name}</span>
+            <Trans
+              i18nKey="subscribeModal.withTeacher"
+              ns="teachers"
+              values={{ name: teacher.name }}
+              components={{
+                teacher: <span dir="auto" className="font-bold" style={{ color: 'var(--t-primary)' }} />,
+              }}
+            />
           </p>
         </div>
 
@@ -249,9 +261,10 @@ export default function SubscribeModal({ teacher, onClose }) {
           {/* Teacher name — read only */}
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--t-text-subtle)' }}>
-              المعلم
+              {t('subscribeModal.teacherLabel')}
             </label>
             <div
+              dir="auto"
               className="w-full rounded-xl px-4 py-3 text-sm border font-semibold"
               style={{ ...inputStyle, opacity: 0.75, cursor: 'default' }}
             >
@@ -266,7 +279,7 @@ export default function SubscribeModal({ teacher, onClose }) {
               className="block text-xs font-semibold mb-1.5"
               style={{ color: 'var(--t-text-muted)' }}
             >
-              اسمك <span style={{ color: '#ef4444' }}>*</span>
+              {t('subscribeModal.studentNameLabel')} <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               id="sub-student-name"
@@ -275,7 +288,7 @@ export default function SubscribeModal({ teacher, onClose }) {
               required
               maxLength={200}
               autoComplete="name"
-              placeholder="اكتب اسمك الكامل…"
+              placeholder={t('subscribeModal.studentNamePlaceholder')}
               value={values.student_name}
               onChange={handleChange}
               className="w-full rounded-xl px-4 py-3 text-sm border outline-none transition-all duration-200 focus:ring-2"
@@ -290,7 +303,7 @@ export default function SubscribeModal({ teacher, onClose }) {
               className="block text-xs font-semibold mb-1.5"
               style={{ color: 'var(--t-text-muted)' }}
             >
-              رقم واتساب <span style={{ color: '#ef4444' }}>*</span>
+              {t('subscribeModal.whatsappLabel')} <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               id="sub-whatsapp"
@@ -299,7 +312,7 @@ export default function SubscribeModal({ teacher, onClose }) {
               required
               maxLength={30}
               autoComplete="tel"
-              placeholder="مثال: 01012345678"
+              placeholder={t('subscribeModal.whatsappPlaceholder')}
               value={values.whatsapp}
               onChange={handleChange}
               className="w-full rounded-xl px-4 py-3 text-sm border outline-none transition-all duration-200 focus:ring-2"
@@ -307,7 +320,7 @@ export default function SubscribeModal({ teacher, onClose }) {
               dir="ltr"
             />
             <p className="text-[11px] mt-1.5" style={{ color: 'var(--t-text-subtle)' }}>
-              للمتابعة من فريق الأكاديمية. أضف رمز الدولة إذا كان رقمك خارج مصر.
+              {t('subscribeModal.whatsappHint')}
             </p>
           </div>
 
@@ -335,7 +348,7 @@ export default function SubscribeModal({ teacher, onClose }) {
                 <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.555 4.116 1.528 5.847L.057 23.213a.75.75 0 0 0 .93.93l5.366-1.471A11.943 11.943 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.732 9.732 0 0 1-5.26-1.534l-.377-.224-3.912 1.072 1.072-3.912-.224-.377A9.732 9.732 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
               </svg>
             )}
-            {loading ? 'جارٍ الإرسال…' : 'طلب اشتراك مع المعلم'}
+            {loading ? t('subscribeModal.submitting') : t('subscribeModal.submitButton')}
           </button>
         </form>
       </div>

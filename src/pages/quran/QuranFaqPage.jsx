@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import { fetchFaqs } from '../../services/faqService';
 import QuranNav from './QuranNav';
@@ -13,7 +14,7 @@ function AccordionItem({ faq, isOpen, onToggle }) {
         aria-expanded={isOpen}
         aria-controls={`quran-faq-answer-${faq.id}`}
       >
-        <span className="faq-accordion-question">{faq.question}</span>
+        <span className="faq-accordion-question" dir="auto">{faq.question}</span>
         <ChevronDown
           size={20}
           className={`faq-accordion-chevron ${isOpen ? 'faq-accordion-chevron--open' : ''}`}
@@ -24,13 +25,14 @@ function AccordionItem({ faq, isOpen, onToggle }) {
         className={`faq-accordion-panel ${isOpen ? 'faq-accordion-panel--open' : ''}`}
         role="region"
       >
-        <div className="faq-accordion-answer">{faq.answer}</div>
+        <div className="faq-accordion-answer" dir="auto">{faq.answer}</div>
       </div>
     </div>
   );
 }
 
 export default function QuranFaqPage() {
+  const { t } = useTranslation('faq');
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
@@ -51,15 +53,15 @@ export default function QuranFaqPage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'الأسئلة الشائعة — منصة حبل الله لتحفيظ القرآن';
-  }, []);
+    document.title = t('quran.pageTitle');
+  }, [t]);
 
   const toggleItem = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
   };
 
   return (
-    <div dir="rtl" className="faq-page-shell" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+    <div className="faq-page-shell" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
 
       {/* Hero */}
@@ -68,9 +70,9 @@ export default function QuranFaqPage() {
           <div className="faq-hero-icon-wrap faq-hero-icon-wrap--quran">
             <HelpCircle size={48} />
           </div>
-          <h1 className="faq-hero-title">الأسئلة الشائعة</h1>
+          <h1 className="faq-hero-title">{t('quran.heading')}</h1>
           <p className="faq-hero-subtitle">
-            إجابات على الأسئلة الأكثر شيوعاً حول منصة حبل الله لتحفيظ القرآن الكريم
+            {t('quran.subtitle')}
           </p>
         </div>
       </section>
@@ -81,12 +83,12 @@ export default function QuranFaqPage() {
           {loading ? (
             <div className="faq-loading">
               <div className="admin-spinner-lg" />
-              <span style={{ color: 'var(--t-text-muted)' }}>جارٍ تحميل الأسئلة…</span>
+              <span style={{ color: 'var(--t-text-muted)' }}>{t('loading')}</span>
             </div>
           ) : faqs.length === 0 ? (
             <div className="faq-empty">
               <HelpCircle size={48} />
-              <p>لا توجد أسئلة شائعة حالياً</p>
+              <p>{t('empty')}</p>
             </div>
           ) : (
             <div className="faq-accordion">

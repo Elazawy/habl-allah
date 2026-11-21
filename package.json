@@ -8,13 +8,16 @@
     "build": "vite build",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "i18n:check": "node scripts/check-locales.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
+    "i18next": "^27.2.2",
     "lucide-react": "^1.16.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-i18next": "^18.0.3",
     "react-router-dom": "^7.16.0"
   },
   "devDependencies": {

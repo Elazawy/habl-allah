@@ -1,57 +1,55 @@
 import { ShieldCheck, Clock, TrendingUp, BadgeCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import studentTablet from '../../assets/student-tablet.png';
 import { useReveal } from '../../hooks/useReveal';
 
-const features = [
+const FEATURE_ITEMS = [
   {
+    key: 'eliteTeachers',
     icon: <BadgeCheck size={22} />,
-    title: 'نخبة المعلمين',
-    desc: 'معلمون معتمدون ومجازون في القراءات العشر مع خبرة سنوات.',
   },
   {
+    key: 'safeEnvironment',
     icon: <ShieldCheck size={22} />,
-    title: 'بيئة آمنة',
-    desc: 'خصوصية كاملة للطلاب والطالبات في بيئة تعليمية وقورة.',
   },
   {
+    key: 'flexibleTimes',
     icon: <Clock size={22} />,
-    title: 'أوقات مرنة',
-    desc: 'اختر المواعيد التي تناسب جدول يومك، متاحون على مدار الساعة.',
   },
   {
+    key: 'progressTracking',
     icon: <TrendingUp size={22} />,
-    title: 'متابعة التقدم',
-    desc: 'تقارير دورية وشاملة لمستوى الطالب وتطوره في الحفظ والتجويد.',
   },
 ];
 
 export default function WhyChooseUs() {
+  const { t } = useTranslation('quranHome');
   const ref = useReveal();
 
   return (
-    <section ref={ref} className="py-24 px-5 md:px-8" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
+    <section ref={ref} className="py-24 px-5 md:px-8 overflow-x-clip" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-14">
 
-        {/* Image — slides in from left */}
+        {/* Image */}
         <div className="reveal-right w-full md:w-5/12 order-2 md:order-1">
           <div className="rounded-[2.5rem] overflow-hidden shadow-2xl">
             <img
               src={studentTablet}
-              alt="طالب يتعلم القرآن الكريم على الجهاز اللوحي"
+              alt={t('whyChooseUs.imageAlt')}
               className="w-full h-full object-cover"
             />
           </div>
         </div>
 
-        {/* Features — slides in from right */}
+        {/* Features */}
         <div className="reveal-left w-full md:w-7/12 order-1 md:order-2">
           <h2 className="text-4xl font-black mb-12" style={{ color: 'var(--t-primary)' }}>
-            لماذا يختار الدارسون أكاديميتنا؟
+            {t('whyChooseUs.heading')}
           </h2>
           <div className="space-y-8">
-            {features.map((f, i) => (
+            {FEATURE_ITEMS.map((f, i) => (
               <div
-                key={f.title}
+                key={f.key}
                 className={`reveal reveal-d${i + 1} flex items-start gap-5 group`}
               >
                 {/* Icon badge */}
@@ -63,10 +61,10 @@ export default function WhyChooseUs() {
                 </div>
                 <div>
                   <h4 className="text-xl font-black mb-1" style={{ color: 'var(--t-primary)' }}>
-                    {f.title}
+                    {t(`whyChooseUs.features.${f.key}.title`)}
                   </h4>
                   <p className="text-base leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>
-                    {f.desc}
+                    {t(`whyChooseUs.features.${f.key}.desc`)}
                   </p>
                 </div>
               </div>

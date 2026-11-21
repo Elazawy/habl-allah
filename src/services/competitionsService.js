@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import { supabase, publicSupabase } from '../lib/supabase';
 
 function orderCompetitions(query) {
@@ -225,7 +226,10 @@ export async function subscribeStudentToCompetition(studentId, competitionId) {
     .from('competition_guest_participants')
     .insert({ student_id: studentId, competition_id: competitionId,
       student_name: profile.full_name, student_phone: profile.phone,
-      normalized_phone: profile.phone, level: 'المستوى العام', status: 'accepted' })
+      normalized_phone: profile.phone,
+      // eslint-disable-next-line no-restricted-syntax -- DB column default value for competition_guest_participants.level
+      level: 'المستوى العام',
+      status: 'accepted' })
     .select('*')
     .single();
 
@@ -443,14 +447,14 @@ export async function updateStudentAssignment(studentId, competitionId, { stageI
 
   if (stageId !== undefined) {
     if (!stageId) {
-      throw new Error('يجب تحديد المرحلة المطلوب نقل الطالب إليها.');
+      throw new Error(i18n.t('errors:competitions.studentStageRequired'));
     }
     updates.current_stage_id = stageId;
   }
 
   if (status !== undefined) {
     if (!STUDENT_ASSIGNMENT_STATUSES.includes(status)) {
-      throw new Error('حالة الطالب غير صحيحة.');
+      throw new Error(i18n.t('errors:competitions.invalidStudentStatus'));
     }
     updates.status = status;
     // The final ranking only means anything for students who finished the
@@ -461,7 +465,7 @@ export async function updateStudentAssignment(studentId, competitionId, { stageI
   }
 
   if (stageId === undefined && status === undefined) {
-    throw new Error('لا يوجد تغيير مطلوب.');
+    throw new Error(i18n.t('errors:competitions.noChangesRequested'));
   }
 
   const { data, error } = await client
@@ -878,14 +882,14 @@ export async function updateGuestParticipantAssignment(participantId, { stageId,
 
   if (stageId !== undefined) {
     if (!stageId) {
-      throw new Error('يجب تحديد المرحلة المطلوب نقل المشارك إليها.');
+      throw new Error(i18n.t('errors:competitions.guestStageRequired'));
     }
     updates.current_stage_id = stageId;
   }
 
   if (status !== undefined) {
     if (!GUEST_PARTICIPANT_STATUSES.includes(status)) {
-      throw new Error('حالة المشارك غير صحيحة.');
+      throw new Error(i18n.t('errors:competitions.invalidGuestStatus'));
     }
     updates.status = status;
     if (status === 'rejected') {
@@ -900,7 +904,7 @@ export async function updateGuestParticipantAssignment(participantId, { stageId,
   }
 
   if (stageId === undefined && status === undefined) {
-    throw new Error('لا يوجد تغيير مطلوب.');
+    throw new Error(i18n.t('errors:competitions.noChangesRequested'));
   }
 
   const { data, error } = await client

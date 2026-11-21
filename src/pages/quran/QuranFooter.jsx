@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import logoGold from '../../assets/logo-gold.png';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { LocalizedLink } from '../../i18n';
 
 // WhatsApp SVG icon
 function WhatsAppIcon({ size = 18 }) {
@@ -32,44 +34,61 @@ function FacebookIcon({ size = 18 }) {
   );
 }
 
-const navLinks = [
-  { label: 'الأسئلة الشائعة', href: '/quran/faq', isRoute: true },
-  { label: 'اتصل بنا', href: 'https://api.whatsapp.com/send?phone=201024744963' },
-  { label: 'شروط الاستخدام', href: '/terms', isRoute: true },
-  { label: 'سياسة الخصوصية', href: '/privacy-policy', isRoute: true },
-];
-
-const socials = [
-  { icon: <WhatsAppIcon size={18} />, href: `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent('السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل')}`, label: 'واتساب', color: '#25D366', bgRgba: 'rgba(37,211,102,0.12)' },
-  { icon: <FacebookIcon size={18} />, href: 'https://www.facebook.com/share/1D6hxrKSno/', label: 'فيسبوك', color: '#1877F2', bgRgba: 'rgba(24,119,242,0.12)' },
-];
-
 export default function QuranFooter() {
+  const { t } = useTranslation('common');
+  const year = new Date().getFullYear();
+
+  const navLinks = [
+    { label: t('footer.faq'), href: '/quran/faq', isRoute: true },
+    { label: t('footer.contactUs'), href: 'https://api.whatsapp.com/send?phone=201024744963' },
+    { label: t('footer.termsOfUse'), href: '/terms', isRoute: true },
+    { label: t('footer.privacyPolicy'), href: '/privacy-policy', isRoute: true },
+  ];
+
+  const socials = [
+    {
+      id: 'whatsapp',
+      icon: <WhatsAppIcon size={18} />,
+      href: `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(t('whatsapp.quranSubscriptionMessage'))}`,
+      label: t('social.whatsapp'),
+      color: '#25D366',
+      bgRgba: 'rgba(37,211,102,0.12)',
+    },
+    {
+      id: 'facebook',
+      icon: <FacebookIcon size={18} />,
+      href: 'https://www.facebook.com/share/1D6hxrKSno/',
+      label: t('social.facebook'),
+      color: '#1877F2',
+      bgRgba: 'rgba(24,119,242,0.12)',
+    },
+  ];
+
   return (
     <footer style={{ backgroundColor: 'var(--t-footer-surface)', borderTop: '1px solid var(--t-footer-border)' }}>
       <div className="max-w-5xl mx-auto py-16 px-5 md:px-8">
         {/* Top row */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-10 mb-12">
           {/* Brand */}
-          <div className="text-center md:text-right">
-            <Link
+          <div className="text-center md:text-start">
+            <LocalizedLink
               to="/quran"
               className="inline-flex items-center gap-3 mb-3"
             >
               <img
                 src={logoGold}
-                alt="شعار حبل الله"
+                alt={t('brand.logoAlt')}
                 className="w-12 h-12 object-contain"
               />
               <span
                 className="text-3xl font-black"
                 style={{ color: 'var(--t-footer-brand)' }}
               >
-                حبل الله
+                {t('brand.shortName')}
               </span>
-            </Link>
+            </LocalizedLink>
             <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'var(--t-footer-text)' }}>
-              منصة رائدة تهدف لتقديم تعليم قرآني متميز يجمع بين الأصالة والتقنية الحديثة.
+              {t('footer.quranTagline')}
             </p>
           </div>
 
@@ -77,8 +96,8 @@ export default function QuranFooter() {
           <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3">
             {navLinks.map((l) =>
               l.isRoute ? (
-                <Link
-                  key={l.label}
+                <LocalizedLink
+                  key={l.href}
                   to={l.href}
                   className="text-sm font-medium transition-opacity duration-200 hover:opacity-100"
                   style={{ color: 'var(--t-footer-link)', opacity: 0.7 }}
@@ -86,10 +105,10 @@ export default function QuranFooter() {
                   onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
                 >
                   {l.label}
-                </Link>
+                </LocalizedLink>
               ) : (
                 <a
-                  key={l.label}
+                  key={l.href}
                   href={l.href}
                   className="text-sm font-medium transition-opacity duration-200 hover:opacity-100"
                   style={{ color: 'var(--t-footer-link)', opacity: 0.7 }}
@@ -98,7 +117,7 @@ export default function QuranFooter() {
                 >
                   {l.label}
                 </a>
-              )
+              ),
             )}
           </nav>
         </div>
@@ -108,11 +127,11 @@ export default function QuranFooter() {
 
         {/* Bottom row */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          {/* WhatsApp icon */}
+          {/* Social icons */}
           <div className="flex gap-4">
             {socials.map((s) => (
               <a
-                key={s.label}
+                key={s.id}
                 href={s.href}
                 aria-label={s.label}
                 className="w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-200 hover:scale-110"
@@ -137,8 +156,10 @@ export default function QuranFooter() {
             ))}
           </div>
 
+          <LanguageSwitcher variant="compact" />
+
           <p className="text-xs" style={{ color: 'var(--t-footer-text)', opacity: 0.55 }}>
-            © 2026 حبل الله . جميع الحقوق محفوظة.
+            {t('footer.quranCopyright', { year })}
           </p>
         </div>
       </div>

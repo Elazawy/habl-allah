@@ -1,4 +1,5 @@
 import { Check, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // How each stage renders given the participant status.
 // preview/pending → all neutral; active → past green, current highlighted;
@@ -62,6 +63,8 @@ const TONE_STYLES = {
 
 // status: preview | pending | accepted | active | rejected | failed | completed
 export default function CompetitionProgressLine({ stages, currentStageId, status = 'preview' }) {
+  const { t } = useTranslation('competitionsShared');
+
   if (!Array.isArray(stages) || stages.length === 0) {
     return null;
   }
@@ -75,7 +78,7 @@ export default function CompetitionProgressLine({ stages, currentStageId, status
     <div
       className="mb-8 pb-2 -mx-1 px-1 overflow-x-auto"
       role="list"
-      aria-label="مراحل المسابقة"
+      aria-label={t('progressLine.ariaLabel')}
       data-status={status}
     >
       <div
@@ -114,6 +117,7 @@ export default function CompetitionProgressLine({ stages, currentStageId, status
                   {!visual.icon && <span className="text-xs">{index + 1}</span>}
                 </div>
                 <span
+                  dir="auto"
                   className="mt-2 text-center font-semibold leading-snug"
                   style={{
                     fontSize: '0.7rem',

@@ -10,6 +10,7 @@
  *   subscription_requests (id, teacher_id, teacher_name, student_name, whatsapp, created_at)
  */
 
+import i18n from '../i18n';
 import { supabase, publicSupabase } from '../lib/supabase';
 import { mockTeachers } from '../data/teachers';
 import { preparePreferenceRequest, prepareStudentRequest } from '../lib/studentRequestValidation';
@@ -90,7 +91,7 @@ export async function submitPreferenceForm({
       .insert([payload]);
     if (error) throw error;
   } else {
-    throw new Error('خدمة إرسال الطلبات غير متاحة حالياً. يرجى المحاولة لاحقاً.');
+    throw new Error(i18n.t('errors:teachers.requestsUnavailable'));
   }
 }
 
@@ -111,6 +112,6 @@ export async function submitSubscriptionRequest({
       .insert([payload]);
     if (error) throw error;
   } else {
-    throw new Error('خدمة إرسال الطلبات غير متاحة حالياً. يرجى المحاولة لاحقاً.');
+    throw new Error(i18n.t('errors:teachers.requestsUnavailable'));
   }
 }

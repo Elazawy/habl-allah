@@ -1,9 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useLocalizedPath } from '../i18n';
 
 export default function RequireStudent({ children }) {
   const { user, loading, isStudent, isAdmin, adminLoading } = useAuth();
   const location = useLocation();
+  const localizePath = useLocalizedPath();
+  const { t } = useTranslation('student');
 
   if (loading || adminLoading) {
     return (
@@ -15,7 +19,7 @@ export default function RequireStudent({ children }) {
 
   // No user logged in at all
   if (!user) {
-    return <Navigate to="/quran/student/login" state={{ from: location }} replace />;
+    return <Navigate to={localizePath('/quran/student/login')} state={{ from: location }} replace />;
   }
 
   // User is an Admin, not a student, redirect to admin dashboard
@@ -25,7 +29,13 @@ export default function RequireStudent({ children }) {
 
   // User is authenticated but somehow has no student profile
   if (!isStudent) {
-    return <Navigate to="/quran/student/login" state={{ from: location, error: 'لم يتم العثور على حساب طالب مرتبط.' }} replace />;
+    return (
+      <Navigate
+        to={localizePath('/quran/student/login')}
+        state={{ from: location, error: t('auth.noLinkedAccount') }}
+        replace
+      />
+    );
   }
 
   return children;

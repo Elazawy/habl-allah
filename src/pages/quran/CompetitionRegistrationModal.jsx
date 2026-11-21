@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Loader, CheckCircle, AlertCircle, User, Phone, Trophy, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -7,6 +8,7 @@ import {
 } from '../../services/competitionsService';
 import { saveGuestCompetitionToken } from '../../services/guestCompetitionToken';
 import { normalizeStudentPhone } from '../../services/studentsService';
+import { useLanguage } from '../../i18n';
 
 function normalizeLocalizedDigits(value) {
   return String(value ?? '').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
@@ -32,6 +34,8 @@ function normalizePhoneDigits(value) {
 // phone-only recovery panel directly (used by the page-level مسجل بالفعل entry
 // point, which must stay reachable even after the deadline passes).
 export default function CompetitionRegistrationModal({ competition, onClose, onSubmitted, initialMode = 'apply' }) {
+  const { t } = useTranslation('competitions');
+  const { isRTL } = useLanguage();
   const { user, isStudent, studentProfile } = useAuth();
 
   // States
@@ -90,19 +94,19 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
 
   const validate = () => {
     if (name.trim().length < 2) {
-      setError('الاسم يجب أن يتكون من حرفين على الأقل.');
+      setError(t('registrationModal.errors.nameMinLength'));
       return false;
     }
 
     const digitsPhone = normalizePhoneDigits(phone);
     if (digitsPhone.length < 10 || digitsPhone.length > 15) {
-      setError('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
+      setError(t('registrationModal.errors.phoneLength'));
       return false;
     }
 
     const finalLevel = selectedLevelOption === 'custom' ? customLevel.trim() : selectedLevelOption.trim();
     if (!finalLevel) {
-      setError('يرجى تحديد أو كتابة المستوى المطلوب.');
+      setError(t('registrationModal.errors.levelRequired'));
       return false;
     }
 
@@ -121,7 +125,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
       const finalLevel = selectedLevelOption === 'custom' ? customLevel.trim() : selectedLevelOption.trim();
 
       if (isStudent && studentProfile && !isStudentRequester) {
-        throw new Error('تعذر التحقق من حساب الطالب الحالي. يرجى تسجيل الدخول مرة أخرى ثم إعادة المحاولة.');
+        throw new Error(t('registrationModal.errors.studentVerificationFailed'));
       }
 
       const trimmedName = name.trim();
@@ -145,15 +149,15 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
 
       setSuccessMessage(
         participant?.status === 'pending'
-          ? 'تم استلام طلب الاشتراك وهو بانتظار مراجعة الإدارة. يمكنك متابعة حالته باستخدام رقم هاتفك.'
+          ? t('registrationModal.success.pending')
           : participant?.status === 'rejected'
-            ? 'تم رفض طلب الاشتراك لهذه المسابقة.'
-            : 'مشترك بالفعل. يمكنك الآن متابعة تقدمك في المسابقة.'
+            ? t('registrationModal.success.rejected')
+            : t('registrationModal.success.alreadySubscribed')
       );
       setSuccess(true);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'حدث خطأ أثناء إرسال طلب الاشتراك. يرجى المحاولة مرة أخرى.');
+      setError(err.message || t('registrationModal.errors.submitFailed'));
     } finally {
       setLoading(false);
     }
@@ -166,7 +170,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
 
     const digitsPhone = normalizePhoneDigits(recoveryPhone);
     if (digitsPhone.length < 10 || digitsPhone.length > 15) {
-      setRecoveryError('رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.');
+      setRecoveryError(t('registrationModal.errors.phoneLength'));
       return;
     }
 
@@ -193,7 +197,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
       onClose();
     } catch (err) {
       console.error(err);
-      setRecoveryError(err.message || 'حدث خطأ أثناء استعادة حالة الاشتراك. يرجى المحاولة مرة أخرى.');
+      setRecoveryError(err.message || t('registrationModal.errors.recoverFailed'));
     } finally {
       setRecoveryLoading(false);
     }
@@ -239,9 +243,9 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
             </div>
             <div>
               <h3 className="font-black text-lg" style={{ color: 'var(--t-primary)' }}>
-                طلب الاشتراك في المسابقة
+                {t('registrationModal.title')}
               </h3>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--t-text-muted)' }}>
+              <p dir="auto" className="text-xs mt-0.5" style={{ color: 'var(--t-text-muted)' }}>
                 {competition.name}
               </p>
             </div>
@@ -251,7 +255,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-zinc-800"
             style={{ color: 'var(--t-text-muted)' }}
-            aria-label="إغلاق"
+            aria-label={t('registrationModal.closeAriaLabel')}
           >
             <X size={18} />
           </button>
@@ -265,7 +269,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                 <CheckCircle size={36} />
               </div>
               <h4 className="text-xl font-black" style={{ color: 'var(--t-primary)' }}>
-                تم إرسال الطلب بنجاح!
+                {t('registrationModal.success.heading')}
               </h4>
               <p className="text-sm leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--t-text-muted)' }}>
                 {successMessage}
@@ -275,7 +279,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                 className="mt-6 py-3 px-8 rounded-xl font-bold text-white text-xs transition-all duration-300 hover:opacity-95"
                 style={{ backgroundColor: 'var(--t-secondary)' }}
               >
-                حسناً
+                {t('registrationModal.success.okButton')}
               </button>
             </div>
           ) : recoveryOpen ? (
@@ -288,10 +292,10 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   <KeyRound size={26} />
                 </div>
                 <h4 className="text-lg font-black" style={{ color: 'var(--t-primary)' }}>
-                  استعادة حالة الاشتراك
+                  {t('registrationModal.recovery.title')}
                 </h4>
                 <p className="text-xs leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--t-text-muted)' }}>
-                  أدخل رقم الهاتف الذي استخدمته في طلب الاشتراك.
+                  {t('registrationModal.recovery.subtitle')}
                 </p>
               </div>
 
@@ -321,14 +325,14 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   role="alert"
                 >
                   <AlertCircle size={20} className="shrink-0 mt-0.5" />
-                  <div>لم نجد طلب اشتراك بهذا الرقم لهذه المسابقة.</div>
+                  <div>{t('registrationModal.recovery.notFound')}</div>
                 </div>
               )}
 
               <div className="space-y-1.5">
                 <label htmlFor="recovery_phone" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
                   <Phone size={14} className="text-amber-500" />
-                  رقم الهاتف *
+                  {t('registrationModal.recovery.phoneLabel')}
                 </label>
                 <input
                   id="recovery_phone"
@@ -337,9 +341,9 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   disabled={recoveryLoading}
                   value={recoveryPhone}
                   onChange={(e) => setRecoveryPhone(e.target.value)}
-                  placeholder="مثال: 201012345678"
+                  placeholder={t('registrationModal.form.phonePlaceholder')}
                   dir="ltr"
-                  className="w-full px-4 py-3 rounded-xl border text-sm text-right transition-all focus:outline-none focus:ring-1"
+                  className={`w-full px-4 py-3 rounded-xl border text-sm ${isRTL ? 'text-right' : 'text-left'} transition-all focus:outline-none focus:ring-1`}
                   style={inputStyle}
                 />
               </div>
@@ -356,7 +360,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   className="py-3 px-6 rounded-xl font-bold text-xs border transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800"
                   style={{ borderColor: 'var(--t-border)', color: 'var(--t-text)' }}
                 >
-                  رجوع لطلب جديد
+                  {t('registrationModal.recovery.backButton')}
                 </button>
                 <button
                   type="submit"
@@ -365,7 +369,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   style={{ backgroundColor: 'var(--t-secondary)' }}
                 >
                   {recoveryLoading && <Loader size={14} className="animate-spin" />}
-                  <span>{recoveryLoading ? 'جارٍ البحث...' : 'استعادة'}</span>
+                  <span>{recoveryLoading ? t('registrationModal.recovery.searching') : t('registrationModal.recovery.submitButton')}</span>
                 </button>
               </div>
             </form>
@@ -382,7 +386,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                 >
                   <AlertCircle size={20} className="shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">التسجيل مغلق:</span> انتهت فترة التسجيل لهذه المسابقة.
+                    <span className="font-bold">{t('registrationModal.closedBanner.label')}</span> {t('registrationModal.closedBanner.message')}
                   </div>
                 </div>
               )}
@@ -406,7 +410,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
               <div className="space-y-1.5">
                 <label htmlFor="student_name" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
                   <User size={14} className="text-amber-500" />
-                  الاسم الكامل *
+                  {t('registrationModal.form.fullNameLabel')}
                 </label>
                 <input
                   id="student_name"
@@ -415,7 +419,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   disabled={loading || isClosed}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="اكتب اسمك الكامل هنا..."
+                  placeholder={t('registrationModal.form.fullNamePlaceholder')}
                   className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
                   style={inputStyle}
                 />
@@ -425,7 +429,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
               <div className="space-y-1.5">
                 <label htmlFor="student_phone" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
                   <Phone size={14} className="text-amber-500" />
-                  رقم الهاتف (مع رمز الدولة) *
+                  {t('registrationModal.form.phoneWithCodeLabel')}
                 </label>
                 <input
                   id="student_phone"
@@ -436,9 +440,9 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                   readOnly={isStudentRequester}
                   aria-readonly={isStudentRequester}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="مثال: 201012345678"
+                  placeholder={t('registrationModal.form.phonePlaceholder')}
                   dir="ltr"
-                  className="w-full px-4 py-3 rounded-xl border text-sm text-right transition-all focus:outline-none focus:ring-1"
+                  className={`w-full px-4 py-3 rounded-xl border text-sm ${isRTL ? 'text-right' : 'text-left'} transition-all focus:outline-none focus:ring-1`}
                   style={inputStyle}
                 />
               </div>
@@ -447,7 +451,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
               <div className="space-y-1.5">
                 <label htmlFor="level" className="text-xs font-black flex items-center gap-1.5" style={{ color: 'var(--t-primary)' }}>
                   <Trophy size={14} className="text-amber-500" />
-                  المستوى المراد الاشتراك فيه *
+                  {t('registrationModal.form.levelLabel')}
                 </label>
 
                 {availableLevels.length > 0 ? (
@@ -461,11 +465,11 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                       style={inputStyle}
                     >
                       {availableLevels.map((level, idx) => (
-                        <option key={idx} value={level}>
+                        <option key={idx} value={level} dir="auto">
                           {level}
                         </option>
                       ))}
-                      <option value="custom">مستواي غير موجود (كتابة يدوية)</option>
+                      <option value="custom">{t('registrationModal.form.customLevelOption')}</option>
                     </select>
 
                     {selectedLevelOption === 'custom' && (
@@ -476,7 +480,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                         disabled={loading || isClosed}
                         value={customLevel}
                         onChange={(e) => setCustomLevel(e.target.value)}
-                        placeholder="اكتب مستواك هنا بالتفصيل..."
+                        placeholder={t('registrationModal.form.customLevelPlaceholder')}
                         className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1 animate-in fade-in slide-in-from-top-2 duration-200"
                         style={inputStyle}
                       />
@@ -490,7 +494,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                     disabled={loading || isClosed}
                     value={customLevel}
                     onChange={(e) => setCustomLevel(e.target.value)}
-                    placeholder="مثال: جزء عم، ثلاثة أجزاء، القرآن كاملاً..."
+                    placeholder={t('registrationModal.form.levelExamplesPlaceholder')}
                     className="w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1"
                     style={inputStyle}
                   />
@@ -506,13 +510,13 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                     disabled={loading}
                     className="py-3 px-4 rounded-xl font-bold text-xs border transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800 flex items-center gap-2"
                     style={{ borderColor: 'var(--t-border)', color: 'var(--t-primary)' }}
-                    title="استعادة حالة اشتراك سابق برقم الهاتف"
+                    title={t('registrationModal.form.alreadyRegisteredTitle')}
                   >
                     <KeyRound size={14} />
-                    مشترك بالفعل
+                    {t('registrationState.subscribed')}
                   </button>
                 )}
-                <div className="flex items-center gap-3 mr-auto">
+                <div className="flex items-center gap-3 ms-auto">
                   <button
                     type="button"
                     onClick={onClose}
@@ -520,7 +524,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                     className="py-3 px-6 rounded-xl font-bold text-xs border transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800"
                     style={{ borderColor: 'var(--t-border)', color: 'var(--t-text)' }}
                   >
-                    إلغاء
+                    {t('registrationModal.form.cancelButton')}
                   </button>
                   <button
                     type="submit"
@@ -529,7 +533,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
                     style={{ backgroundColor: 'var(--t-secondary)' }}
                   >
                     {loading && <Loader size={14} className="animate-spin" />}
-                    <span>{loading ? 'جاري الإرسال...' : 'إرسال الطلب'}</span>
+                    <span>{loading ? t('registrationModal.form.submitting') : t('registrationModal.form.submitButton')}</span>
                   </button>
                 </div>
               </div>

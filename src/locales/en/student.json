@@ -1,0 +1,183 @@
+{
+  "auth": {
+    "noLinkedAccount": "No linked student account was found."
+  },
+  "fields": {
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "country": "Country",
+    "birthDate": "Date of Birth",
+    "gender": "Gender",
+    "password": "Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "gender": {
+    "male": "Male",
+    "female": "Female",
+    "unspecified": "Not specified"
+  },
+  "validation": {
+    "fullNameMin": "Please enter your full name properly (first and last name).",
+    "invalidPhone": "Please enter a valid phone number between 10 and 15 digits.",
+    "countryRequired": "Please select your country.",
+    "birthDateRequired": "Please enter a valid date of birth.",
+    "invalidBirthDate": "Please enter a valid date of birth.",
+    "ageRange": "Age must be between 3 and 120 years.",
+    "genderRequired": "Please select your gender.",
+    "passwordMin": "Password must be at least 6 characters long.",
+    "passwordMismatch": "Passwords do not match."
+  },
+  "login": {
+    "subtitle": "Student Portal",
+    "phonePlaceholder": "01xxxxxxxxx",
+    "submit": "Sign In",
+    "noAccount": "Don't have an account?",
+    "createAccountLink": "Create your account now",
+    "afterSignupNote": "After creating an account, the student starts with the status <status>--No Teacher</status>, and the administration will assign a teacher later as needed.",
+    "errors": {
+      "invalidCredentials": "Incorrect phone number or password.",
+      "generic": "An error occurred while signing in. Please try again."
+    }
+  },
+  "signup": {
+    "title": "Create Student Account",
+    "subtitle": "Join us in memorizing and studying the Book of Allah",
+    "fullNamePlaceholder": "e.g., Ahmad Muhammad Hamdi",
+    "phonePlaceholder": "01xxxxxxxxx or +201xxxxxxxxx",
+    "countryPlaceholder": "Select your country...",
+    "submit": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Sign in here",
+    "errors": {
+      "phoneAlreadyRegistered": "This phone number is already registered. Please sign in instead.",
+      "generic": "An error occurred while creating your account. Please try again."
+    }
+  },
+  "dashboard": {
+    "welcomeBadge": "Welcome, Reader of the Quran",
+    "assignedTeacher": "Assigned Teacher: {{name}}",
+    "myProfile": "My Profile",
+    "loading": "Loading your dashboard...",
+    "details": "Details",
+    "noTeacher": {
+      "title": "You are not currently assigned to a teacher",
+      "description": "To begin live Hifz and recitation sessions and track your Quran evaluation sheet, please choose the right teacher for you and subscribe.",
+      "cta": "Browse Teachers & Subscribe"
+    },
+    "latestLesson": {
+      "title": "Latest Quran Lesson Report",
+      "viewAll": "View all reports ({{total}})",
+      "empty": "No Quran lesson reports have been recorded for you by your teacher yet."
+    },
+    "courses": {
+      "title": "My Courses",
+      "empty": "You are not enrolled in any courses yet.",
+      "activeBadge": "Active Course",
+      "watchCta": "Watch",
+      "suggestedTitle": "Suggested courses for you:",
+      "free": "Free",
+      "paid": "Paid"
+    },
+    "competitions": {
+      "title": "Competitions & Events",
+      "empty": "You are not registered in any Quran competition yet.",
+      "enrolledBadge": "Enrolled",
+      "stage": "Stage: {{stage}}",
+      "currentStageShort": "Current",
+      "winnerBadge": "🏆 Competition Winner",
+      "failedStage": "Did not pass {{stage}}",
+      "currentStageFull": "the current stage",
+      "trackProgress": "Track Progress",
+      "availableTitle": "Competitions open for registration:",
+      "clickToRegister": "Click to register"
+    }
+  },
+  "lessons": {
+    "backToDashboard": "Back to Dashboard",
+    "pageTitle": "Quran Lesson Reports History",
+    "pageSubtitle": "Track your lessons, memorization recitation, reading, and Tajweed with your teacher.",
+    "lessonsCount": "Total Lessons: {{total}}",
+    "loading": "Loading lesson history...",
+    "emptyTitle": "No lessons recorded yet",
+    "emptyDescription": "Your evaluation log will appear here as soon as your teacher adds your first lesson or assessment.",
+    "todayEvalDate": "Evaluation Date",
+    "evalDate": "Evaluation Date",
+    "recitationTodayHeading": "📌 Today's Recitation",
+    "currentLabel": "New Memorization:",
+    "surahRange": "Surah {{surah}} (from {{from}} to {{to}})",
+    "surahOnly": "Surah {{surah}}",
+    "toEnd": "the end",
+    "memorizationLevelLabel": "Hifz Level:",
+    "noRecitationToday": "No new recitation recorded for today.",
+    "pastReviewLabel": "Revision:",
+    "pastLevelLabel": "Revision Level:",
+    "readingAndTajweedHeading": "📌 Reading & Tajweed",
+    "readingLabel": "Reading:",
+    "readingLevelLabel": "Reading Level:",
+    "noReadingToday": "No reading lesson recorded for today.",
+    "tajweedLabel": "Tajweed:",
+    "interactionLabel": "📌 Engagement & Participation:",
+    "teacherNotesLabel": "📌 Teacher's General Notes:",
+    "homeworkHeading": "📌 Homework & Preparation for Next Session",
+    "homeworkCurrentLabel": "New Memorization Homework:",
+    "homeworkPastLabel": "Revision Homework:"
+  },
+  "profile": {
+    "eyebrow": "My Profile",
+    "avatarFallback": "?",
+    "backToDashboard": "Back to Dashboard",
+    "personalInfoTitle": "Personal Information",
+    "countryUnsetOption": "--Country not specified--",
+    "phoneReadOnly": "Phone Number (cannot be changed)",
+    "genderReadOnly": "Gender (cannot be changed)",
+    "assignedTeacher": "Assigned Teacher",
+    "noTeacher": "No teacher assigned",
+    "saveButton": "Save Changes",
+    "saving": "Saving...",
+    "saveSuccess": "Your profile has been saved successfully.",
+    "saveError": "An error occurred while saving your profile. Please try again.",
+    "readOnlyHint": "Phone number, gender, and assigned teacher cannot be edited here — please contact the administration for any changes.",
+    "currentCountryHint": "Current country: {{country}}",
+    "registeredBirthDateHint": "Registered date of birth: {{date}}"
+  },
+  "celebration": {
+    "defaults": {
+      "studentName": "Student of the Holy Quran",
+      "competitionName": "Quran Competition",
+      "level": "General Level"
+    },
+    "ranks": {
+      "first": {
+        "title": "First Place",
+        "honorTitle": "Gold First-Place Winner",
+        "badge": "🥇 First Place"
+      },
+      "second": {
+        "title": "Second Place",
+        "honorTitle": "Silver Second-Place Winner",
+        "badge": "🥈 Second Place"
+      },
+      "third": {
+        "title": "Third Place",
+        "honorTitle": "Bronze Third-Place Winner",
+        "badge": "🥉 Third Place"
+      },
+      "passed": {
+        "title": "Passed with Excellence",
+        "honorTitle": "Completed the Competition with Distinction",
+        "badge": "🌟 Passed with Excellence"
+      }
+    },
+    "balloonClusterTitle": "Click to celebrate again!",
+    "ribbonBanner": "Congratulations on Your Victory & Achievement, Champion of the Quran!",
+    "supervisedBy": "Supervised by Teacher: {{teacherName}}",
+    "recelebrateTitle": "Launch confetti and balloons to celebrate",
+    "recelebrate": "Celebrate Again",
+    "duaa": "May Allah bless you in your memorization, make the Noble Quran a light for your heart and an elevation for you in both worlds, and grant your parents the Crown of Dignity.",
+    "shareJoy": "Share the Joy",
+    "copied": "Copied!",
+    "copyGreeting": "Copy Greeting",
+    "shareTitle": "Congratulations to {{studentName}} on winning {{competitionName}}",
+    "shareText": "All praise is due to Allah by whose grace good deeds are completed! 🌟\nBy the grace and guidance of Allah, I passed the \"{{competitionName}}\" competition ({{badge}}) at Habl Allah Academy for the Holy Quran. 📜✨\nWe ask Allah to make the Quran the spring of our hearts and an intercessor for us on the Day of Resurrection."
+  }
+}

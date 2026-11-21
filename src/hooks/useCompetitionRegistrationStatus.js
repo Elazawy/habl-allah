@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { fetchMyCompetitionParticipants, SUBSCRIBED_STATUSES } from '../services/competitionParticipation';
 import { fetchGuestCompetitionParticipantByToken } from '../services/competitionsService';
@@ -6,6 +7,7 @@ import { getGuestCompetitionToken, getSavedGuestCompetitionIds } from '../servic
 import { useVisibleRefresh } from './useVisibleRefresh';
 
 export function useCompetitionRegistrationStatus() {
+  const { t } = useTranslation('competitions');
   const { user, isStudent, studentProfile, loading: authLoading } = useAuth();
   const studentId = user && isStudent && studentProfile?.id === user.id ? user.id : null;
   const [resource, setResource] = useState({ owner: undefined, participants: new Map() });
@@ -51,17 +53,17 @@ export function useCompetitionRegistrationStatus() {
   const participants = loadingSubscriptions ? new Map() : resource.participants;
   const getCompetitionRegistrationState = (competition) => {
     const participant = participants.get(competition?.id);
-    if (loadingSubscriptions) return { disabled: true, label: 'جارٍ التحقق...', reason: 'loading' };
+    if (loadingSubscriptions) return { disabled: true, label: t('registrationState.loading'), reason: 'loading' };
     if (SUBSCRIBED_STATUSES.includes(participant?.status)) {
-      return { disabled: true, label: 'مشترك بالفعل', reason: 'subscribed' };
+      return { disabled: true, label: t('registrationState.subscribed'), reason: 'subscribed' };
     }
-    if (participant?.status === 'pending') return { disabled: true, label: 'تم إرسال طلب الاشتراك', reason: 'pending' };
-    if (participant?.status === 'rejected') return { disabled: true, label: 'تم رفض طلب الاشتراك', reason: 'rejected' };
-    if (resource.error) return { disabled: true, label: 'تعذر التحقق من الاشتراك', reason: 'error' };
+    if (participant?.status === 'pending') return { disabled: true, label: t('registrationState.pending'), reason: 'pending' };
+    if (participant?.status === 'rejected') return { disabled: true, label: t('registrationState.rejected'), reason: 'rejected' };
+    if (resource.error) return { disabled: true, label: t('registrationState.error'), reason: 'error' };
     if (competition?.registration_deadline && new Date(`${competition.registration_deadline}T23:59:59`) < new Date()) {
-      return { disabled: true, label: 'انتهى التسجيل', reason: 'closed' };
+      return { disabled: true, label: t('registrationState.closed'), reason: 'closed' };
     }
-    return { disabled: false, label: 'سجّل الآن', reason: 'available' };
+    return { disabled: false, label: t('registrationState.available'), reason: 'available' };
   };
 
   return {

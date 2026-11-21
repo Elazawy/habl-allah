@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Shield } from 'lucide-react';
 import { fetchPage } from '../services/pagesService';
 import { renderSafeMarkdown } from '../lib/safeMarkdown';
 import DarkModeToggle from '../components/DarkModeToggle';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import Footer from '../components/Footer';
 import logoGold from '../assets/logo-gold.png';
+import { DirectionalIcon, LocalizedLink, useFormatters } from '../i18n';
 
 export default function PrivacyPolicyPage() {
+  const { t } = useTranslation(['legal', 'common']);
+  const { formatDate } = useFormatters();
   const [page, setPage] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,26 +23,27 @@ export default function PrivacyPolicyPage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'سياسة الخصوصية — أكاديمية حبل الله';
-  }, []);
+    document.title = t('legal:privacy.pageTitle');
+  }, [t]);
 
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
-      {/* Dark mode toggle */}
-      <div className="fixed top-5 left-5 z-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
+      {/* Floating controls */}
+      <div className="fixed top-5 end-5 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
         <DarkModeToggle />
       </div>
 
       {/* Header */}
       <header className="faq-header">
         <div className="faq-header-inner">
-          <Link to="/" className="faq-back-link" aria-label="العودة للرئيسية">
-            <ArrowRight size={20} />
-            <span>الرئيسية</span>
-          </Link>
-          <Link to="/" className="faq-logo-link">
-            <img src={logoGold} alt="شعار حبل الله" className="faq-logo-img" />
-          </Link>
+          <LocalizedLink to="/" className="faq-back-link" aria-label={t('legal:backToHomeAria')}>
+            <DirectionalIcon icon={ArrowLeft} size={20} />
+            <span>{t('legal:homeLink')}</span>
+          </LocalizedLink>
+          <LocalizedLink to="/" className="faq-logo-link">
+            <img src={logoGold} alt={t('common:brand.logoAlt')} className="faq-logo-img" />
+          </LocalizedLink>
         </div>
       </header>
 
@@ -48,13 +53,15 @@ export default function PrivacyPolicyPage() {
           <div className="faq-hero-icon-wrap">
             <Shield size={48} />
           </div>
-          <h1 className="faq-hero-title">{page?.title ?? 'سياسة الخصوصية'}</h1>
+          <h1 className="faq-hero-title" dir={page?.title ? 'auto' : undefined}>
+            {page?.title ?? t('legal:privacy.heading')}
+          </h1>
           <p className="faq-hero-subtitle">
-            كيف نحمي بياناتك ونحترم خصوصيتك في أكاديمية حبل الله
+            {t('legal:privacy.subtitle')}
           </p>
           {page?.updated_at && (
             <p className="faq-hero-date">
-              آخر تحديث: {new Date(page.updated_at).toLocaleDateString('ar-EG')}
+              {t('legal:lastUpdated', { date: formatDate(page.updated_at) })}
             </p>
           )}
         </div>
@@ -66,16 +73,16 @@ export default function PrivacyPolicyPage() {
           {loading ? (
             <div className="faq-loading">
               <div className="admin-spinner-lg" />
-              <span style={{ color: 'var(--t-text-muted)' }}>جارٍ التحميل…</span>
+              <span style={{ color: 'var(--t-text-muted)' }}>{t('legal:loading')}</span>
             </div>
           ) : page ? (
-            <div className="page-content-body">
+            <div className="page-content-body" dir="auto">
               {renderSafeMarkdown(page.content)}
             </div>
           ) : (
             <div className="faq-empty">
               <Shield size={48} />
-              <p>لم يتم العثور على المحتوى</p>
+              <p>{t('legal:notFound')}</p>
             </div>
           )}
         </div>

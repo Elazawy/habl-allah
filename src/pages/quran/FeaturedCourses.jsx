@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { DirectionalIcon, LocalizedLink, useLocalizedNavigate } from '../../i18n';
 import { fetchPublishedCourses } from '../../services/coursesService';
 import { useReveal } from '../../hooks/useReveal';
 import quranHero from '../../assets/quran-hero.png';
 
 export default function FeaturedCourses() {
-  const navigate = useNavigate();
+  const { t } = useTranslation('quranHome');
+  const navigate = useLocalizedNavigate();
   const [courses, setCourses] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -38,11 +40,10 @@ export default function FeaturedCourses() {
         {/* Header */}
         <div className="mb-12 reveal">
           <h2 className="text-4xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>
-            أبرز الدورات والمبادرات
+            {t('featuredCourses.heading')}
           </h2>
           <p className="text-base max-w-2xl" style={{ color: 'var(--t-text-muted)' }}>
-            اختر من بين باقة متنوعة من الدورات المتخصصة التي صُممت بعناية لتناسب جميع المستويات
-            والأعمار.
+            {t('featuredCourses.subtitle')}
           </p>
         </div>
 
@@ -68,18 +69,18 @@ export default function FeaturedCourses() {
                   className="w-full h-full object-cover"
                 />
                 {c.is_free && (
-                  <span className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold text-white bg-emerald-600">
-                    مجاني
+                  <span className="absolute top-4 start-4 px-3 py-1 rounded-full text-xs font-bold text-white bg-emerald-600">
+                    {t('featuredCourses.freeBadge')}
                   </span>
                 )}
               </div>
 
               {/* Content */}
               <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-xl font-black mb-2 leading-snug" style={{ color: 'var(--t-primary)' }}>
+                <h3 dir="auto" className="text-xl font-black mb-2 leading-snug" style={{ color: 'var(--t-primary)' }}>
                   {c.name}
                 </h3>
-                <p className="text-sm leading-relaxed flex-1 mb-6" style={{ color: 'var(--t-text-muted)' }}>
+                <p dir="auto" className="text-sm leading-relaxed flex-1 mb-6" style={{ color: 'var(--t-text-muted)' }}>
                   {c.short_description}
                 </p>
 
@@ -88,8 +89,12 @@ export default function FeaturedCourses() {
                   className="flex items-center justify-between border-t pt-4"
                   style={{ borderColor: 'var(--t-border-gold)' }}
                 >
-                  <span className="font-black text-base" style={{ color: 'var(--t-secondary)' }}>
-                    {c.is_free ? 'مجاني بالكامل' : c.price}
+                  <span
+                    dir={c.is_free ? undefined : 'auto'}
+                    className="font-black text-base"
+                    style={{ color: 'var(--t-secondary)' }}
+                  >
+                    {c.is_free ? t('featuredCourses.completelyFree') : c.price}
                   </span>
                   <button
                     id={`featured-course-${c.id}`}
@@ -97,8 +102,8 @@ export default function FeaturedCourses() {
                     className="flex items-center gap-1 font-bold text-sm transition-colors duration-200 hover:opacity-70 cursor-pointer"
                     style={{ color: 'var(--t-primary)' }}
                   >
-                    التفاصيل
-                    <ArrowLeft size={14} />
+                    {t('featuredCourses.details')}
+                    <DirectionalIcon icon={ArrowRight} size={14} />
                   </button>
                 </div>
               </div>
@@ -108,7 +113,7 @@ export default function FeaturedCourses() {
 
         {/* CTA */}
         <div className="text-center mt-12 reveal">
-          <Link
+          <LocalizedLink
             to="/quran/courses"
             className="inline-flex items-center gap-3 px-10 py-4 border-2 rounded-2xl font-bold text-lg transition-all duration-300 hover:text-white hover:-translate-y-0.5"
             id="view-all-courses"
@@ -116,9 +121,9 @@ export default function FeaturedCourses() {
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--t-secondary)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
-            استعرض كافة الدورات
-            <ArrowLeft size={18} />
-          </Link>
+            {t('featuredCourses.viewAll')}
+            <DirectionalIcon icon={ArrowRight} size={18} />
+          </LocalizedLink>
         </div>
       </div>
     </section>

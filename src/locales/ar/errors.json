@@ -1,0 +1,69 @@
+{
+  "validation": {
+    "invalidStudentName": "يرجى إدخال اسم الطالب، بحد أقصى ٢٠٠ حرف.",
+    "invalidWhatsapp": "يرجى إدخال رقم واتساب صحيح من ١٠ إلى ١٥ رقماً، مع رمز الدولة للأرقام الدولية.",
+    "invalidAge": "يرجى إدخال عمر صحيح بين ٥ و٩٩ عاماً، أو تركه فارغاً.",
+    "descriptionTooLong": "يرجى اختصار وصف احتياجك إلى ٤٠٠٠ حرف."
+  },
+  "edge": {
+    "METHOD_NOT_ALLOWED": "طريقة الطلب غير مسموح بها.",
+    "INVALID_JSON_BODY": "بيانات الطلب غير صالحة.",
+    "INVALID_REQUEST_BODY": "بيانات الطلب غير صالحة.",
+    "TEACHER_ID_NOT_ACCEPTED": "لا يمكن تحديد المعلم أثناء إنشاء الحساب.",
+    "MISSING_REQUIRED_FIELDS": "يرجى تعبئة جميع الحقول المطلوبة.",
+    "INVALID_PHONE": "رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.",
+    "INVALID_FULL_NAME": "الاسم الكامل يجب أن يكون ثنائياً على الأقل.",
+    "PASSWORD_TOO_SHORT": "يجب أن تتكون كلمة المرور من 6 خانات على الأقل.",
+    "INVALID_GENDER": "الجنس يجب أن يكون ذكراً أو أنثى.",
+    "INVALID_COUNTRY": "يرجى اختيار الدولة من القائمة.",
+    "INVALID_BIRTH_DATE": "يرجى كتابة تاريخ ميلاد صحيح.",
+    "PHONE_ALREADY_REGISTERED": "رقم الهاتف هذا مسجل بالفعل.",
+    "AUTH_CREATE_FAILED": "تعذر إنشاء الحساب حالياً. يرجى المحاولة مرة أخرى.",
+    "PROFILE_CREATE_FAILED": "تعذر إنشاء ملف الطالب تلقائياً.",
+    "INVALID_LECTURE_ID": "معرّف المحاضرة غير صالح.",
+    "LECTURE_NOT_FOUND": "المحاضرة غير موجودة أو غير متاحة.",
+    "VIDEO_NOT_AVAILABLE": "فيديو المحاضرة غير متاح حالياً.",
+    "INTERNAL_ERROR": "حدث خطأ داخلي في الخادم. يرجى المحاولة لاحقاً."
+  },
+  "students": {
+    "actionSignUp": "إنشاء الحساب",
+    "serviceNotEnabled": "خدمة {{action}} غير مفعلة في الخلفية بعد. اربط الدالة المخصصة لها ثم أعد المحاولة.",
+    "actionFailed": "تعذر {{action}} حالياً.",
+    "adminCreateFailed": "حدث خطأ أثناء إنشاء الحساب.",
+    "adminResetPasswordFailed": "حدث خطأ أثناء تغيير كلمة المرور.",
+    "adminDeleteFailed": "حدث خطأ أثناء حذف الحساب."
+  },
+  "teachers": {
+    "requestsUnavailable": "خدمة إرسال الطلبات غير متاحة حالياً. يرجى المحاولة لاحقاً."
+  },
+  "lectureQuestions": {
+    "loginRequired": "يجب تسجيل الدخول لطرح سؤال."
+  },
+  "courseLectures": {
+    "featureUploadVideo": "رفع الفيديو",
+    "featurePlayVideo": "تشغيل الفيديو",
+    "featureDeleteVideo": "حذف ملف الفيديو",
+    "featureDeleteVideos": "حذف ملفات الفيديو",
+    "serviceNotEnabled": "خدمة {{feature}} غير مفعلة في الخلفية بعد. اربط الدالة المخصصة لها ثم أعد المحاولة.",
+    "actionFailed": "تعذر {{feature}} حالياً.",
+    "storageCorsError": "تعذر رفع ملف الفيديو إلى خدمة التخزين. يبدو أن إعدادات CORS في Cloudflare R2 لا تسمح بطلبات PUT من هذا النطاق بعد. أضف Origin الموقع الحالي مع PUT و Content-Type إلى CORS policy الخاصة بالـ bucket ثم أعد المحاولة.",
+    "storageConnectionError": "تعذر رفع ملف الفيديو إلى خدمة التخزين بسبب خطأ في الاتصال.",
+    "storageSignatureMismatch": "تعذر رفع ملف الفيديو إلى خدمة التخزين لأن رابط الرفع الموقّت أو الرؤوس المطلوبة لا تطابق التوقيع المتوقع.",
+    "storageAccessDenied": "تعذر رفع ملف الفيديو إلى خدمة التخزين بسبب رفض الوصول من خدمة التخزين.",
+    "storageWithDetails": "تعذر رفع ملف الفيديو إلى خدمة التخزين ({{details}}).",
+    "storageHttpStatus": "تعذر رفع ملف الفيديو إلى خدمة التخزين (HTTP {{status}}).",
+    "uploadAborted": "تم إلغاء رفع ملف الفيديو قبل اكتماله.",
+    "selectVideoFirst": "يرجى اختيار ملف الفيديو أولاً.",
+    "mp4Only": "صيغة الفيديو المعتمدة حالياً هي MP4 فقط.",
+    "invalidUploadUrl": "خدمة رفع الفيديو لم تُرجِع رابط رفع صالحاً.",
+    "missingUploadMetadata": "خدمة رفع الفيديو لم تُرجِع بيانات الفيديو المطلوبة للحفظ.",
+    "invalidPlaybackUrl": "خدمة تشغيل الفيديو لم تُرجِع رابط مشاهدة صالحاً."
+  },
+  "competitions": {
+    "studentStageRequired": "يجب تحديد المرحلة المطلوب نقل الطالب إليها.",
+    "invalidStudentStatus": "حالة الطالب غير صحيحة.",
+    "guestStageRequired": "يجب تحديد المرحلة المطلوب نقل المشارك إليها.",
+    "invalidGuestStatus": "حالة المشارك غير صحيحة.",
+    "noChangesRequested": "لا يوجد تغيير مطلوب."
+  }
+}

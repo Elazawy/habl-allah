@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Send, CheckCircle, Loader2, ChevronLeft } from 'lucide-react';
+import { DirectionalIcon, LocalizedLink } from '../../i18n';
 import { fetchTeachers, submitPreferenceForm } from '../../services/teachersService';
-import { GENDER_LABELS } from '../../lib/constants';
 import TeacherCard from './TeacherCard';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
@@ -13,13 +14,11 @@ const anim = (delay = 0) => ({
   animation: `cardFadeIn 0.55s cubic-bezier(0.22,1,0.36,1) ${delay}s both`,
 });
 
-const TABS = [
-  { id: 'browse', label: 'تصفح واختر معلمك بنفسك' },
-  { id: 'form',   label: 'ساعدني أختار معلمي' },
-];
+const TAB_IDS = ['browse', 'form'];
 
 /* ─── Preference Form (Tab 2) ─────────────────────────────── */
 function PreferenceForm({ gender }) {
+  const { t } = useTranslation('teachers');
   const [values, setValues] = useState({
     student_name: '',
     age: '',
@@ -55,7 +54,7 @@ function PreferenceForm({ gender }) {
       // Only a failed save can be retried; on success the form is replaced,
       // so keep the guard latched against a late duplicate submit.
       submitting.current = false;
-      setError('حدث خطأ، يرجى المحاولة مرة أخرى.');
+      setError(t('preferenceForm.submitError'));
     } finally {
       setLoading(false);
     }
@@ -71,13 +70,13 @@ function PreferenceForm({ gender }) {
           <CheckCircle size={40} style={{ color: 'var(--t-primary)' }} />
         </div>
         <h3 className="text-2xl font-black mb-3" style={{ color: 'var(--t-text)' }}>
-          تم إرسال طلبك بنجاح
+          {t('preferenceForm.successTitle')}
         </h3>
         <p className="text-base leading-relaxed max-w-sm mb-2" style={{ color: 'var(--t-text-muted)' }}>
-          سيتم التواصل معك واختيار المعلم المناسب لك
+          {t('preferenceForm.successSubtitle')}
         </p>
         <p className="text-sm" style={{ color: 'var(--t-text-subtle)' }}>
-          يمكنك استكمال البحث عن معلمك المناسب
+          {t('preferenceForm.successNote')}
         </p>
       </div>
     );
@@ -93,17 +92,17 @@ function PreferenceForm({ gender }) {
     <form onSubmit={handleSubmit} className="max-w-lg mx-auto py-10 px-4">
       <div className="text-center mb-8">
         <h3 className="text-xl font-black mb-2" style={{ color: 'var(--t-text)' }}>
-          أخبرنا عن احتياجك
+          {t('preferenceForm.title')}
         </h3>
         <p className="text-sm" style={{ color: 'var(--t-text-muted)' }}>
-          الاسم ورقم واتساب مطلوبان للتواصل معك، والعمر ووصف احتياجك اختياريان.
+          {t('preferenceForm.subtitle')}
         </p>
       </div>
 
       <div className="flex flex-col gap-5">
         <div>
           <label htmlFor="pref-student-name" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
-            اسم الطالب (مطلوب)
+            {t('preferenceForm.studentNameLabel')}
           </label>
           <input
             id="pref-student-name"
@@ -112,7 +111,7 @@ function PreferenceForm({ gender }) {
             required
             maxLength={200}
             autoComplete="name"
-            placeholder="اكتب اسمك هنا…"
+            placeholder={t('preferenceForm.studentNamePlaceholder')}
             value={values.student_name}
             onChange={handleChange}
             className="w-full rounded-xl px-4 py-3 text-sm border outline-none"
@@ -122,7 +121,7 @@ function PreferenceForm({ gender }) {
 
         <div>
           <label htmlFor="pref-age" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
-            العمر
+            {t('preferenceForm.ageLabel')}
           </label>
           <input
             id="pref-age"
@@ -130,7 +129,7 @@ function PreferenceForm({ gender }) {
             type="number"
             min="5"
             max="99"
-            placeholder="مثال: ٢٥"
+            placeholder={t('preferenceForm.agePlaceholder')}
             value={values.age}
             onChange={handleChange}
             className="w-full rounded-xl px-4 py-3 text-sm border outline-none"
@@ -140,7 +139,7 @@ function PreferenceForm({ gender }) {
 
         <div>
           <label htmlFor="pref-whatsapp" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
-            رقم التواصل (واتساب، مطلوب)
+            {t('preferenceForm.whatsappLabel')}
           </label>
           <input
             id="pref-whatsapp"
@@ -149,7 +148,7 @@ function PreferenceForm({ gender }) {
             required
             maxLength={30}
             autoComplete="tel"
-            placeholder="مثال: 01012345678"
+            placeholder={t('preferenceForm.whatsappPlaceholder')}
             value={values.whatsapp}
             onChange={handleChange}
             className="w-full rounded-xl px-4 py-3 text-sm border outline-none"
@@ -157,20 +156,20 @@ function PreferenceForm({ gender }) {
             dir="ltr"
           />
           <p className="text-xs mt-1.5" style={{ color: 'var(--t-text-subtle)' }}>
-            للتواصل من فريق الأكاديمية. أضف رمز الدولة إذا كان رقمك خارج مصر.
+            {t('preferenceForm.whatsappHint')}
           </p>
         </div>
 
         <div>
           <label htmlFor="pref-description" className="block text-sm font-semibold mb-2" style={{ color: 'var(--t-text-muted)' }}>
-            ما الذي تبحث عنه في المعلم؟
+            {t('preferenceForm.descriptionLabel')}
           </label>
           <textarea
             id="pref-description"
             name="description"
             rows={4}
             maxLength={4000}
-            placeholder="مثال: أريد معلماً متخصصاً في تجويد المبتدئين، يناسب طفل عمره ١٠ سنوات…"
+            placeholder={t('preferenceForm.descriptionPlaceholder')}
             value={values.description}
             onChange={handleChange}
             className="w-full rounded-xl px-4 py-3 text-sm border outline-none resize-none leading-relaxed"
@@ -192,7 +191,7 @@ function PreferenceForm({ gender }) {
           style={{ backgroundColor: 'var(--t-primary)', color: '#ffffff' }}
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-          {loading ? 'جارٍ الإرسال…' : 'إرسال الطلب'}
+          {loading ? t('preferenceForm.submitting') : t('preferenceForm.submitButton')}
         </button>
       </div>
     </form>
@@ -202,13 +201,18 @@ function PreferenceForm({ gender }) {
 /* ─── Main Page ───────────────────────────────────────────── */
 export default function TeacherListPage() {
   const { gender } = useParams();
+  const { t } = useTranslation(['teachers', 'common']);
   const [activeTab, setActiveTab] = useState('browse');
   const [teachers,  setTeachers]  = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState('');
 
-  const genderLabel = GENDER_LABELS[gender] ?? 'المعلمون';
   const isMale      = gender === 'male';
+  const genderLabel = gender === 'male'
+    ? t('gender.male')
+    : gender === 'female'
+      ? t('gender.female')
+      : t('gender.default');
 
   useEffect(() => {
     let active = true;
@@ -222,32 +226,32 @@ export default function TeacherListPage() {
         console.error('[teachers fetch failed]', err);
         if (active) {
           setTeachers([]);
-          setError('تعذر تحميل قائمة المعلمين. يرجى تحديث الصفحة.');
+          setError(t('list.fetchError'));
         }
       })
       .finally(() => {
         if (active) setLoading(false);
       });
     return () => { active = false; };
-  }, [gender]);
+  }, [gender, t]);
 
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
 
       <main>
         {/* ── Breadcrumb + Header ── */}
         <section className="pt-14 pb-8 px-5 md:px-8">
           <div className="max-w-5xl mx-auto">
-            <nav className="flex items-center gap-2 text-xs mb-8" style={anim(0)} aria-label="مسار التنقل">
-              <Link to="/quran" className="font-semibold hover:underline" style={{ color: 'var(--t-text-muted)' }}>
-                حبل الله
-              </Link>
-              <ChevronLeft size={14} style={{ color: 'var(--t-text-subtle)' }} />
-              <Link to="/quran/teachers" className="font-semibold hover:underline" style={{ color: 'var(--t-text-muted)' }}>
-                اختر معلمك
-              </Link>
-              <ChevronLeft size={14} style={{ color: 'var(--t-text-subtle)' }} />
+            <nav className="flex items-center gap-2 text-xs mb-8" style={anim(0)} aria-label={t('breadcrumbAriaLabel')}>
+              <LocalizedLink to="/quran" className="font-semibold hover:underline" style={{ color: 'var(--t-text-muted)' }}>
+                {t('common:brand.shortName')}
+              </LocalizedLink>
+              <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={14} style={{ color: 'var(--t-text-subtle)' }} />
+              <LocalizedLink to="/quran/teachers" className="font-semibold hover:underline" style={{ color: 'var(--t-text-muted)' }}>
+                {t('common:nav.chooseTeacher')}
+              </LocalizedLink>
+              <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={14} style={{ color: 'var(--t-text-subtle)' }} />
               <span className="font-bold" style={{ color: 'var(--t-primary)' }}>
                 {genderLabel}
               </span>
@@ -259,8 +263,8 @@ export default function TeacherListPage() {
               </h1>
               <p className="text-base" style={{ color: 'var(--t-text-muted)' }}>
                 {isMale
-                  ? 'معلمون مجازون بالقراءات العشر لتعليم الرجال والأطفال'
-                  : 'معلمات متميزات لتعليم النساء والفتيات في خصوصية تامة'}
+                  ? t('sections.male.desc')
+                  : t('sections.female.desc')}
               </p>
             </div>
           </div>
@@ -273,14 +277,14 @@ export default function TeacherListPage() {
               className="inline-flex rounded-2xl p-1.5 gap-1"
               style={{ backgroundColor: 'var(--t-bg-surface)', ...anim(0.12) }}
             >
-              {TABS.map((tab) => (
+              {TAB_IDS.map((tabId) => (
                 <button
-                  key={tab.id}
-                  id={`tab-${tab.id}`}
-                  onClick={() => setActiveTab(tab.id)}
+                  key={tabId}
+                  id={`tab-${tabId}`}
+                  onClick={() => setActiveTab(tabId)}
                   className="rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300"
                   style={
-                    activeTab === tab.id
+                    activeTab === tabId
                       ? {
                           backgroundColor: 'var(--t-bg-card)',
                           color: 'var(--t-primary)',
@@ -289,7 +293,7 @@ export default function TeacherListPage() {
                       : { color: 'var(--t-text-muted)' }
                   }
                 >
-                  {tab.label}
+                  {t(`list.tabs.${tabId}`)}
                 </button>
               ))}
             </div>
@@ -311,16 +315,16 @@ export default function TeacherListPage() {
                   <div className="text-center py-24">
                     <p className="text-sm font-semibold mb-4" style={{ color: 'var(--t-text-muted)' }}>{error}</p>
                     <button
-                      onClick={() => { setLoading(true); setError(''); fetchTeachers(gender).then(setTeachers).catch(() => setError('تعذر تحميل قائمة المعلمين.')).finally(() => setLoading(false)); }}
+                      onClick={() => { setLoading(true); setError(''); fetchTeachers(gender).then(setTeachers).catch(() => setError(t('list.retryError'))).finally(() => setLoading(false)); }}
                       className="px-6 py-2.5 rounded-xl font-bold text-sm text-white transition-colors"
                       style={{ backgroundColor: 'var(--t-primary)' }}
                     >
-                      إعادة المحاولة
+                      {t('list.retryButton')}
                     </button>
                   </div>
                 ) : teachers.length === 0 ? (
                   <p className="text-center py-24" style={{ color: 'var(--t-text-subtle)' }}>
-                    لا يوجد معلمون متاحون حالياً.
+                    {t('list.empty')}
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-5">

@@ -1,10 +1,31 @@
 import { ChevronDown, BookOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import logoGold from '../assets/logo-gold.png';
 
 export default function Hero() {
+  const { t } = useTranslation(['home', 'common']);
+
   const scrollDown = () => {
     document.getElementById('portals')?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const stats = [
+    {
+      id: 'experience',
+      value: t('home:hero.stats.experienceValue'),
+      label: t('home:hero.stats.experienceLabel'),
+    },
+    {
+      id: 'students',
+      value: t('home:hero.stats.studentsValue'),
+      label: t('home:hero.stats.studentsLabel'),
+    },
+    {
+      id: 'teachers',
+      value: t('home:hero.stats.teachersValue'),
+      label: t('home:hero.stats.teachersLabel'),
+    },
+  ];
 
   return (
     <section
@@ -25,7 +46,7 @@ export default function Hero() {
         <div className="fade-in-up mb-6">
           <img
             src={logoGold}
-            alt="شعار حبل الله"
+            alt={t('common:brand.logoAlt')}
             className="hero-logo-img"
           />
         </div>
@@ -39,7 +60,7 @@ export default function Hero() {
             color: 'var(--t-primary)',
           }}
         >
-          <span>منصة تعليمية قرآنية متكاملة</span>
+          <span>{t('home:hero.badge')}</span>
         </div>
 
         {/* Main title */}
@@ -47,20 +68,20 @@ export default function Hero() {
           className="fade-in-up delay-100 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 tracking-tight text-center w-full"
           style={{ color: 'var(--t-primary)', textAlign: 'center' }}
         >
-          مرحباً بكم في
+          {t('home:hero.welcomePrefix')}
           <span
             className="block mt-2 text-center"
             style={{ color: 'var(--t-secondary)', textAlign: 'center' }}
           >
-            أكاديمية حبل الله القرآنية
+            {t('home:hero.academyTitle')}
           </span>
         </h1>
 
         {/* Decorative divider */}
         <div className="fade-in-up delay-200 flex items-center justify-center gap-3 my-6 mx-auto">
-          <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-400" />
+          <div className="h-px w-16 ltr:bg-gradient-to-r rtl:bg-gradient-to-l from-transparent to-amber-400" />
           <BookOpen size={22} className="text-amber-500" />
-          <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-400" />
+          <div className="h-px w-16 ltr:bg-gradient-to-l rtl:bg-gradient-to-r from-transparent to-amber-400" />
         </div>
 
         {/* Subtitle */}
@@ -68,8 +89,7 @@ export default function Hero() {
           className="fade-in-up delay-300 text-lg sm:text-xl max-w-2xl leading-relaxed mb-12 text-center mx-auto"
           style={{ color: 'var(--t-text-muted)', textAlign: 'center' }}
         >
-          نور الهداية يبدأ من هنا، حيث نجمع بين الأصالة العلمية والتقنيات
-          الحديثة لخدمة كتاب الله.
+          {t('home:hero.subtitle')}
         </p>
 
         {/* CTA Button */}
@@ -81,7 +101,7 @@ export default function Hero() {
             boxShadow: '0 8px 32px color-mix(in srgb, var(--t-primary) 30%, transparent)',
           }}
         >
-          اكتشف منصاتنا
+          {t('home:hero.cta')}
           <ChevronDown size={20} className="group-hover:translate-y-1 transition-transform duration-300" />
         </button>
 
@@ -90,12 +110,8 @@ export default function Hero() {
           className="fade-in-up delay-400 grid grid-cols-3 gap-8 mt-20 pt-10 w-full max-w-lg border-t"
           style={{ borderColor: 'var(--t-border)' }}
         >
-          {[
-            { value: '+١٠', label: 'سنوات خبرة' },
-            { value: '+٥٠٠', label: 'طالب مسجّل' },
-            { value: '+٣٠', label: 'معلم مجاز' },
-          ].map((s) => (
-            <div key={s.label} className="text-center">
+          {stats.map((s) => (
+            <div key={s.id} className="text-center">
               <div className="text-3xl font-black" style={{ color: 'var(--t-primary)' }}>{s.value}</div>
               <div className="text-sm mt-1" style={{ color: 'var(--t-text-subtle)' }}>{s.label}</div>
             </div>
@@ -106,7 +122,7 @@ export default function Hero() {
       {/* Animated scroll arrow at bottom */}
       <button
         onClick={scrollDown}
-        aria-label="التمرير للأسفل"
+        aria-label={t('home:hero.scrollDownAria')}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce-slow opacity-70 hover:opacity-100 transition-opacity"
         style={{ color: 'var(--t-primary)' }}
       >

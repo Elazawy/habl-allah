@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Sparkles, Share2, Copy, Check, Balloon } from 'lucide-react';
 
 
@@ -335,7 +336,7 @@ class ConfettiEngine {
 }
 
 // Cute, 3D Decorative Balloon Cluster fixed next to the contestant's name
-function FixedBalloonCluster({ side = 'right', className = '', onClick }) {
+function FixedBalloonCluster({ side = 'right', className = '', onClick, title }) {
   const isRight = side === 'right';
   const prefix = isRight ? 'fbr' : 'fbl';
 
@@ -344,8 +345,9 @@ function FixedBalloonCluster({ side = 'right', className = '', onClick }) {
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? title : undefined}
       className={`relative shrink-0 select-none transition-transform duration-300 active:scale-95 ${onClick ? 'cursor-pointer hover:scale-105' : ''} ${className}`}
-      title="اضغط للاحتفال مجدداً!"
+      title={title}
     >
       <svg
         viewBox="0 0 70 102"
@@ -440,48 +442,58 @@ function FixedBalloonCluster({ side = 'right', className = '', onClick }) {
 }
 
 export default function StudentCompetitionCelebration({
-  studentName = 'طالب القرآن الكريم',
-  competitionName = 'المسابقة القرآنية',
-  level = 'المستوى العام',
+  studentName,
+  competitionName,
+  level,
   finalRank = 1,
   teacherName = '',
 }) {
+  const { t } = useTranslation('student');
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
   const timersRef = useRef([]);
+
+  const resolvedStudentName =
+    studentName === undefined ? t('celebration.defaults.studentName') : studentName;
+  const resolvedCompetitionName =
+    competitionName === undefined
+      ? t('celebration.defaults.competitionName')
+      : competitionName;
+  const resolvedLevel =
+    level === undefined ? t('celebration.defaults.level') : level;
 
   // Rank metadata
   const getRankData = (rank) => {
     const num = Number(rank);
     if (num === 1) {
       return {
-        title: 'المركز الأول',
-        honorTitle: 'الفائز بالمركز الأول الذهبي',
-        badge: '🥇 المركز الأول',
+        title: t('celebration.ranks.first.title'),
+        honorTitle: t('celebration.ranks.first.honorTitle'),
+        badge: t('celebration.ranks.first.badge'),
         accentColor: '#CFA767',
       };
     }
     if (num === 2) {
       return {
-        title: 'المركز الثاني',
-        honorTitle: 'الفائز بالمركز الثاني الفضي',
-        badge: '🥈 المركز الثاني',
+        title: t('celebration.ranks.second.title'),
+        honorTitle: t('celebration.ranks.second.honorTitle'),
+        badge: t('celebration.ranks.second.badge'),
         accentColor: '#94a3b8',
       };
     }
     if (num === 3) {
       return {
-        title: 'المركز الثالث',
-        honorTitle: 'الفائز بالمركز الثالث البرونزي',
-        badge: '🥉 المركز الثالث',
+        title: t('celebration.ranks.third.title'),
+        honorTitle: t('celebration.ranks.third.honorTitle'),
+        badge: t('celebration.ranks.third.badge'),
         accentColor: '#d97706',
       };
     }
     return {
-      title: 'اجتياز وتفوق',
-      honorTitle: 'مجتاز للمسابقة بتفوق وتميز',
-      badge: '🌟 اجتياز وتفوق',
+      title: t('celebration.ranks.passed.title'),
+      honorTitle: t('celebration.ranks.passed.honorTitle'),
+      badge: t('celebration.ranks.passed.badge'),
       accentColor: '#1B4D3E',
     };
   };
@@ -566,8 +578,14 @@ export default function StudentCompetitionCelebration({
     };
   }, [triggerCelebration, clearCelebrationTimers]);
 
-  const shareTitle = `مبارك فوز الطالب ${studentName} في مسابقة ${competitionName}`;
-  const shareText = `الحمد لله الذي بنعمته تتم الصالحات! 🌟\nبفضل الله وتوفيقه، اجتزت مسابقة "${competitionName}" (${rankData.badge}) في أكاديمية حبل الله للقرآن الكريم. 📜✨\nنسأل الله أن يجعل القرآن ربيع قلوبنا وشفيعاً لنا يوم القيامة.`;
+  const shareTitle = t('celebration.shareTitle', {
+    studentName: resolvedStudentName,
+    competitionName: resolvedCompetitionName,
+  });
+  const shareText = t('celebration.shareText', {
+    competitionName: resolvedCompetitionName,
+    badge: rankData.badge,
+  });
 
   // Native Web Share on Mobile, fallback to WhatsApp web
   const handleShare = async () => {
@@ -600,9 +618,11 @@ export default function StudentCompetitionCelebration({
     }
   };
 
+  const balloonTitle = t('celebration.balloonClusterTitle');
+
   return (
 
-    <div dir="rtl" className="relative w-full overflow-hidden my-4">
+    <div className="relative w-full overflow-hidden my-4">
       {/* Confetti Overlay */}
       <canvas
         ref={canvasRef}
@@ -619,39 +639,47 @@ export default function StudentCompetitionCelebration({
           {/* Arched Celebratory Top Ribbon */}
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white font-black text-xs sm:text-sm shadow-md max-w-full">
             <Balloon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-amber-200" />
-            <span className="leading-snug">مُبَارَكٌ الفَوْزُ وَالاجْتِيَازُ يَا بَطَلَ القُرْآنِ!</span>
+            <span className="leading-snug">{t('celebration.ribbonBanner')}</span>
             <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-amber-200" />
           </div>
 
           {/* Student Name & Achievement Title with Fixed Festive Balloons */}
           <div className="space-y-2">
             <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-5 max-w-full px-1">
-              {/* Right-side Fixed Balloons */}
+              {/* Start-side Fixed Balloons */}
               <FixedBalloonCluster
                 side="right"
                 className="animate-balloon-float-right"
                 onClick={triggerCelebration}
+                title={balloonTitle}
               />
 
               {/* Student Name */}
-              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-stone-900 dark:text-white tracking-tight leading-snug break-words">
-                {studentName}
+              <h2 dir="auto" className="text-2xl sm:text-4xl md:text-5xl font-black text-stone-900 dark:text-white tracking-tight leading-snug break-words">
+                {resolvedStudentName}
               </h2>
 
-              {/* Left-side Fixed Balloons */}
+              {/* End-side Fixed Balloons */}
               <FixedBalloonCluster
                 side="left"
                 className="animate-balloon-float-left"
                 onClick={triggerCelebration}
+                title={balloonTitle}
               />
             </div>
             
             <p className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-400">
-              {competitionName} {level ? `• ${level}` : ''}
+              <span dir="auto">{resolvedCompetitionName}</span>
+              {resolvedLevel ? (
+                <>
+                  {' • '}
+                  <span dir="auto">{resolvedLevel}</span>
+                </>
+              ) : null}
             </p>
             {teacherName && (
               <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-stone-400">
-                بإشراف المعلم: {teacherName}
+                {t('celebration.supervisedBy', { teacherName })}
               </p>
             )}
           </div>
@@ -661,11 +689,11 @@ export default function StudentCompetitionCelebration({
             <button
               onClick={triggerCelebration}
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition-all cursor-pointer shadow-sm active:scale-95"
-              title="إطلاق الزينة والبلالين والاحتفال"
+              title={t('celebration.recelebrateTitle')}
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
               <Balloon className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
-              <span>احتفل مجدداً</span>
+              <span>{t('celebration.recelebrate')}</span>
             </button>
           </div>
 
@@ -673,7 +701,7 @@ export default function StudentCompetitionCelebration({
           <div className="relative py-4 max-w-xl mx-auto px-2">
             <span className="text-3xl text-amber-500/40 font-serif leading-none block -mb-2">“</span>
             <p className="text-sm sm:text-base text-stone-700 dark:text-stone-300 leading-relaxed font-semibold italic">
-              بَارَكَ اللَّهُ لَكَ فِي حِفْظِكَ، وَجَعَلَ القُرْآنَ العَظِيمَ نُوراً لِقَلْبِكَ وَرِفْعَةً لَكَ فِي الدَّارَيْنِ، وَهَنِيئاً لِوَالِدَيْكَ تَاجَ الوَقَارِ.
+              {t('celebration.duaa')}
             </p>
             <span className="text-3xl text-amber-500/40 font-serif leading-none block -mt-2">”</span>
           </div>
@@ -686,7 +714,7 @@ export default function StudentCompetitionCelebration({
               className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white shadow-sm transition-all cursor-pointer h-10 sm:h-11 active:scale-95 whitespace-nowrap"
             >
               <Share2 className="w-3.5 h-3.5 shrink-0" />
-              <span>مشاركة الفرحة</span>
+              <span>{t('celebration.shareJoy')}</span>
             </button>
 
             {/* 2. Copy Text Button */}
@@ -697,12 +725,12 @@ export default function StudentCompetitionCelebration({
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>تم النسخ!</span>
+                  <span>{t('celebration.copied')}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5 shrink-0" />
-                  <span>نسخ التهنئة</span>
+                  <span>{t('celebration.copyGreeting')}</span>
                 </>
               )}
             </button>

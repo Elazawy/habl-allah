@@ -13,6 +13,7 @@
  *   - The email is deterministic and derived from the phone number.
  *   - No Twilio / Phone Provider required in Supabase.
  */
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 import { fetchMyCompetitionParticipants, SUBSCRIBED_STATUSES } from './competitionParticipation';
 import { subscribeStudentToCompetition as subscribeCompetitionParticipant } from './competitionsService';
@@ -76,12 +77,18 @@ function buildPhoneLookupCandidates(phone) {
   return [...candidates];
 }
 
-async function getFunctionErrorMessage(error, actionLabel) {
+async function getFunctionErrorMessage(error, actionLabel, { inferConflictCode } = {}) {
   const response = error?.context;
+  const status = typeof response?.status === 'number' ? response.status : null;
+  let code = null;
+  let message = '';
 
   if (response && typeof response.clone === 'function') {
     try {
       const responseBody = await response.clone().json();
+      if (typeof responseBody?.code === 'string' && responseBody.code.trim()) {
+        code = responseBody.code.trim();
+      }
       const responseMessage =
         typeof responseBody?.error === 'string'
           ? responseBody.error.trim()
@@ -90,13 +97,13 @@ async function getFunctionErrorMessage(error, actionLabel) {
             : '';
 
       if (responseMessage) {
-        return responseMessage;
+        message = responseMessage;
       }
     } catch {
       try {
         const responseText = (await response.clone().text()).trim();
         if (responseText) {
-          return responseText;
+          message = responseText;
         }
       } catch {
         // Ignore response parsing errors and fall back to the client error message.
@@ -104,13 +111,28 @@ async function getFunctionErrorMessage(error, actionLabel) {
     }
   }
 
-  const message = error?.message ?? '';
-
-  if (/Edge Function|FunctionsFetchError|Failed to send a request to the Edge Function|non-2xx/i.test(message)) {
-    return `خدمة ${actionLabel} غير مفعلة في الخلفية بعد. اربط الدالة المخصصة لها ثم أعد المحاولة.`;
+  if (!code && status === 409 && inferConflictCode) {
+    code = inferConflictCode;
   }
 
-  return message || `تعذر ${actionLabel} حالياً.`;
+  if (code && i18n.exists(`errors:edge.${code}`)) {
+    message = i18n.t(`errors:edge.${code}`);
+  }
+
+  if (!message) {
+    const rawMessage = error?.message ?? '';
+
+    if (/Edge Function|FunctionsFetchError|Failed to send a request to the Edge Function|non-2xx/i.test(rawMessage)) {
+      message = i18n.t('errors:students.serviceNotEnabled', { action: actionLabel });
+    } else {
+      message = rawMessage || i18n.t('errors:students.actionFailed', { action: actionLabel });
+    }
+  }
+
+  const err = new Error(message);
+  if (code) err.code = code;
+  if (status !== null) err.status = status;
+  return err;
 }
 
 export async function signUpStudent({ phone, password, fullName, gender, country, birthDate }) {
@@ -127,7 +149,11 @@ export async function signUpStudent({ phone, password, fullName, gender, country
   });
 
   if (error) {
-    throw new Error(await getFunctionErrorMessage(error, 'إنشاء الحساب'));
+    throw await getFunctionErrorMessage(
+      error,
+      i18n.t('errors:students.actionSignUp'),
+      { inferConflictCode: 'PHONE_ALREADY_REGISTERED' },
+    );
   }
 
   return signInStudent({ phone: normalizedPhone, password });
@@ -227,7 +253,7 @@ export async function adminCreateStudent({ phone, password, fullName, teacherId,
       country: country || null,
       birthDate: birthDate || null,
     },
-    'حدث خطأ أثناء إنشاء الحساب.'
+    i18n.t('errors:students.adminCreateFailed'),
   );
 
   return result.user;
@@ -238,7 +264,7 @@ export async function adminResetStudentPassword(studentId, newPassword) {
   const result = await invokeAdminFunction(
     'admin-reset-student-password',
     { studentId, newPassword },
-    'حدث خطأ أثناء تغيير كلمة المرور.'
+    i18n.t('errors:students.adminResetPasswordFailed'),
   );
 
   return result;
@@ -248,7 +274,7 @@ export async function adminDeleteStudent(studentId) {
   const result = await invokeAdminFunction(
     'admin-delete-student',
     { studentId },
-    'حدث خطأ أثناء حذف الحساب.'
+    i18n.t('errors:students.adminDeleteFailed'),
   );
 
   return result.student;

@@ -1,0 +1,127 @@
+{
+  "registrationState": {
+    "loading": "Checking...",
+    "subscribed": "Already Registered",
+    "pending": "Registration Request Sent",
+    "rejected": "Registration Rejected",
+    "error": "Unable to Verify Registration",
+    "closed": "Registration Closed",
+    "available": "Register Now"
+  },
+  "list": {
+    "pageTitle": "Quranic Competitions - Habl Allah",
+    "badge": "Compete in Goodness",
+    "title": "Quranic Competitions",
+    "subtitle": "Our Quranic competitions bring together the honor of Hifz, beauty of recitation, and mastery of Tajweed. Join open competitions to win valuable prizes and meet the academy's finest reciters.",
+    "loading": "Loading competition details...",
+    "errorHeading": "Unable to Load Competitions",
+    "errors": {
+      "supabaseNotConfigured": "Competitions cannot be loaded right now because database settings are incomplete.",
+      "generic": "Unable to load competitions right now. Please try again later."
+    },
+    "emptyHeading": "No Current Competitions",
+    "emptyDescription": "Please check back later to join our upcoming competitions.",
+    "statusActive": "Active",
+    "startDate": "Start Date: {{date}}",
+    "registrationEnds": "Registration Ends: {{date}}",
+    "actions": {
+      "trackProgress": "Track Your Progress",
+      "details": "Details"
+    }
+  },
+  "details": {
+    "pageTitleDefault": "Competition Details - Habl Allah",
+    "pageTitleWithName": "{{name}} - Habl Allah",
+    "pageTitleError": "Unable to Load Competition - Habl Allah",
+    "loading": "Loading competition details...",
+    "errorHeading": "Unable to Load Competition",
+    "errors": {
+      "supabaseNotConfigured": "Competition details cannot be loaded right now because database settings are incomplete.",
+      "generic": "Unable to load competition details right now. Please try again later."
+    },
+    "notFoundHeading": "Competition Not Found",
+    "notFoundDescription": "Sorry, we could not find the requested competition.",
+    "backToCompetitions": "Back to Competitions",
+    "backToAllCompetitions": "Back to All Competitions",
+    "startDate": "Start Date: {{date}}",
+    "registrationDeadline": "Registration Deadline: {{date}}",
+    "progressAriaLabel": "Your competition progress",
+    "aboutTitle": "About the Competition",
+    "levelsTitle": "Available Competition Levels",
+    "awardsTitle": "Awards & Recognition",
+    "termsTitle": "Participation Terms & Conditions",
+    "readyToJoinTitle": "Ready to participate?",
+    "refreshStatus": "Refresh Status",
+    "registrationClosedHint": "The registration period for this competition has ended.",
+    "registrationLoadingHint": "Checking your registration status...",
+    "registrationPromptHint": "Fill out the form to submit your registration request",
+    "guestButton": {
+      "rejected": "Request Rejected"
+    },
+    "guestStatus": {
+      "pendingTitle": "Registration Request Under Review",
+      "pendingHint": "Your request has been received and is awaiting administration review.",
+      "rejectedTitle": "Request Rejected",
+      "rejectedHint": "Your registration request for this competition was rejected.",
+      "acceptedTitle": "You Are Participating in the Competition",
+      "acceptedHint": "You have been accepted into the competition.",
+      "currentStage": "Current Stage: {{stageName}}",
+      "failedTitle": "Did Not Pass",
+      "failedStage": "You did not pass {{stageName}}",
+      "failedHint": "You did not pass this stage.",
+      "failedDescription": "Unfortunately, you did not pass this stage. Prepare well for upcoming competitions.",
+      "completedHint": "Congratulations! You have passed the competition."
+    },
+    "celebrationFallbacks": {
+      "participant": "Competition Participant",
+      "competition": "Quranic Competition",
+      "level": "General Level"
+    }
+  },
+  "registrationModal": {
+    "title": "Competition Registration Request",
+    "closeAriaLabel": "Close",
+    "errors": {
+      "nameMinLength": "Name must be at least 2 characters long.",
+      "phoneLength": "Phone number must be between 10 and 15 digits.",
+      "levelRequired": "Please select or enter the desired level.",
+      "studentVerificationFailed": "Unable to verify the current student account. Please sign in again and try again.",
+      "submitFailed": "An error occurred while submitting the registration request. Please try again.",
+      "recoverFailed": "An error occurred while recovering your registration status. Please try again."
+    },
+    "success": {
+      "heading": "Request Submitted Successfully!",
+      "pending": "Your registration request has been received and is awaiting administration review. You can track its status using your phone number.",
+      "rejected": "Your registration request for this competition was rejected.",
+      "alreadySubscribed": "Already registered. You can now track your progress in the competition.",
+      "okButton": "OK"
+    },
+    "recovery": {
+      "title": "Recover Registration Status",
+      "subtitle": "Enter the phone number you used in your registration request.",
+      "notFound": "No registration request was found with this number for this competition.",
+      "phoneLabel": "Phone Number *",
+      "backButton": "Back to New Request",
+      "searching": "Searching...",
+      "submitButton": "Recover"
+    },
+    "closedBanner": {
+      "label": "Registration closed:",
+      "message": "The registration period for this competition has ended."
+    },
+    "form": {
+      "fullNameLabel": "Full Name *",
+      "fullNamePlaceholder": "Enter your full name here...",
+      "phoneWithCodeLabel": "Phone Number (with country code) *",
+      "phonePlaceholder": "e.g. 201012345678",
+      "levelLabel": "Desired Competition Level *",
+      "customLevelOption": "My level is not listed (enter manually)",
+      "customLevelPlaceholder": "Enter your level in detail here...",
+      "levelExamplesPlaceholder": "e.g., Juz Amma, 3 Juz, Full Quran...",
+      "alreadyRegisteredTitle": "Recover a previous registration status by phone number",
+      "cancelButton": "Cancel",
+      "submitting": "Submitting...",
+      "submitButton": "Submit Request"
+    }
+  }
+}

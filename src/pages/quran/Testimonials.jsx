@@ -1,15 +1,21 @@
 import { useEffect, useState, useRef } from 'react';
+import { ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { DirectionalIcon, useLanguage } from '../../i18n';
 import { useReveal } from '../../hooks/useReveal';
 import { fetchPublishedQuranReviews } from '../../services/reviewsService';
-import { ChevronRight, ChevronLeft, X } from 'lucide-react';
 
 export default function Testimonials() {
+  const { t } = useTranslation('quranHome');
+  const { isRTL } = useLanguage();
   const ref = useReveal();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
+
+  const dirSign = isRTL ? -1 : 1;
 
   const anim = (delay = 0) => ({
     animation: `cardFadeIn 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s both`,
@@ -41,18 +47,18 @@ export default function Testimonials() {
           const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
           const scrollAmount = 340;
           const isAtEnd = Math.abs(scrollLeft) + clientWidth >= scrollWidth - 10;
-          
+
           if (isAtEnd) {
-             scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+            scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
           } else {
-             scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            scrollRef.current.scrollBy({ left: dirSign * scrollAmount, behavior: 'smooth' });
           }
         }
       }, 3000);
     }
 
     return () => clearInterval(intervalId);
-  }, [isHovered, reviews.length]);
+  }, [isHovered, reviews.length, dirSign]);
 
   if (!loading && reviews.length === 0) {
     return null;
@@ -64,13 +70,13 @@ export default function Testimonials() {
         {/* Header */}
         <div className="text-center mb-14 reveal">
           <h2 className="text-4xl font-black mb-4" style={{ color: 'var(--t-primary)' }}>
-            آراء طلاب الأكاديمية
+            {t('testimonials.heading')}
           </h2>
           <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: 'var(--t-secondary)' }} />
         </div>
 
         {/* Carousel */}
-        <div 
+        <div
           className="relative w-full overflow-hidden"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -80,26 +86,26 @@ export default function Testimonials() {
           {/* Desktop Navigation Arrows */}
           {reviews.length > 2 && (
             <div className="hidden md:block">
-              <button 
+              <button
                 type="button"
-                onClick={() => scrollRef.current?.scrollBy({ left: 380, behavior: 'smooth' })}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
-                aria-label="السابق"
+                onClick={() => scrollRef.current?.scrollBy({ left: -dirSign * 380, behavior: 'smooth' })}
+                className="absolute start-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
+                aria-label={t('testimonials.prev')}
               >
-                <ChevronRight size={24} />
+                <DirectionalIcon icon={ChevronLeft} size={24} />
               </button>
-              <button 
+              <button
                 type="button"
-                onClick={() => scrollRef.current?.scrollBy({ left: -380, behavior: 'smooth' })}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
-                aria-label="التالي"
+                onClick={() => scrollRef.current?.scrollBy({ left: dirSign * 380, behavior: 'smooth' })}
+                className="absolute end-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
+                aria-label={t('testimonials.next')}
               >
-                <ChevronLeft size={24} />
+                <DirectionalIcon icon={ChevronRight} size={24} />
               </button>
             </div>
           )}
 
-          <div 
+          <div
             ref={scrollRef}
             className="flex gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-4"
             style={{ scrollBehavior: 'smooth' }}
@@ -118,7 +124,7 @@ export default function Testimonials() {
               >
                 <img
                   src={review.image_url}
-                  alt="صورة مراجعة واتساب"
+                  alt={t('testimonials.reviewImageAlt')}
                   loading="lazy"
                   className="w-full h-[360px] sm:h-[430px] lg:h-[500px] object-contain opacity-90 hover:opacity-100 transition-opacity"
                 />
@@ -139,7 +145,8 @@ export default function Testimonials() {
         >
           <button
             type="button"
-            className="absolute top-4 left-4 w-12 h-12 rounded-full flex items-center justify-center transition-colors hover:bg-white/10 text-white"
+            aria-label={t('testimonials.closeLightbox')}
+            className="absolute top-4 end-4 w-12 h-12 rounded-full flex items-center justify-center transition-colors hover:bg-white/10 text-white"
             onClick={() => setSelectedReview(null)}
           >
             <X size={24} />
@@ -147,7 +154,7 @@ export default function Testimonials() {
           <div className="max-w-4xl w-full max-h-[88vh] rounded-2xl overflow-hidden shadow-2xl">
             <img
               src={selectedReview.image_url}
-              alt="صورة مراجعة طالب"
+              alt={t('testimonials.lightboxImageAlt')}
               className="w-full max-h-[80vh] object-contain bg-black"
             />
           </div>

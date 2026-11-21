@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 import { fetchCourseBySlug } from './coursesService';
 
@@ -84,10 +85,16 @@ function normalizeLecturePayload(payload = {}) {
 
 async function getFunctionErrorMessage(error, featureLabel) {
   const response = error?.context;
+  const status = typeof response?.status === 'number' ? response.status : null;
+  let code = null;
+  let message = '';
 
   if (response && typeof response.clone === 'function') {
     try {
       const responseBody = await response.clone().json();
+      if (typeof responseBody?.code === 'string' && responseBody.code.trim()) {
+        code = responseBody.code.trim();
+      }
       const responseMessage =
         typeof responseBody?.error === 'string'
           ? responseBody.error.trim()
@@ -96,13 +103,13 @@ async function getFunctionErrorMessage(error, featureLabel) {
             : '';
 
       if (responseMessage) {
-        return responseMessage;
+        message = responseMessage;
       }
     } catch {
       try {
         const responseText = (await response.clone().text()).trim();
         if (responseText) {
-          return responseText;
+          message = responseText;
         }
       } catch {
         // Ignore response parsing errors and fall back to the client error message.
@@ -110,15 +117,26 @@ async function getFunctionErrorMessage(error, featureLabel) {
     }
   }
 
-  const message = error?.message ?? '';
-
-  if (
-    /Edge Function|FunctionsFetchError|Failed to send a request to the Edge Function|non-2xx/i.test(message)
-  ) {
-    return `خدمة ${featureLabel} غير مفعلة في الخلفية بعد. اربط الدالة المخصصة لها ثم أعد المحاولة.`;
+  if (code && i18n.exists(`errors:edge.${code}`)) {
+    message = i18n.t(`errors:edge.${code}`);
   }
 
-  return message || `تعذر ${featureLabel} حالياً.`;
+  if (!message) {
+    const rawMessage = error?.message ?? '';
+
+    if (
+      /Edge Function|FunctionsFetchError|Failed to send a request to the Edge Function|non-2xx/i.test(rawMessage)
+    ) {
+      message = i18n.t('errors:courseLectures.serviceNotEnabled', { feature: featureLabel });
+    } else {
+      message = rawMessage || i18n.t('errors:courseLectures.actionFailed', { feature: featureLabel });
+    }
+  }
+
+  const err = new Error(message);
+  if (code) err.code = code;
+  if (status !== null) err.status = status;
+  return err;
 }
 
 function getVideoAssetKey(record) {
@@ -145,26 +163,26 @@ function getStorageUploadErrorMessage({ uploadUrl, status = 0, responseText = ''
 
   if (transportError || status === 0) {
     if (/\.r2\.cloudflarestorage\.com$/i.test(storageHost)) {
-      return 'تعذر رفع ملف الفيديو إلى خدمة التخزين. يبدو أن إعدادات CORS في Cloudflare R2 لا تسمح بطلبات PUT من هذا النطاق بعد. أضف Origin الموقع الحالي مع PUT و Content-Type إلى CORS policy الخاصة بالـ bucket ثم أعد المحاولة.';
+      return i18n.t('errors:courseLectures.storageCorsError');
     }
 
-    return 'تعذر رفع ملف الفيديو إلى خدمة التخزين بسبب خطأ في الاتصال.';
+    return i18n.t('errors:courseLectures.storageConnectionError');
   }
 
   if (errorCode === 'SignatureDoesNotMatch') {
-    return 'تعذر رفع ملف الفيديو إلى خدمة التخزين لأن رابط الرفع الموقّت أو الرؤوس المطلوبة لا تطابق التوقيع المتوقع.';
+    return i18n.t('errors:courseLectures.storageSignatureMismatch');
   }
 
   if (errorCode === 'AccessDenied') {
-    return 'تعذر رفع ملف الفيديو إلى خدمة التخزين بسبب رفض الوصول من خدمة التخزين.';
+    return i18n.t('errors:courseLectures.storageAccessDenied');
   }
 
   if (errorCode || errorDetail) {
     const details = [errorCode, errorDetail].filter(Boolean).join(': ');
-    return `تعذر رفع ملف الفيديو إلى خدمة التخزين (${details}).`;
+    return i18n.t('errors:courseLectures.storageWithDetails', { details });
   }
 
-  return `تعذر رفع ملف الفيديو إلى خدمة التخزين (HTTP ${status}).`;
+  return i18n.t('errors:courseLectures.storageHttpStatus', { status });
 }
 
 async function uploadFileToSignedUrl({
@@ -226,7 +244,7 @@ async function uploadFileToSignedUrl({
     };
 
     xhr.onabort = () => {
-      reject(new Error('تم إلغاء رفع ملف الفيديو قبل اكتماله.'));
+      reject(new Error(i18n.t('errors:courseLectures.uploadAborted')));
     };
 
     if (upperMethod === 'POST' && fields) {
@@ -454,12 +472,12 @@ export async function uploadCourseLectureVideo({ courseId, lectureId, lectureSlu
   const client = ensureSupabaseClient();
 
   if (!file) {
-    throw new Error('يرجى اختيار ملف الفيديو أولاً.');
+    throw new Error(i18n.t('errors:courseLectures.selectVideoFirst'));
   }
 
   const isMp4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4');
   if (!isMp4) {
-    throw new Error('صيغة الفيديو المعتمدة حالياً هي MP4 فقط.');
+    throw new Error(i18n.t('errors:courseLectures.mp4Only'));
   }
 
   const { data, error } = await client.functions.invoke(LECTURE_UPLOAD_FUNCTION, {
@@ -474,12 +492,12 @@ export async function uploadCourseLectureVideo({ courseId, lectureId, lectureSlu
   });
 
   if (error) {
-    throw new Error(await getFunctionErrorMessage(error, 'رفع الفيديو'));
+    throw await getFunctionErrorMessage(error, i18n.t('errors:courseLectures.featureUploadVideo'));
   }
 
   const uploadUrl = data?.uploadUrl ?? data?.signedUrl ?? data?.url;
   if (!uploadUrl) {
-    throw new Error('خدمة رفع الفيديو لم تُرجِع رابط رفع صالحاً.');
+    throw new Error(i18n.t('errors:courseLectures.invalidUploadUrl'));
   }
 
   await uploadFileToSignedUrl({
@@ -500,7 +518,7 @@ export async function uploadCourseLectureVideo({ courseId, lectureId, lectureSlu
   });
 
   if (!lecturePayload.r2_object_key) {
-    throw new Error('خدمة رفع الفيديو لم تُرجِع بيانات الفيديو المطلوبة للحفظ.');
+    throw new Error(i18n.t('errors:courseLectures.missingUploadMetadata'));
   }
 
   // Return only the upload patch so callers can merge it into form payloads
@@ -519,12 +537,12 @@ export async function requestCourseLecturePlaybackUrl(lectureId) {
   });
 
   if (error) {
-    throw new Error(await getFunctionErrorMessage(error, 'تشغيل الفيديو'));
+    throw await getFunctionErrorMessage(error, i18n.t('errors:courseLectures.featurePlayVideo'));
   }
 
   const url = data?.playbackUrl ?? data?.signedUrl ?? data?.url;
   if (!url) {
-    throw new Error('خدمة تشغيل الفيديو لم تُرجِع رابط مشاهدة صالحاً.');
+    throw new Error(i18n.t('errors:courseLectures.invalidPlaybackUrl'));
   }
 
   return {
@@ -553,7 +571,7 @@ export async function maybeDeleteCourseLectureVideoAsset(record) {
   });
 
   if (error) {
-    throw new Error(await getFunctionErrorMessage(error, 'حذف ملف الفيديو'));
+    throw await getFunctionErrorMessage(error, i18n.t('errors:courseLectures.featureDeleteVideo'));
   }
 }
 
@@ -576,6 +594,6 @@ export async function deleteCourseLectureVideoAssets(records = [], { coursePrefi
   });
 
   if (error) {
-    throw new Error(await getFunctionErrorMessage(error, 'حذف ملفات الفيديو'));
+    throw await getFunctionErrorMessage(error, i18n.t('errors:courseLectures.featureDeleteVideos'));
   }
 }

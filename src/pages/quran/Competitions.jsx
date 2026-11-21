@@ -1,41 +1,40 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Trophy, Calendar, Award, ArrowLeft, Clock } from 'lucide-react';
+import { Trophy, Calendar, Award, ArrowRight, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { DirectionalIcon, LocalizedLink, useFormatters } from '../../i18n';
 import { useReveal } from '../../hooks/useReveal';
 import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
 import { fetchPublishedCompetitions } from '../../services/competitionsService';
 import CompetitionRegistrationModal from './CompetitionRegistrationModal';
 
-function getLoadErrorMessage(error) {
+function getLoadErrorKey(error) {
   if (error?.message?.includes('Supabase is not configured')) {
-    return 'تعذر تحميل المسابقات حالياً لأن إعدادات قاعدة البيانات غير مكتملة.';
+    return 'configMissing';
   }
 
-  return 'تعذر تحميل المسابقات حالياً. يرجى المحاولة مرة أخرى لاحقاً.';
+  return 'loadFailed';
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  try {
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('ar-EG', {
+export default function Competitions() {
+  const { t } = useTranslation('competitionsShared');
+  const { formatDate } = useFormatters();
+  const [competitions, setCompetitions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorKey, setErrorKey] = useState('');
+  const [selectedComp, setSelectedComp] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const ref = useReveal({}, [loading, competitions.length, errorKey]);
+  const { getCompetitionRegistrationState, markCompetitionRequestPending } = useCompetitionRegistrationStatus();
+
+  const formatCompetitionDate = (dateStr) => {
+    if (!dateStr) return '';
+    const formatted = formatDate(`${dateStr}T00:00:00`, {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
-  } catch {
-    return dateStr;
-  }
-}
-
-export default function Competitions() {
-  const [competitions, setCompetitions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedComp, setSelectedComp] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const ref = useReveal({}, [loading, competitions.length, error]);
-  const { getCompetitionRegistrationState, markCompetitionRequestPending } = useCompetitionRegistrationStatus();
+    return formatted || dateStr;
+  };
 
   useEffect(() => {
     let active = true;
@@ -46,13 +45,13 @@ export default function Competitions() {
         if (!active) return;
 
         setCompetitions(data);
-        setError('');
+        setErrorKey('');
       } catch (err) {
         console.error('Error fetching competitions:', err);
         if (!active) return;
 
         setCompetitions([]);
-        setError(getLoadErrorMessage(err));
+        setErrorKey(getLoadErrorKey(err));
       } finally {
         if (active) {
           setLoading(false);
@@ -71,20 +70,20 @@ export default function Competitions() {
     return (
       <section className="py-24 px-5 md:px-8 text-center" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
         <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p style={{ color: 'var(--t-text-muted)' }}>جارٍ تحميل المسابقات القرآنية...</p>
+        <p style={{ color: 'var(--t-text-muted)' }}>{t('section.loading')}</p>
       </section>
     );
   }
 
   // Hide cleanly if no published competitions
   if (competitions.length === 0) {
-    if (error) {
+    if (errorKey) {
       return (
         <section className="py-24 px-5 md:px-8 text-center" style={{ backgroundColor: 'var(--t-bg-surface-low)' }}>
           <div className="max-w-3xl mx-auto rounded-3xl border px-6 py-10" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}>
             <Trophy size={40} className="mx-auto mb-4 text-amber-500 opacity-50" />
-            <h2 className="text-2xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>المسابقات القرآنية</h2>
-            <p style={{ color: 'var(--t-text-muted)' }}>{error}</p>
+            <h2 className="text-2xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>{t('section.heading')}</h2>
+            <p style={{ color: 'var(--t-text-muted)' }}>{t(`errors.${errorKey}`)}</p>
           </div>
         </section>
       );
@@ -100,20 +99,20 @@ export default function Competitions() {
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4 reveal">
           <div>
             <h2 className="text-4xl font-black mb-3" style={{ color: 'var(--t-primary)' }}>
-              المسابقات القرآنية
+              {t('section.heading')}
             </h2>
             <p className="text-base" style={{ color: 'var(--t-text-muted)' }}>
-              شارك في مسابقاتنا القرآنية المتميزة واستمتع بالروح التنافسية الإيمانية
+              {t('section.subtitle')}
             </p>
           </div>
-          <Link
+          <LocalizedLink
             to="/quran/competitions"
             className="inline-flex items-center gap-2 font-bold text-sm transition-all duration-300 hover:gap-3"
             style={{ color: 'var(--t-secondary)' }}
           >
-            <span>عرض كل المسابقات</span>
-            <ArrowLeft size={16} />
-          </Link>
+            <span>{t('section.viewAll')}</span>
+            <DirectionalIcon icon={ArrowRight} size={16} />
+          </LocalizedLink>
         </div>
 
         {/* Competitions Grid */}
@@ -139,33 +138,33 @@ export default function Competitions() {
                       <Trophy size={24} />
                     </div>
                     <span className="text-xs font-bold px-3 py-1 rounded-full border border-emerald-800/10 text-emerald-800 dark:text-emerald-300 dark:border-emerald-300/15" style={{ backgroundColor: 'var(--t-primary-light)' }}>
-                      نشطة
+                      {t('card.activeBadge')}
                     </span>
                   </div>
 
-                  <Link to={`/quran/competition/${c.slug}`} className="block group mb-3">
-                    <h3 className="text-xl font-black tracking-tight transition-colors duration-200 group-hover:text-amber-500" style={{ color: 'var(--t-primary)' }}>
+                  <LocalizedLink to={`/quran/competition/${c.slug}`} className="block group mb-3">
+                    <h3 dir="auto" className="text-xl font-black tracking-tight transition-colors duration-200 group-hover:text-amber-500" style={{ color: 'var(--t-primary)' }}>
                       {c.name}
                     </h3>
-                  </Link>
+                  </LocalizedLink>
 
-                  <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--t-text-muted)' }}>
+                  <p dir="auto" className="text-sm leading-relaxed mb-6" style={{ color: 'var(--t-text-muted)' }}>
                     {c.short_description}
                   </p>
 
                   <div className="space-y-3 mb-8 border-t border-b py-4" style={{ borderColor: 'var(--t-border)' }}>
                     <div className="flex items-center gap-2.5 text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
                       <Calendar size={14} className="text-amber-500" />
-                      <span>تاريخ البدء: {formatDate(c.start_date)}</span>
+                      <span>{t('card.startDate', { date: formatCompetitionDate(c.start_date) })}</span>
                     </div>
                     <div className="flex items-center gap-2.5 text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
                       <Clock size={14} className="text-amber-500" />
-                      <span>التسجيل ينتهي: {formatDate(c.registration_deadline)}</span>
+                      <span>{t('card.registrationDeadline', { date: formatCompetitionDate(c.registration_deadline) })}</span>
                     </div>
                     {c.awards_short_description && (
                       <div className="flex items-center gap-2.5 text-xs font-bold" style={{ color: 'var(--t-secondary)' }}>
                         <Award size={14} />
-                        <span>{c.awards_short_description}</span>
+                        <span dir="auto">{c.awards_short_description}</span>
                       </div>
                     )}
                   </div>
@@ -185,7 +184,7 @@ export default function Competitions() {
                   >
                     {registrationState.label}
                   </button>
-                  <Link
+                  <LocalizedLink
                     to={`/quran/competition/${c.slug}${registrationState.reason === 'subscribed' ? '#progress' : ''}`}
                     className="px-4 py-3 rounded-xl text-center font-bold text-xs border transition-all duration-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
                     style={{
@@ -193,15 +192,15 @@ export default function Competitions() {
                       borderColor: 'var(--t-border)',
                     }}
                   >
-                    {registrationState.reason === 'subscribed' ? 'تابع تقدمك' : 'التفاصيل'}
-                  </Link>
+                    {registrationState.reason === 'subscribed' ? t('card.trackProgress') : t('card.details')}
+                  </LocalizedLink>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-      
+
       {modalOpen && selectedComp && (
         <CompetitionRegistrationModal
           competition={selectedComp}

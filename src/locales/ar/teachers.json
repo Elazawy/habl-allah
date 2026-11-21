@@ -1,0 +1,88 @@
+{
+  "gender": {
+    "male": "قسم المعلمين",
+    "female": "قسم المعلمات",
+    "default": "المعلمون"
+  },
+  "sections": {
+    "male": {
+      "label": "قسم المعلمين",
+      "desc": "معلمون مجازون بالقراءات العشر لتعليم الرجال والأطفال"
+    },
+    "female": {
+      "label": "قسم المعلمات",
+      "desc": "معلمات متميزات لتعليم النساء والفتيات في خصوصية تامة"
+    }
+  },
+  "breadcrumbAriaLabel": "مسار التنقل",
+  "choose": {
+    "badge": "ابدأ رحلتك",
+    "title": "اختر <highlight>معلمك</highlight>",
+    "subtitle": "اختر القسم المناسب لك، ثم تصفح المعلمين أو دعنا نرشّح لك المعلم المثالي",
+    "goToSection": "الانتقال إلى {{section}}",
+    "browseTeachers": "تصفح المعلمين"
+  },
+  "list": {
+    "tabs": {
+      "browse": "تصفح واختر معلمك بنفسك",
+      "form": "ساعدني أختار معلمي"
+    },
+    "fetchError": "تعذر تحميل قائمة المعلمين. يرجى تحديث الصفحة.",
+    "retryError": "تعذر تحميل قائمة المعلمين.",
+    "retryButton": "إعادة المحاولة",
+    "empty": "لا يوجد معلمون متاحون حالياً."
+  },
+  "preferenceForm": {
+    "title": "أخبرنا عن احتياجك",
+    "subtitle": "الاسم ورقم واتساب مطلوبان للتواصل معك، والعمر ووصف احتياجك اختياريان.",
+    "studentNameLabel": "اسم الطالب (مطلوب)",
+    "studentNamePlaceholder": "اكتب اسمك هنا…",
+    "ageLabel": "العمر",
+    "agePlaceholder": "مثال: ٢٥",
+    "whatsappLabel": "رقم التواصل (واتساب، مطلوب)",
+    "whatsappPlaceholder": "مثال: 01012345678",
+    "whatsappHint": "للتواصل من فريق الأكاديمية. أضف رمز الدولة إذا كان رقمك خارج مصر.",
+    "descriptionLabel": "ما الذي تبحث عنه في المعلم؟",
+    "descriptionPlaceholder": "مثال: أريد معلماً متخصصاً في تجويد المبتدئين، يناسب طفل عمره ١٠ سنوات…",
+    "submitButton": "إرسال الطلب",
+    "submitting": "جارٍ الإرسال…",
+    "submitError": "حدث خطأ، يرجى المحاولة مرة أخرى.",
+    "successTitle": "تم إرسال طلبك بنجاح",
+    "successSubtitle": "سيتم التواصل معك واختيار المعلم المناسب لك",
+    "successNote": "يمكنك استكمال البحث عن معلمك المناسب"
+  },
+  "card": {
+    "unknownInitial": "؟",
+    "viewProfile": "عرض الملف"
+  },
+  "profile": {
+    "notFound": "لم يُعثر على هذا المعلم.",
+    "roleMale": "معلم قرآن كريم",
+    "roleFemale": "معلمة قرآن كريم",
+    "subscribeButton": "اشترك مع المعلم",
+    "freeTrialButton": "جرب حصة مجانية",
+    "freeTrialWhatsappMessageMale": "اود حجز حصة تجريبية مجانية مع الشيخ {{name}}",
+    "freeTrialWhatsappMessageFemale": "اود حجز حصة تجريبية مجانية مع الأستاذة {{name}}",
+    "aboutTitle": "عن المعلم",
+    "recitationTitle": "الاستماع للتلاوة",
+    "recitationIframeTitle": "تلاوة المعلم",
+    "reviewsTitle": "تجارب الطلاب",
+    "reviewImageAlt": "صورة مراجعة طالب",
+    "carouselPrev": "السابق",
+    "carouselNext": "التالي"
+  },
+  "subscribeModal": {
+    "title": "طلب اشتراك",
+    "closeAriaLabel": "إغلاق",
+    "withTeacher": "مع <teacher>{{name}}</teacher>",
+    "teacherLabel": "المعلم",
+    "studentNameLabel": "اسمك",
+    "studentNamePlaceholder": "اكتب اسمك الكامل…",
+    "whatsappLabel": "رقم واتساب",
+    "whatsappPlaceholder": "مثال: 01012345678",
+    "whatsappHint": "للمتابعة من فريق الأكاديمية. أضف رمز الدولة إذا كان رقمك خارج مصر.",
+    "submitButton": "طلب اشتراك مع المعلم",
+    "submitting": "جارٍ الإرسال…",
+    "whatsappMessage": "مرحباً، أود الاشتراك مع {{teacherName}}.\nالاسم: {{studentName}}"
+  }
+}
