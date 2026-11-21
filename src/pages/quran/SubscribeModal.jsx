@@ -4,7 +4,7 @@ import { X, Loader2, ExternalLink } from 'lucide-react';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { submitSubscriptionRequest } from '../../services/teachersService';
 import { prepareStudentRequest } from '../../lib/studentRequestValidation';
-import { useLocalizedContent } from '../../i18n';
+import { useLanguage, useLocalizedContent } from '../../i18n';
 
 /**
  * Opens the WhatsApp tab synchronously, while the submit click still counts as
@@ -66,6 +66,7 @@ function navigateToWhatsApp(target, url) {
  */
 export default function SubscribeModal({ teacher, onClose }) {
   const { t } = useTranslation('teachers');
+  const { language } = useLanguage();
   const { latinName } = useLocalizedContent();
   const teacherName = latinName(teacher, 'name');
   const [values, setValues] = useState({ student_name: '', whatsapp: '' });
@@ -186,6 +187,7 @@ export default function SubscribeModal({ teacher, onClose }) {
       await submitSubscriptionRequest({
         teacher_id:   teacher.id,
         teacher_name: teacher.name,
+        preferred_language: language,
         ...contact,
       });
     } catch {

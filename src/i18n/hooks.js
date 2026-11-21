@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE, LANGUAGE_DIR, LANGUAGE_LOCALE } from './config.js';
 import {
@@ -11,6 +11,7 @@ import {
   resolveLocalizedOptions,
 } from './content.js';
 import { localizePath, normalizeLanguage } from './routing.js';
+import { applyDocumentMeta } from './seo.js';
 
 export { LocalizedLink, LocalizedNavLink, DirectionalIcon } from './components.jsx';
 
@@ -125,4 +126,24 @@ export function useLocalizedContent() {
     }),
     [language],
   );
+}
+
+/**
+ * Overrides the document title and meta description for dynamic/detail pages.
+ * Runs after SeoHead on route and language changes so dynamic metadata wins.
+ */
+export function usePageMeta({ title, description } = {}) {
+  const { pathname } = useLocation();
+  const { language } = useLanguage();
+
+  useEffect(() => {
+    const cleanTitle = typeof title === 'string' ? title.trim() : '';
+    const cleanDescription = typeof description === 'string' ? description.trim() : '';
+    if (!cleanTitle && !cleanDescription) return;
+
+    applyDocumentMeta({
+      title: cleanTitle || undefined,
+      description: cleanDescription || undefined,
+    });
+  }, [title, description, pathname, language]);
 }

@@ -57,10 +57,6 @@ export default function QuranFaqPage() {
     return () => { active = false; };
   }, []);
 
-  useEffect(() => {
-    document.title = t('quran.pageTitle');
-  }, [t]);
-
   const toggleItem = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
   };

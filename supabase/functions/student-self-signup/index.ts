@@ -56,6 +56,14 @@ function phoneToAuthEmail(phone: string): string {
   return `s${normalizeStudentPhone(phone)}@habl-allah.app`;
 }
 
+const SUPPORTED_LANGUAGES = new Set(['ar', 'en', 'tr']);
+
+function normalizePreferredLanguage(value: unknown): string {
+  if (typeof value !== 'string') return 'ar';
+  const base = value.trim().toLowerCase().split('-')[0];
+  return SUPPORTED_LANGUAGES.has(base) ? base : 'ar';
+}
+
 class HttpError extends Error {
   status: number;
   code?: string;
@@ -124,7 +132,18 @@ Deno.serve(async (req: Request) => {
       return json({ code: 'METHOD_NOT_ALLOWED', error: 'Method not allowed' }, { status: 405 });
     }
 
-    const { phone, password, fullName, teacherId, teacher_id: teacherIdSnakeCase, gender, country, birthDate } = await readJson(req) as {
+    const {
+      phone,
+      password,
+      fullName,
+      teacherId,
+      teacher_id: teacherIdSnakeCase,
+      gender,
+      country,
+      birthDate,
+      preferredLanguage,
+      preferred_language: preferredLanguageSnakeCase,
+    } = await readJson(req) as {
       phone?: string;
       password?: string;
       fullName?: string;
@@ -133,6 +152,8 @@ Deno.serve(async (req: Request) => {
       gender?: string;
       country?: string;
       birthDate?: string;
+      preferredLanguage?: string;
+      preferred_language?: string;
     };
 
     if (teacherId !== undefined || teacherIdSnakeCase !== undefined) {
@@ -172,6 +193,10 @@ Deno.serve(async (req: Request) => {
       return json({ code: 'INVALID_BIRTH_DATE', error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
     }
 
+    const normalizedPreferredLanguage = normalizePreferredLanguage(
+      preferredLanguage ?? preferredLanguageSnakeCase,
+    );
+
     const adminClient = createAdminClient();
     const email = phoneToAuthEmail(normalizedPhone);
 
@@ -185,6 +210,7 @@ Deno.serve(async (req: Request) => {
         gender,
         country: normalizedCountry.toUpperCase(),
         birth_date: birthDate,
+        preferred_language: normalizedPreferredLanguage,
       },
     });
 

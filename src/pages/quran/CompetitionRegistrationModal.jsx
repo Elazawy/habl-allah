@@ -35,7 +35,7 @@ function normalizePhoneDigits(value) {
 // point, which must stay reachable even after the deadline passes).
 export default function CompetitionRegistrationModal({ competition, onClose, onSubmitted, initialMode = 'apply' }) {
   const { t } = useTranslation('competitions');
-  const { isRTL } = useLanguage();
+  const { language, isRTL } = useLanguage();
   const { field, options } = useLocalizedContent();
   const { user, isStudent, studentProfile } = useAuth();
 
@@ -135,6 +135,7 @@ export default function CompetitionRegistrationModal({ competition, onClose, onS
         studentName: trimmedName,
         studentPhone: normalizedPhone,
         level: finalLevel,
+        preferredLanguage: language,
       });
 
       if (participant?.public_access_token) {

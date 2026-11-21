@@ -55,6 +55,7 @@ import StudentRequestsPage from './pages/admin/StudentRequestsPage';
 import {
   LanguageSync,
   PREFIXED_LANGUAGES,
+  SeoHead,
   stripLanguagePrefix,
 } from './i18n';
 
@@ -99,6 +100,7 @@ export default function App() {
   return (
     <AuthProvider>
       <LanguageSync />
+      <SeoHead />
       <ScrollToTop />
       <FloatingWhatsApp />
       <Routes>

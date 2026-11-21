@@ -11,6 +11,7 @@
  */
 
 import i18n from '../i18n';
+import { normalizeLanguage } from '../i18n/routing.js';
 import { supabase, publicSupabase } from '../lib/supabase';
 import { mockTeachers } from '../data/teachers';
 import { preparePreferenceRequest, prepareStudentRequest } from '../lib/studentRequestValidation';
@@ -85,8 +86,12 @@ export async function submitPreferenceForm({
   whatsapp,
   description,
   gender_preference,
+  preferred_language,
 }) {
-  const payload = preparePreferenceRequest({ student_name, age, whatsapp, description, gender_preference });
+  const payload = {
+    ...preparePreferenceRequest({ student_name, age, whatsapp, description, gender_preference }),
+    preferred_language: normalizeLanguage(preferred_language || i18n.language),
+  };
 
   if (supabase) {
     const { error } = await supabase
@@ -106,8 +111,14 @@ export async function submitSubscriptionRequest({
   teacher_name,
   student_name,
   whatsapp,
+  preferred_language,
 }) {
-  const payload = { teacher_id, teacher_name, ...prepareStudentRequest({ student_name, whatsapp }) };
+  const payload = {
+    teacher_id,
+    teacher_name,
+    ...prepareStudentRequest({ student_name, whatsapp }),
+    preferred_language: normalizeLanguage(preferred_language || i18n.language),
+  };
 
   if (supabase) {
     const { error } = await supabase

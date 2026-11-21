@@ -92,6 +92,7 @@ export default function StudentSignupPage() {
         gender,
         country,
         birthDate,
+        preferredLanguage: language,
       });
 
       // Refresh student states in AuthContext

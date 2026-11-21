@@ -67,11 +67,6 @@ export default function CompetitionsPage() {
     };
   }, []);
 
-  // Update HTML Page Title
-  useEffect(() => {
-    document.title = t('list.pageTitle');
-  }, [t]);
-
   const error = errorKey ? t(`list.errors.${errorKey}`) : '';
 
   return (

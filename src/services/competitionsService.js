@@ -1,4 +1,5 @@
 import i18n from '../i18n';
+import { normalizeLanguage } from '../i18n/routing.js';
 import { supabase, publicSupabase } from '../lib/supabase';
 
 function orderCompetitions(query) {
@@ -241,8 +242,13 @@ export async function deleteCompetition(id) {
 }
 
 export async function submitCompetitionRegistrationRequest(payload) {
-  return submitGuestCompetitionParticipant({ competitionId: payload.competition_id,
-    studentName: payload.student_name, studentPhone: payload.student_phone, level: payload.level });
+  return submitGuestCompetitionParticipant({
+    competitionId: payload.competition_id,
+    studentName: payload.student_name,
+    studentPhone: payload.student_phone,
+    level: payload.level,
+    preferredLanguage: payload.preferred_language ?? payload.preferredLanguage,
+  });
 }
 
 export async function fetchSubscribedStudents(competitionId) {
@@ -730,13 +736,20 @@ export async function fetchPendingRegistrationRequests(competitionId) {
  * comes back (pending/accepted/active/rejected/…) without creating a copy.
  * Includes `public_access_token`, which the caller must persist locally.
  */
-export async function submitGuestCompetitionParticipant({ competitionId, studentName, studentPhone, level }) {
+export async function submitGuestCompetitionParticipant({
+  competitionId,
+  studentName,
+  studentPhone,
+  level,
+  preferredLanguage,
+}) {
   const client = ensureSupabaseClient();
   const { data, error } = await client.rpc('submit_competition_guest_participant', {
     p_competition_id: competitionId,
     p_student_name: studentName,
     p_student_phone: studentPhone,
     p_level: level,
+    p_preferred_language: normalizeLanguage(preferredLanguage || i18n.language),
   });
 
   if (error) {

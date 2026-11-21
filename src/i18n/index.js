@@ -60,5 +60,7 @@ export default i18n;
 export * from './config.js';
 export * from './routing.js';
 export * from './content.js';
+export * from './seo.js';
 export * from './hooks.js';
 export { default as LanguageSync } from './LanguageSync.jsx';
+export { default as SeoHead } from './SeoHead.jsx';

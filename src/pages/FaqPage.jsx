@@ -51,10 +51,6 @@ export default function FaqPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    document.title = t('faq:general.pageTitle');
-  }, [t]);
-
   const toggleItem = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
   };

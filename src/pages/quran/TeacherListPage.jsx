@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Send, CheckCircle, Loader2, ChevronLeft } from 'lucide-react';
-import { DirectionalIcon, LocalizedLink } from '../../i18n';
+import { DirectionalIcon, LocalizedLink, useLanguage } from '../../i18n';
 import { fetchTeachers, submitPreferenceForm } from '../../services/teachersService';
 import TeacherCard from './TeacherCard';
 import QuranNav from './QuranNav';
@@ -19,6 +19,7 @@ const TAB_IDS = ['browse', 'form'];
 /* ─── Preference Form (Tab 2) ─────────────────────────────── */
 function PreferenceForm({ gender }) {
   const { t } = useTranslation('teachers');
+  const { language } = useLanguage();
   const [values, setValues] = useState({
     student_name: '',
     age: '',
@@ -48,7 +49,7 @@ function PreferenceForm({ gender }) {
     setLoading(true);
     setError('');
     try {
-      await submitPreferenceForm(payload);
+      await submitPreferenceForm({ ...payload, preferred_language: language });
       setSuccess(true);
     } catch {
       // Only a failed save can be retried; on success the form is replaced,

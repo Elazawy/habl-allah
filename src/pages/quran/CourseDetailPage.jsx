@@ -10,10 +10,17 @@ import { checkMyCourseAccess } from '../../services/studentsService';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { useAuth } from '../../context/AuthContext';
 import quranHero from '../../assets/quran-hero.png';
-import { DirectionalIcon, LocalizedLink, useFormatters, useLocalizedContent } from '../../i18n';
+import {
+  DirectionalIcon,
+  LocalizedLink,
+  truncateMetaDescription,
+  useFormatters,
+  useLocalizedContent,
+  usePageMeta,
+} from '../../i18n';
 
 export default function CourseDetailPage() {
-  const { t } = useTranslation('courses');
+  const { t } = useTranslation(['courses', 'seo']);
   const { formatNumber } = useFormatters();
   const { field, text, latinName, list } = useLocalizedContent();
   const { slug } = useParams();
@@ -66,14 +73,20 @@ export default function CourseDetailPage() {
     return () => { active = false; };
   }, [slug, user, isAdmin, t]);
 
-  // Document Title Manager
-  useEffect(() => {
-    if (course) {
-      document.title = t('detail.documentTitle', { name: text(course, 'name') });
-    } else {
-      document.title = t('detail.defaultDocumentTitle');
-    }
-  }, [course, text, t]);
+  const activeCourse = !loading && !error ? course : null;
+  const activeCourseName = activeCourse ? text(activeCourse, 'name') : '';
+  const activeCourseDescription = activeCourse
+    ? text(activeCourse, 'short_description') || text(activeCourse, 'long_description')
+    : '';
+
+  usePageMeta({
+    title: activeCourseName
+      ? t('seo:templates.courseDetailTitle', { name: activeCourseName })
+      : undefined,
+    description: activeCourseDescription
+      ? truncateMetaDescription(activeCourseDescription)
+      : undefined,
+  });
 
   const handleSubscribe = () => {
     if (!course) return;

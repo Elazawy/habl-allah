@@ -2,7 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, PlayCircle, BookOpen, MessageSquare, Play, Pause, Volume2, X, Gift } from 'lucide-react';
-import { DirectionalIcon, LocalizedLink, useLanguage, useLocalizedContent } from '../../i18n';
+import {
+  DirectionalIcon,
+  LocalizedLink,
+  truncateMetaDescription,
+  useLanguage,
+  useLocalizedContent,
+  usePageMeta,
+} from '../../i18n';
 import { fetchTeacherById } from '../../services/teachersService';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
@@ -225,12 +232,23 @@ function ReviewCarousel({ reviews, onOpen }) {
 
 export default function TeacherProfilePage() {
   const { gender, id } = useParams();
-  const { t } = useTranslation(['teachers', 'common']);
+  const { t } = useTranslation(['teachers', 'common', 'seo']);
   const { field, latinName } = useLocalizedContent();
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
+
+  const activeTeacher = !loading ? teacher : null;
+  const teacherName = activeTeacher ? latinName(activeTeacher, 'name') : null;
+  const teacherBio = activeTeacher ? field(activeTeacher, 'bio') : null;
+
+  usePageMeta({
+    title: teacherName?.text
+      ? t('seo:templates.teacherProfileTitle', { name: teacherName.text })
+      : undefined,
+    description: teacherBio?.text ? truncateMetaDescription(teacherBio.text) : undefined,
+  });
 
   const isMale = gender === 'male';
   const genderLabel = gender === 'male'
@@ -295,8 +313,6 @@ export default function TeacherProfilePage() {
   }
 
   const reviews = teacher.reviews ?? teacher.teacher_reviews ?? [];
-  const teacherName = latinName(teacher, 'name');
-  const teacherBio = field(teacher, 'bio');
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>

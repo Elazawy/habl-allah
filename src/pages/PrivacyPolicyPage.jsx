@@ -7,10 +7,17 @@ import DarkModeToggle from '../components/DarkModeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import Footer from '../components/Footer';
 import logoGold from '../assets/logo-gold.png';
-import { DirectionalIcon, LocalizedLink, useFormatters, useLocalizedContent } from '../i18n';
+import {
+  DirectionalIcon,
+  LocalizedLink,
+  extractMetaDescriptionFromMarkdown,
+  useFormatters,
+  useLocalizedContent,
+  usePageMeta,
+} from '../i18n';
 
 export default function PrivacyPolicyPage() {
-  const { t } = useTranslation(['legal', 'common']);
+  const { t } = useTranslation(['legal', 'common', 'seo']);
   const { formatDate } = useFormatters();
   const { field } = useLocalizedContent();
   const [page, setPage] = useState(null);
@@ -23,12 +30,13 @@ export default function PrivacyPolicyPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    document.title = t('legal:privacy.pageTitle');
-  }, [t]);
-
   const pageTitle = page ? field(page, 'title') : null;
   const pageContent = page ? field(page, 'content') : null;
+
+  usePageMeta({
+    title: pageTitle?.text ? t('seo:templates.pageTitle', { title: pageTitle.text }) : undefined,
+    description: pageContent?.text ? extractMetaDescriptionFromMarkdown(pageContent.text) : undefined,
+  });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>

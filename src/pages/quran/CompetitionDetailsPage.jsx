@@ -13,7 +13,14 @@ import CompetitionProgressLine from './CompetitionProgressLine';
 import { useCompetitionRegistrationStatus } from '../../hooks/useCompetitionRegistrationStatus';
 import { useAuth } from '../../context/AuthContext';
 import StudentCompetitionCelebration from '../../components/StudentCompetitionCelebration';
-import { LocalizedLink, DirectionalIcon, useFormatters, useLocalizedContent } from '../../i18n';
+import {
+  LocalizedLink,
+  DirectionalIcon,
+  truncateMetaDescription,
+  useFormatters,
+  useLocalizedContent,
+  usePageMeta,
+} from '../../i18n';
 
 function getLoadErrorKey(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -35,7 +42,7 @@ function hasCompetitionStarted(dateStr) {
 
 export default function CompetitionDetailsPage() {
   const { slug } = useParams();
-  const { t } = useTranslation('competitions');
+  const { t } = useTranslation(['competitions', 'seo']);
   const { formatDate } = useFormatters();
   const { field, text, latinName, options, optionLabel } = useLocalizedContent();
   const [resource, setResource] = useState({ slug: null, competition: null, errorKey: '' });
@@ -119,21 +126,21 @@ export default function CompetitionDetailsPage() {
     return () => { active = false; };
   }, [competition?.id, isStudent, loadingSubscriptions]);
 
-  // Set Document Title
-  useEffect(() => {
-    if (loading) {
-      document.title = t('details.pageTitleDefault');
-      return;
-    }
+  const compNameText = competition ? text(competition, 'name') : '';
+  const compDescriptionText = competition
+    ? text(competition, 'short_description') || text(competition, 'complete_description')
+    : '';
 
-    if (competition) {
-      document.title = t('details.pageTitleWithName', { name: text(competition, 'name') });
-    } else if (errorKey) {
-      document.title = t('details.pageTitleError');
-    } else {
-      document.title = t('details.pageTitleDefault');
-    }
-  }, [competition, errorKey, loading, t, text]);
+  usePageMeta({
+    title: compNameText
+      ? t('seo:templates.competitionDetailTitle', { name: compNameText })
+      : errorKey
+        ? t('details.pageTitleError')
+        : undefined,
+    description: compDescriptionText
+      ? truncateMetaDescription(compDescriptionText)
+      : undefined,
+  });
 
   const refreshGuestParticipant = async () => {
     await markCompetitionRequestPending();

@@ -18,7 +18,14 @@ import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import WatchFocusLayout from './watch/WatchFocusLayout';
 import { useAuth } from '../../context/AuthContext';
 import { checkMyCourseAccess } from '../../services/studentsService';
-import { LocalizedLink, useLocalizedContent, useLocalizedNavigate, useLocalizedPath } from '../../i18n';
+import {
+  LocalizedLink,
+  truncateMetaDescription,
+  useLocalizedContent,
+  useLocalizedNavigate,
+  useLocalizedPath,
+  usePageMeta,
+} from '../../i18n';
 
 function getCompletedLecturesStorageKey(courseId) {
   return courseId ? `completed_lectures_${courseId}` : '';
@@ -88,7 +95,7 @@ function clearCompletedLecturesFromStorage(courseId) {
 }
 
 export default function CourseWatchPage() {
-  const { t } = useTranslation('courseWatch');
+  const { t } = useTranslation(['courseWatch', 'seo']);
   const { text } = useLocalizedContent();
   const { courseSlug, lectureSlug } = useParams();
   const navigate = useLocalizedNavigate();
@@ -301,15 +308,27 @@ export default function CourseWatchPage() {
     }
   }, [course]);
 
-  // Update Page Document Title
-  useEffect(() => {
-    if (course) {
-      document.title = t('watch.documentTitle', { name: text(course, 'name') });
-      return;
-    }
+  const activeCourse = !loading && !error ? course : null;
+  const courseTitleText = activeCourse ? text(activeCourse, 'name') : '';
+  const lectureTitleText = activeCourse && selectedLecture ? text(selectedLecture, 'title') : '';
+  const watchTitleArg =
+    lectureTitleText && courseTitleText
+      ? `${lectureTitleText} — ${courseTitleText}`
+      : courseTitleText;
+  const watchDescriptionText = activeCourse
+    ? (selectedLecture && text(selectedLecture, 'description')) ||
+      text(activeCourse, 'short_description') ||
+      text(activeCourse, 'long_description')
+    : '';
 
-    document.title = t('watch.defaultDocumentTitle');
-  }, [course, text, t]);
+  usePageMeta({
+    title: watchTitleArg
+      ? t('seo:templates.courseWatchTitle', { name: watchTitleArg })
+      : undefined,
+    description: watchDescriptionText
+      ? truncateMetaDescription(watchDescriptionText)
+      : undefined,
+  });
 
   // Keep the watch URL canonical with the lecture slug in the pathname.
   useEffect(() => {

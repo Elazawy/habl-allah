@@ -14,6 +14,7 @@
  *   - No Twilio / Phone Provider required in Supabase.
  */
 import i18n from '../i18n';
+import { normalizeLanguage } from '../i18n/routing.js';
 import { supabase } from '../lib/supabase';
 import { fetchMyCompetitionParticipants, SUBSCRIBED_STATUSES } from './competitionParticipation';
 import { subscribeStudentToCompetition as subscribeCompetitionParticipant } from './competitionsService';
@@ -135,7 +136,7 @@ async function getFunctionErrorMessage(error, actionLabel, { inferConflictCode }
   return err;
 }
 
-export async function signUpStudent({ phone, password, fullName, gender, country, birthDate }) {
+export async function signUpStudent({ phone, password, fullName, gender, country, birthDate, preferredLanguage }) {
   const normalizedPhone = normalizeStudentPhone(phone);
   const { error } = await supabase.functions.invoke('student-self-signup', {
     body: {
@@ -145,6 +146,7 @@ export async function signUpStudent({ phone, password, fullName, gender, country
       gender,
       country,
       birthDate,
+      preferredLanguage: normalizeLanguage(preferredLanguage || i18n.language),
     },
   });
 
@@ -330,7 +332,7 @@ export async function fetchStudentById(studentId) {
   const { data, error } = await supabase
     .from('student_profiles')
     .select(`
-      id, full_name, phone, teacher_id, created_at, gender, country, birth_date,
+      id, full_name, phone, teacher_id, created_at, gender, country, birth_date, preferred_language,
       teachers(id, name, photo_url),
       student_course_subscriptions(*, quran_courses(id, name, slug, is_free, is_published)),
       student_competition_subscriptions:competition_guest_participants(*, quran_competitions(id, name, slug))
@@ -372,9 +374,14 @@ export async function updateStudentTeacher(studentId, teacherId) {
 
 /** Admin: update student's basic info */
 export async function updateStudentProfile(studentId, payload) {
+  const updates =
+    payload && payload.preferred_language !== undefined
+      ? { ...payload, preferred_language: normalizeLanguage(payload.preferred_language) }
+      : payload;
+
   const { data, error } = await supabase
     .from('student_profiles')
-    .update(payload)
+    .update(updates)
     .eq('id', studentId)
     .select()
     .single();
