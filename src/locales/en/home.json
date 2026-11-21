@@ -1,0 +1,80 @@
+{
+  "darkMode": {
+    "enableLightAria": "Switch to light mode",
+    "enableDarkAria": "Switch to dark mode",
+    "lightTitle": "Light mode",
+    "darkTitle": "Dark mode"
+  },
+  "floatingWhatsApp": {
+    "ariaLabel": "Contact us on WhatsApp"
+  },
+  "gender": {
+    "male": "Male Teachers",
+    "female": "Female Teachers",
+    "default": "Teachers"
+  },
+  "whatsapp": {
+    "defaultCompetitionName": "Quranic Competition",
+    "competitionParticipation": "Assalamu Alaikum wa Rahmatullahi wa Barakatuh, I would like to participate in {{name}} and learn about the registration steps and requirements."
+  },
+  "hero": {
+    "badge": "An Integrated Quranic Learning Platform",
+    "welcomePrefix": "Welcome to",
+    "academyTitle": "Habl Allah Quranic Academy",
+    "subtitle": "The light of guidance begins here, blending authentic scholarship with modern technology in service of the Book of Allah.",
+    "cta": "Explore Our Platforms",
+    "scrollDownAria": "Scroll down",
+    "stats": {
+      "experienceValue": "10+",
+      "experienceLabel": "Years of Experience",
+      "studentsValue": "500+",
+      "studentsLabel": "Enrolled Students",
+      "teachersValue": "30+",
+      "teachersLabel": "Ijazah-Certified Teachers"
+    }
+  },
+  "portals": {
+    "badge": "Our Learning Platforms",
+    "heading": "Choose the Right Platform for You",
+    "subtitle": "We provide a tailored learning environment for every age group — whether you are an adult or a child",
+    "adults": {
+      "title": "Habl Allah Platform",
+      "description": "A comprehensive scholarly journey in the sciences of the Noble Quran, thoughtfully designed for those striving for mastery and excellence.",
+      "features": {
+        "courses": "Specialized Quranic courses",
+        "teachers": "Distinguished Ijazah-certified teachers",
+        "competitions": "Regular competitions with rewarding prizes",
+        "certificates": "Internationally recognized certificates"
+      },
+      "cta": "Start Your Learning Journey"
+    },
+    "kids": {
+      "audience": "For Kids",
+      "title": "Usus Habl Allah Platform",
+      "description": "A fun, safe, and interactive learning environment that builds strong foundations of faith in children in an engaging and beloved way.",
+      "features": {
+        "fiqh": "Simplified Fiqh for children",
+        "aqeedah": "Interactive Aqeedah lessons",
+        "seerah": "The fragrant biography of the Prophet (Seerah)",
+        "games": "Quranic games and challenges"
+      },
+      "cta": "Enter Kids Portal"
+    }
+  },
+  "about": {
+    "badge": "Get to Know Us",
+    "heading": "Who We Are",
+    "description": "Habl Allah Quranic Academy is a pioneering educational institution dedicated to spreading the sciences of the Noble Quran and teaching its recitation and Tajweed rules to the highest standards of quality. We believe Quranic education is a right for everyone, and we strive to make it accessible through modern technology.",
+    "visionTitle": "Our Vision",
+    "visionText": "To be the leading reference in digital Quranic education across the Arab and Islamic world.",
+    "missionTitle": "Our Mission",
+    "missionText": "To deliver authentic, accessible Quranic education that combines scholarly excellence with modern interactivity.",
+    "mushafTitle_ar": "القرآن",
+    "mushafSubtitle_ar": "الكريم",
+    "mushafCaption": "Mosque & Mushaf",
+    "yearsValue": "10+",
+    "yearsLabel": "Years of Dedication",
+    "satisfactionValue": "98%",
+    "satisfactionLabel": "Student Satisfaction"
+  }
+}

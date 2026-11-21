@@ -1,14 +1,16 @@
 import { Moon, Sun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 export default function DarkModeToggle({ className = '' }) {
   const { dark, toggle } = useTheme();
+  const { t } = useTranslation('home');
 
   return (
     <button
       onClick={toggle}
-      aria-label={dark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}
-      title={dark ? 'الوضع الفاتح' : 'الوضع الداكن'}
+      aria-label={dark ? t('darkMode.enableLightAria') : t('darkMode.enableDarkAria')}
+      title={dark ? t('darkMode.lightTitle') : t('darkMode.darkTitle')}
       className={`relative inline-flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${className}`}
       style={{
         backgroundColor: dark ? 'rgba(78,173,136,0.15)' : 'rgba(27,77,62,0.08)',

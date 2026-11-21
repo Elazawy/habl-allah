@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
+import { LocalizedLink, useLocalizedNavigate } from '../../i18n';
 import logoGold from '../../assets/logo-gold.png';
 
 export default function StudentLoginPage() {
   const { signInAsStudent } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
+  const { t } = useTranslation(['student', 'common']);
 
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -23,8 +25,8 @@ export default function StudentLoginPage() {
       console.error(err);
       setError(
         err.message === 'Invalid login credentials'
-          ? 'رقم الهاتف أو كلمة المرور غير صحيحة.'
-          : 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'
+          ? t('login.errors.invalidCredentials')
+          : t('login.errors.generic')
       );
     } finally {
       setLoading(false);
@@ -32,26 +34,26 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-12 px-6" style={{ backgroundColor: 'var(--t-bg-page)' }} dir="rtl">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-12 px-6" style={{ backgroundColor: 'var(--t-bg-page)' }}>
       {/* Background Orbs */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-primary), transparent)' }} />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-secondary), transparent)' }} />
+        <div className="absolute top-[-10%] start-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-primary), transparent)' }} />
+        <div className="absolute bottom-[-10%] end-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-secondary), transparent)' }} />
       </div>
 
       <div className="relative z-10 w-full max-w-md bg-white dark:bg-emerald-950/20 backdrop-blur-md border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-8 md:p-10 shadow-2xl shadow-emerald-900/5">
         
         {/* Brand Logo & Titles */}
         <div className="text-center mb-8">
-          <Link to="/quran">
+          <LocalizedLink to="/quran">
             <img
               src={logoGold}
-              alt="شعار حبل الله"
+              alt={t('common:brand.logoAlt')}
               className="w-20 h-20 mx-auto object-contain mb-4 filter drop-shadow-md"
             />
-          </Link>
-          <h1 className="text-2xl font-black mb-1 text-emerald-900 dark:text-emerald-400">حبل الله</h1>
-          <p className="text-sm font-semibold text-emerald-800/60 dark:text-emerald-200/60">بوابة حسابات الطلاب</p>
+          </LocalizedLink>
+          <h1 className="text-2xl font-black mb-1 text-emerald-900 dark:text-emerald-400">{t('common:brand.shortName')}</h1>
+          <p className="text-sm font-semibold text-emerald-800/60 dark:text-emerald-200/60">{t('login.subtitle')}</p>
         </div>
 
         {/* Login Form */}
@@ -59,14 +61,14 @@ export default function StudentLoginPage() {
           
           <div className="flex flex-col gap-2">
             <label htmlFor="phone-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              رقم الهاتف
+              {t('fields.phone')}
             </label>
             <input
               id="phone-input"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="01xxxxxxxxx"
+              placeholder={t('login.phonePlaceholder')}
               required
               className="w-full py-3 px-4 rounded-2xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 placeholder-emerald-800/40 dark:placeholder-emerald-200/40 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
               dir="ltr"
@@ -75,7 +77,7 @@ export default function StudentLoginPage() {
 
           <div className="flex flex-col gap-2">
             <label htmlFor="password-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              كلمة المرور
+              {t('fields.password')}
             </label>
             <input
               id="password-input"
@@ -104,7 +106,7 @@ export default function StudentLoginPage() {
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
             ) : (
-              'تسجيل الدخول'
+              t('login.submit')
             )}
           </button>
         </form>
@@ -112,16 +114,20 @@ export default function StudentLoginPage() {
         {/* Signup / support */}
         <div className="mt-8 text-center border-t border-emerald-600/10 dark:border-emerald-400/10 pt-6">
           <p className="text-sm font-extrabold text-emerald-900 dark:text-emerald-100">
-            لا تمتلك حساباً؟{' '}
-            <Link
+            {t('login.noAccount')}{' '}
+            <LocalizedLink
               to="/quran/student/signup"
               className="text-emerald-700 dark:text-emerald-300 underline decoration-2 underline-offset-2 hover:text-emerald-600 dark:hover:text-emerald-200"
             >
-              أنشئ حسابك الآن
-            </Link>
+              {t('login.createAccountLink')}
+            </LocalizedLink>
           </p>
           <p className="mt-2 text-xs font-semibold text-emerald-900/60 dark:text-emerald-200/60">
-            بعد إنشاء الحساب يبدأ الطالب بحالة <span dir="ltr">--بدون معلم</span>، وتقوم الإدارة بإسناد المعلم لاحقاً عند الحاجة.
+            <Trans
+              t={t}
+              i18nKey="login.afterSignupNote"
+              components={{ status: <span dir="ltr" /> }}
+            />
           </p>
         </div>
 

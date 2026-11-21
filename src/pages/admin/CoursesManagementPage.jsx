@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { fetchAllCourses, deleteCourse, updateCourse, deleteCourseImage } from '../../services/coursesService';
 import { fetchCourseLecturesAdmin, deleteCourseLectureVideoAssets } from '../../services/courseLecturesService';
 import CourseFormModal from './CourseFormModal';
+import TranslationStatusBadge from './components/TranslationStatusBadge';
+import { COURSE_TRANSLATION_SPECS } from '../../i18n/content.js';
 import { Plus, Pencil, Trash2, Search, BookOpen, Eye, EyeOff, PlayCircle, RefreshCcw, ChevronDown } from 'lucide-react';
 
 function getLoadErrorMessage(error) {
@@ -245,7 +247,13 @@ export default function CoursesManagementPage() {
                           )}
                         </div>
                         <div>
-                          <div className="admin-teacher-name">{c.name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <div className="admin-teacher-name">{c.name}</div>
+                            <TranslationStatusBadge
+                              record={c}
+                              specs={COURSE_TRANSLATION_SPECS}
+                            />
+                          </div>
                           <div className="admin-muted admin-card-detail-only" style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
                             {c.slug}
                           </div>

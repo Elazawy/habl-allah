@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 
 export async function fetchLectureQuestions(lectureId) {
@@ -12,7 +13,7 @@ export async function fetchLectureQuestions(lectureId) {
 
 export async function submitQuestion(lectureId, questionTitle) {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('يجب تسجيل الدخول لطرح سؤال.');
+  if (!user) throw new Error(i18n.t('errors:lectureQuestions.loginRequired'));
 
   const { data, error } = await supabase
     .from('course_lecture_questions')

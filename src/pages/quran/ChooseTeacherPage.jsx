@@ -1,15 +1,14 @@
-import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
+import { DirectionalIcon, useLocalizedNavigate } from '../../i18n';
 import { useReveal } from '../../hooks/useReveal';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 
-const sections = [
+const SECTION_CONFIGS = [
   {
     id: 'portal-choose-male',
     gender: 'male',
-    label: 'قسم المعلمين',
-    desc: 'معلمون مجازون بالقراءات العشر لتعليم الرجال والأطفال',
     bg: '#1B4D3E',
     iconColor: '#CFA767',
     textColor: '#ffffff',
@@ -26,8 +25,6 @@ const sections = [
   {
     id: 'portal-choose-female',
     gender: 'female',
-    label: 'قسم المعلمات',
-    desc: 'معلمات متميزات لتعليم النساء والفتيات في خصوصية تامة',
     bg: '#CFA767',
     iconColor: '#1B4D3E',
     textColor: '#1B4D3E',
@@ -44,11 +41,12 @@ const sections = [
 ];
 
 export default function ChooseTeacherPage() {
-  const navigate = useNavigate();
+  const { t } = useTranslation('teachers');
+  const navigate = useLocalizedNavigate();
   const ref = useReveal();
 
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
 
       <main ref={ref}>
@@ -59,19 +57,23 @@ export default function ChooseTeacherPage() {
               className="inline-block text-sm font-bold tracking-widest uppercase mb-4 px-4 py-1.5 rounded-full"
               style={{ backgroundColor: 'var(--t-primary-light)', color: 'var(--t-primary)' }}
             >
-              ابدأ رحلتك
+              {t('choose.badge')}
             </span>
             <h1
               className="text-4xl md:text-5xl font-black mb-5 leading-tight"
               style={{ color: 'var(--t-text)' }}
             >
-              اختر <span style={{ color: 'var(--t-primary)' }}>معلمك</span>
+              <Trans
+                i18nKey="choose.title"
+                ns="teachers"
+                components={{ highlight: <span style={{ color: 'var(--t-primary)' }} /> }}
+              />
             </h1>
             <p
               className="text-lg max-w-xl mx-auto leading-relaxed"
               style={{ color: 'var(--t-text-muted)' }}
             >
-              اختر القسم المناسب لك، ثم تصفح المعلمين أو دعنا نرشّح لك المعلم المثالي
+              {t('choose.subtitle')}
             </p>
           </div>
 
@@ -86,57 +88,66 @@ export default function ChooseTeacherPage() {
         {/* ── Section Cards ── */}
         <section className="pb-28 px-5 md:px-8">
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-7">
-            {sections.map((s, i) => (
-              <button
-                key={s.id}
-                id={s.id}
-                onClick={() => navigate(`/quran/teachers/${s.gender}`)}
-                className={`reveal-scale reveal-d${i + 1} group relative overflow-hidden rounded-3xl h-[360px] flex flex-col items-center justify-center text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 pattern-overlay-gold cursor-pointer w-full border-0`}
-                style={{ backgroundColor: s.bg }}
-                aria-label={`الانتقال إلى ${s.label}`}
-              >
-                {/* Subtle radial glow on hover */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
-                  style={{
-                    background: `radial-gradient(circle at 50% 40%, ${s.iconColor}22 0%, transparent 70%)`,
-                  }}
-                />
-
-                <div className="relative z-10 flex flex-col items-center px-10">
-                  {/* Icon */}
+            {SECTION_CONFIGS.map((s, i) => {
+              const label = t(`sections.${s.gender}.label`);
+              const desc = t(`sections.${s.gender}.desc`);
+              return (
+                <button
+                  key={s.id}
+                  id={s.id}
+                  onClick={() => navigate(`/quran/teachers/${s.gender}`)}
+                  className={`reveal-scale reveal-d${i + 1} group relative overflow-hidden rounded-3xl h-[360px] flex flex-col items-center justify-center text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 pattern-overlay-gold cursor-pointer w-full border-0`}
+                  style={{ backgroundColor: s.bg }}
+                  aria-label={t('choose.goToSection', { section: label })}
+                >
+                  {/* Subtle radial glow on hover */}
                   <div
-                    className="mb-6 transition-transform duration-500 group-hover:scale-110"
-                    style={{ color: s.iconColor }}
-                  >
-                    {s.icon}
-                  </div>
-
-                  {/* Title */}
-                  <h2 className="text-3xl font-black mb-3" style={{ color: s.textColor }}>
-                    {s.label}
-                  </h2>
-
-                  {/* Description */}
-                  <p className="text-base leading-relaxed mb-8 max-w-xs" style={{ color: s.descColor }}>
-                    {s.desc}
-                  </p>
-
-                  {/* CTA */}
-                  <span
-                    className="inline-flex items-center gap-2 font-bold text-sm border rounded-full px-5 py-2 transition-all duration-300 group-hover:gap-3"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
                     style={{
-                      color: s.linkColor,
-                      borderColor: `${s.linkColor}55`,
-                      backgroundColor: `${s.linkColor}18`,
+                      background: `radial-gradient(circle at 50% 40%, ${s.iconColor}22 0%, transparent 70%)`,
                     }}
-                  >
-                    تصفح المعلمين
-                    <ArrowLeft size={15} className="transition-transform duration-300 group-hover:-translate-x-1" />
-                  </span>
-                </div>
-              </button>
-            ))}
+                  />
+
+                  <div className="relative z-10 flex flex-col items-center px-10">
+                    {/* Icon */}
+                    <div
+                      className="mb-6 transition-transform duration-500 group-hover:scale-110"
+                      style={{ color: s.iconColor }}
+                    >
+                      {s.icon}
+                    </div>
+
+                    {/* Title */}
+                    <h2 className="text-3xl font-black mb-3" style={{ color: s.textColor }}>
+                      {label}
+                    </h2>
+
+                    {/* Description */}
+                    <p className="text-base leading-relaxed mb-8 max-w-xs" style={{ color: s.descColor }}>
+                      {desc}
+                    </p>
+
+                    {/* CTA */}
+                    <span
+                      className="inline-flex items-center gap-2 font-bold text-sm border rounded-full px-5 py-2 transition-all duration-300 group-hover:gap-3"
+                      style={{
+                        color: s.linkColor,
+                        borderColor: `${s.linkColor}55`,
+                        backgroundColor: `${s.linkColor}18`,
+                      }}
+                    >
+                      {t('choose.browseTeachers')}
+                      <DirectionalIcon
+                        icon={ArrowLeft}
+                        flipIn="ltr"
+                        size={15}
+                        className="transition-transform duration-300 rtl:group-hover:-translate-x-1 ltr:group-hover:translate-x-1"
+                      />
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </section>
       </main>

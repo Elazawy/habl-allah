@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Menu, X, LogIn, LogOut, Layout } from 'lucide-react';
 import DarkModeToggle from '../../components/DarkModeToggle';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 import logoGold from '../../assets/logo-gold.png';
 import { useAuth } from '../../context/AuthContext';
+import {
+  DirectionalIcon,
+  LocalizedLink,
+  useLocalizedNavigate,
+} from '../../i18n';
 
 const getDashboardPath = (isAdmin) => {
   return isAdmin ? '/admin/quran' : '/quran/student/dashboard';
@@ -13,7 +19,8 @@ export default function QuranNav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, isAdmin, studentProfile, signOut } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -27,8 +34,8 @@ export default function QuranNav() {
   };
 
   const getDisplayName = () => {
-    if (isAdmin) return 'المدير';
-    return studentProfile?.full_name ?? 'طالب';
+    if (isAdmin) return t('nav.admin');
+    return studentProfile?.full_name ?? t('nav.student');
   };
 
   const isStudentLoggedIn = user && !isAdmin;
@@ -36,16 +43,16 @@ export default function QuranNav() {
 
   const navLinks = isStudentLoggedIn
     ? [
-        { label: 'الصفحة الرئيسية', to: '/quran/student/dashboard' },
-        { label: 'الدروس', to: '/quran/student/lessons' },
-        { label: 'المسابقات',   to: '/quran/competitions' },
-        { label: 'الدورات',     to: '/quran/courses' },
+        { label: t('nav.studentHome'), to: '/quran/student/dashboard' },
+        { label: t('nav.lessons'), to: '/quran/student/lessons' },
+        { label: t('nav.competitions'), to: '/quran/competitions' },
+        { label: t('nav.courses'), to: '/quran/courses' },
       ]
     : [
-        { label: 'الرئيسية',    to: '/quran' },
-        { label: 'اختر معلمك',  to: '/quran/teachers' },
-        { label: 'المسابقات',   to: '/quran/competitions' },
-        { label: 'الدورات',     to: '/quran/courses' },
+        { label: t('nav.home'), to: '/quran' },
+        { label: t('nav.chooseTeacher'), to: '/quran/teachers' },
+        { label: t('nav.competitions'), to: '/quran/competitions' },
+        { label: t('nav.courses'), to: '/quran/courses' },
       ];
 
   return (
@@ -60,29 +67,32 @@ export default function QuranNav() {
     >
       <div className="max-w-6xl mx-auto px-5 md:px-6 h-16 md:h-20 flex items-center justify-between">
         {/* Brand */}
-        <Link to={brandPath} className="flex items-center gap-2.5">
-          <img src={logoGold} alt="شعار حبل الله" className="w-10 h-10 object-contain" />
+        <LocalizedLink to={brandPath} className="flex items-center gap-2.5">
+          <img src={logoGold} alt={t('brand.logoAlt')} className="w-10 h-10 object-contain" />
           <span className="text-xl font-black" style={{ color: 'var(--t-primary)' }}>
-            حبل الله
+            {t('brand.shortName')}
           </span>
-        </Link>
+        </LocalizedLink>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((l) => (
-            <Link
-              key={l.label}
+            <LocalizedLink
+              key={l.to}
               to={l.to}
               className="font-semibold text-sm transition-colors duration-200 pb-1 hover:opacity-100 opacity-60"
               style={{ color: 'var(--t-text)' }}
             >
               {l.label}
-            </Link>
+            </LocalizedLink>
           ))}
         </nav>
 
-        {/* Right actions: toggle + auth status + mobile menu */}
+        {/* End actions: language switcher + dark mode toggle + auth status + mobile menu */}
         <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <LanguageSwitcher />
+          </div>
           <DarkModeToggle />
 
           {/* Desktop Auth Section */}
@@ -90,36 +100,36 @@ export default function QuranNav() {
             {user ? (
               <div className="flex items-center gap-3">
                 {!isStudentLoggedIn && (
-                  <Link
+                  <LocalizedLink
                     to={getDashboardPath(isAdmin)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-600/20 transition-all"
                   >
                     <Layout className="w-3.5 h-3.5" />
-                    <span>لوحة التحكم ({getDisplayName()})</span>
-                  </Link>
+                    <span>{t('nav.dashboardWithUser', { name: getDisplayName() })}</span>
+                  </LocalizedLink>
                 )}
                 {isStudentLoggedIn && (
                   <span className="text-xs font-semibold px-2" style={{ color: 'var(--t-text)' }}>
-                    مرحباً، {getDisplayName()}
+                    {t('nav.welcomeUser', { name: getDisplayName() })}
                   </span>
                 )}
                 <button
                   onClick={handleSignOut}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-500/10 transition-all cursor-pointer"
-                  title="تسجيل الخروج"
+                  title={t('nav.signOut')}
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>خروج</span>
+                  <DirectionalIcon icon={LogOut} className="w-3.5 h-3.5" />
+                  <span>{t('nav.logoutShort')}</span>
                 </button>
               </div>
             ) : (
-              <Link
+              <LocalizedLink
                 to="/quran/student/login"
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm shadow-emerald-600/10"
               >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>دخول الطلاب</span>
-              </Link>
+                <DirectionalIcon icon={LogIn} className="w-3.5 h-3.5" />
+                <span>{t('nav.studentLogin')}</span>
+              </LocalizedLink>
             )}
           </div>
 
@@ -128,7 +138,7 @@ export default function QuranNav() {
             className="md:hidden p-2 rounded-xl transition-colors"
             style={{ color: 'var(--t-primary)' }}
             onClick={() => setMenuOpen((o) => !o)}
-            aria-label="فتح القائمة"
+            aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -145,15 +155,15 @@ export default function QuranNav() {
           }}
         >
           {navLinks.map((l) => (
-            <Link
-              key={l.label}
+            <LocalizedLink
+              key={l.to}
               to={l.to}
               className="font-semibold text-base py-1"
               style={{ color: 'var(--t-primary)' }}
               onClick={() => setMenuOpen(false)}
             >
               {l.label}
-            </Link>
+            </LocalizedLink>
           ))}
 
           {/* Mobile Auth Links */}
@@ -161,18 +171,18 @@ export default function QuranNav() {
             {user ? (
               <>
                 {!isStudentLoggedIn && (
-                  <Link
+                  <LocalizedLink
                     to={getDashboardPath(isAdmin)}
                     className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 text-white"
                     onClick={() => setMenuOpen(false)}
                   >
                     <Layout className="w-4 h-4" />
-                    <span>لوحة التحكم ({getDisplayName()})</span>
-                  </Link>
+                    <span>{t('nav.dashboardWithUser', { name: getDisplayName() })}</span>
+                  </LocalizedLink>
                 )}
                 {isStudentLoggedIn && (
                   <div className="text-center text-sm font-bold py-1.5" style={{ color: 'var(--t-text)' }}>
-                    مرحباً، {getDisplayName()}
+                    {t('nav.welcomeUser', { name: getDisplayName() })}
                   </div>
                 )}
                 <button
@@ -182,20 +192,24 @@ export default function QuranNav() {
                   }}
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-red-600 hover:bg-red-500/10 cursor-pointer"
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span>تسجيل الخروج</span>
+                  <DirectionalIcon icon={LogOut} className="w-4 h-4" />
+                  <span>{t('nav.signOut')}</span>
                 </button>
               </>
             ) : (
-              <Link
+              <LocalizedLink
                 to="/quran/student/login"
                 className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 text-white"
                 onClick={() => setMenuOpen(false)}
               >
-                <LogIn className="w-4 h-4" />
-                <span>دخول الطلاب</span>
-              </Link>
+                <DirectionalIcon icon={LogIn} className="w-4 h-4" />
+                <span>{t('nav.studentLogin')}</span>
+              </LocalizedLink>
             )}
+
+            <div className="flex justify-center pt-1">
+              <LanguageSwitcher variant="compact" onSelect={() => setMenuOpen(false)} />
+            </div>
           </div>
         </div>
       )}

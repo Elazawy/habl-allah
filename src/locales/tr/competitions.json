@@ -1,0 +1,127 @@
+{
+  "registrationState": {
+    "loading": "Kontrol ediliyor...",
+    "subscribed": "Zaten Kayıtlı",
+    "pending": "Kayıt Talebi Gönderildi",
+    "rejected": "Kayıt Talebi Reddedildi",
+    "error": "Kayıt Durumu Doğrulanamadı",
+    "closed": "Kayıt Kapandı",
+    "available": "Hemen Kayıt Ol"
+  },
+  "list": {
+    "pageTitle": "Kur'an Yarışmaları - Habl Allah",
+    "badge": "Hayırlarda Yarışın",
+    "title": "Kur'an Yarışmaları",
+    "subtitle": "Kur'an yarışmalarımız; Hıfz onurunu, güzel tilaveti ve Tecvid kurallarındaki titizliği bir araya getirir. Değerli ödüller kazanmak ve akademimizin seçkin hafızlarıyla buluşmak için açık yarışmalara katılın.",
+    "loading": "Yarışma detayları yükleniyor...",
+    "errorHeading": "Yarışmalar Yüklenemedi",
+    "errors": {
+      "supabaseNotConfigured": "Veritabanı ayarları eksik olduğu için yarışmalar şu anda yüklenemiyor.",
+      "generic": "Yarışmalar şu anda yüklenemedi. Lütfen daha sonra tekrar deneyin."
+    },
+    "emptyHeading": "Şu Anda Aktif Yarışma Yok",
+    "emptyDescription": "Yaklaşan yarışmalarımıza katılmak için lütfen daha sonra tekrar kontrol edin.",
+    "statusActive": "Aktif",
+    "startDate": "Başlangıç Tarihi: {{date}}",
+    "registrationEnds": "Son Kayıt Tarihi: {{date}}",
+    "actions": {
+      "trackProgress": "İlerlemeni Takip Et",
+      "details": "Detaylar"
+    }
+  },
+  "details": {
+    "pageTitleDefault": "Yarışma Detayları - Habl Allah",
+    "pageTitleWithName": "{{name}} - Habl Allah",
+    "pageTitleError": "Yarışma Yüklenemedi - Habl Allah",
+    "loading": "Yarışma detayları yükleniyor...",
+    "errorHeading": "Yarışma Yüklenemedi",
+    "errors": {
+      "supabaseNotConfigured": "Veritabanı ayarları eksik olduğu için yarışma detayları şu anda yüklenemiyor.",
+      "generic": "Yarışma detayları şu anda yüklenemedi. Lütfen daha sonra tekrar deneyin."
+    },
+    "notFoundHeading": "Yarışma Bulunamadı",
+    "notFoundDescription": "Üzgünüz, aradığınız yarışmayı bulamadık.",
+    "backToCompetitions": "Yarışmalara Dön",
+    "backToAllCompetitions": "Tüm Yarışmalara Dön",
+    "startDate": "Başlangıç Tarihi: {{date}}",
+    "registrationDeadline": "Son Başvuru Tarihi: {{date}}",
+    "progressAriaLabel": "Yarışmadaki ilerlemeniz",
+    "aboutTitle": "Yarışma Hakkında",
+    "levelsTitle": "Yarışmadaki Mevcut Seviyeler",
+    "awardsTitle": "Ödüller ve Takdir",
+    "termsTitle": "Katılım Şartları ve Kuralları",
+    "readyToJoinTitle": "Katılmaya hazır mısınız?",
+    "refreshStatus": "Durumu Güncelle",
+    "registrationClosedHint": "Bu yarışma için kayıt süresi sona erdi.",
+    "registrationLoadingHint": "Kayıt durumunuz kontrol ediliyor...",
+    "registrationPromptHint": "Yarışmaya kayıt talebi göndermek için formu doldurun",
+    "guestButton": {
+      "rejected": "Talep Reddedildi"
+    },
+    "guestStatus": {
+      "pendingTitle": "Kayıt Talebi İnceleniyor",
+      "pendingHint": "Talebiniz alındı ve yönetim incelemesini bekliyor.",
+      "rejectedTitle": "Talep Reddedildi",
+      "rejectedHint": "Bu yarışma için kayıt talebiniz reddedildi.",
+      "acceptedTitle": "Yarışmaya Katılıyorsunuz",
+      "acceptedHint": "Yarışmaya kabul edildiniz.",
+      "currentStage": "Mevcut Aşama: {{stageName}}",
+      "failedTitle": "Geçemediniz",
+      "failedStage": "{{stageName}} aşamasını geçemediniz",
+      "failedHint": "Bu aşamayı geçemediniz.",
+      "failedDescription": "Ne yazık ki bu aşamayı geçemediniz; gelecek yarışmalar için iyi hazırlanın.",
+      "completedHint": "Tebrikler! Yarışmayı başarıyla tamamladınız."
+    },
+    "celebrationFallbacks": {
+      "participant": "Yarışma Katılımcısı",
+      "competition": "Kur'an Yarışması",
+      "level": "Genel Seviye"
+    }
+  },
+  "registrationModal": {
+    "title": "Yarışma Kayıt Talebi",
+    "closeAriaLabel": "Kapat",
+    "errors": {
+      "nameMinLength": "Ad en az 2 karakter olmalıdır.",
+      "phoneLength": "Telefon numarası 10 ile 15 rakam arasında olmalıdır.",
+      "levelRequired": "Lütfen istediğiniz seviyeyi seçin veya yazın.",
+      "studentVerificationFailed": "Mevcut öğrenci hesabı doğrulanamadı. Lütfen tekrar giriş yapıp yeniden deneyin.",
+      "submitFailed": "Kayıt talebi gönderilirken bir hata oluştu. Lütfen tekrar deneyin.",
+      "recoverFailed": "Kayıt durumu sorgulanırken bir hata oluştu. Lütfen tekrar deneyin."
+    },
+    "success": {
+      "heading": "Talebiniz Başarıyla Gönderildi!",
+      "pending": "Kayıt talebiniz alındı ve yönetim incelemesini bekliyor. Telefon numaranızla durumunu takip edebilirsiniz.",
+      "rejected": "Bu yarışma için kayıt talebiniz reddedildi.",
+      "alreadySubscribed": "Zaten kayıtlısınız. Artık yarışmadaki ilerlemenizi takip edebilirsiniz.",
+      "okButton": "Tamam"
+    },
+    "recovery": {
+      "title": "Kayıt Durumunu Sorgula",
+      "subtitle": "Kayıt talebinizde kullandığınız telefon numarasını girin.",
+      "notFound": "Bu yarışma için bu numarayla bir kayıt talebi bulunamadı.",
+      "phoneLabel": "Telefon Numarası *",
+      "backButton": "Yeni Talebe Dön",
+      "searching": "Aranıyor...",
+      "submitButton": "Sorgula"
+    },
+    "closedBanner": {
+      "label": "Kayıt kapandı:",
+      "message": "Bu yarışma için kayıt süresi sona erdi."
+    },
+    "form": {
+      "fullNameLabel": "Ad Soyad *",
+      "fullNamePlaceholder": "Adınızı ve soyadınızı buraya yazın...",
+      "phoneWithCodeLabel": "Telefon Numarası (ülke kodu ile) *",
+      "phonePlaceholder": "Örn: 201012345678",
+      "levelLabel": "Katılmak İstediğiniz Seviye *",
+      "customLevelOption": "Seviyem listede yok (manuel gir)",
+      "customLevelPlaceholder": "Seviyenizi buraya ayrıntılı olarak yazın...",
+      "levelExamplesPlaceholder": "Örn: Amme Cüzü, 3 Cüz, Kur'an-ı Kerim'in Tamamı...",
+      "alreadyRegisteredTitle": "Önceki kayıt durumunu telefon numarasıyla sorgula",
+      "cancelButton": "İptal",
+      "submitting": "Gönderiliyor...",
+      "submitButton": "Talebi Gönder"
+    }
+  }
+}

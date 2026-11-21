@@ -1,0 +1,88 @@
+{
+  "gender": {
+    "male": "Erkek Öğretmenler",
+    "female": "Kadın Öğretmenler",
+    "default": "Öğretmenler"
+  },
+  "sections": {
+    "male": {
+      "label": "Erkek Öğretmenler",
+      "desc": "Erkeklere ve çocuklara eğitim veren, Aşere Kıraat icazetli öğretmenler"
+    },
+    "female": {
+      "label": "Kadın Öğretmenler",
+      "desc": "Kadınlara ve kız çocuklarına tam mahremiyet içinde eğitim veren seçkin kadın öğretmenler"
+    }
+  },
+  "breadcrumbAriaLabel": "Gezinti yolu",
+  "choose": {
+    "badge": "Yolculuğuna Başla",
+    "title": "<highlight>Öğretmenini</highlight> Seç",
+    "subtitle": "Size uygun bölümü seçin, ardından öğretmenleri inceleyin veya sizin için en ideal öğretmeni önermemize izin verin",
+    "goToSection": "{{section}} bölümüne git",
+    "browseTeachers": "Öğretmenleri İncele"
+  },
+  "list": {
+    "tabs": {
+      "browse": "Kendin incele ve öğretmenini seç",
+      "form": "Öğretmenimi seçmeme yardım et"
+    },
+    "fetchError": "Öğretmen listesi yüklenemedi. Lütfen sayfayı yenileyin.",
+    "retryError": "Öğretmen listesi yüklenemedi.",
+    "retryButton": "Tekrar Dene",
+    "empty": "Şu anda uygun öğretmen bulunmamaktadır."
+  },
+  "preferenceForm": {
+    "title": "İhtiyacını Bize Anlat",
+    "subtitle": "Sizinle iletişime geçebilmemiz için adınız ve WhatsApp numaranız gereklidir; yaş ve açıklama isteğe bağlıdır.",
+    "studentNameLabel": "Öğrenci Adı (Zorunlu)",
+    "studentNamePlaceholder": "Adınızı buraya yazın…",
+    "ageLabel": "Yaş",
+    "agePlaceholder": "Örn: 25",
+    "whatsappLabel": "İletişim Numarası (WhatsApp, Zorunlu)",
+    "whatsappPlaceholder": "Örn: 01012345678",
+    "whatsappHint": "Akademi ekibimizin iletişime geçmesi içindir. Numaranız Mısır dışındaysa ülke kodunu ekleyin.",
+    "descriptionLabel": "Bir öğretmende neler arıyorsunuz?",
+    "descriptionPlaceholder": "Örn: Başlangıç seviyesi Tecvid konusunda uzman, 10 yaşındaki bir çocuğa uygun bir öğretmen arıyorum…",
+    "submitButton": "Talebi Gönder",
+    "submitting": "Gönderiliyor…",
+    "submitError": "Bir hata oluştu, lütfen tekrar deneyin.",
+    "successTitle": "Talebiniz başarıyla gönderildi",
+    "successSubtitle": "Sizinle iletişime geçilecek ve size en uygun öğretmen seçilecektir",
+    "successNote": "Size uygun öğretmeni aramaya devam edebilirsiniz"
+  },
+  "card": {
+    "unknownInitial": "?",
+    "viewProfile": "Profili Görüntüle"
+  },
+  "profile": {
+    "notFound": "Bu öğretmen bulunamadı.",
+    "roleMale": "Kur'an-ı Kerim Öğretmeni",
+    "roleFemale": "Kur'an-ı Kerim Öğretmeni",
+    "subscribeButton": "Öğretmenle Kayıt Ol",
+    "freeTrialButton": "Ücretsiz Deneme Dersi Al",
+    "freeTrialWhatsappMessageMale": "{{name}} Hocamız ile ücretsiz deneme dersi ayırtmak istiyorum",
+    "freeTrialWhatsappMessageFemale": "{{name}} Hocamız ile ücretsiz deneme dersi ayırtmak istiyorum",
+    "aboutTitle": "Öğretmen Hakkında",
+    "recitationTitle": "Tilaveti Dinle",
+    "recitationIframeTitle": "Öğretmenin tilaveti",
+    "reviewsTitle": "Öğrenci Deneyimleri",
+    "reviewImageAlt": "Öğrenci değerlendirme görseli",
+    "carouselPrev": "Önceki",
+    "carouselNext": "Sonraki"
+  },
+  "subscribeModal": {
+    "title": "Kayıt Talebi",
+    "closeAriaLabel": "Kapat",
+    "withTeacher": "<teacher>{{name}}</teacher> ile",
+    "teacherLabel": "Öğretmen",
+    "studentNameLabel": "Adınız",
+    "studentNamePlaceholder": "Adınızı ve soyadınızı yazın…",
+    "whatsappLabel": "WhatsApp Numarası",
+    "whatsappPlaceholder": "Örn: 01012345678",
+    "whatsappHint": "Akademi ekibimizin takibi içindir. Numaranız Mısır dışındaysa ülke kodunu ekleyin.",
+    "submitButton": "Öğretmenle Kayıt Talebi Gönder",
+    "submitting": "Gönderiliyor…",
+    "whatsappMessage": "Merhaba, {{teacherName}} ile kayıt olmak istiyorum.\nAd: {{studentName}}"
+  }
+}

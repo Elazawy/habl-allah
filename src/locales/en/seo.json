@@ -1,0 +1,99 @@
+{
+  "routes": {
+    "default": {
+      "title": "Habl Allah Quran Academy",
+      "description": "Habl Allah Quran Academy — a comprehensive Quranic learning platform for adults and children. The light of guidance starts here."
+    },
+    "admin": {
+      "title": "Admin Dashboard — Habl Allah Academy",
+      "description": "Administration portal for Habl Allah Quran Academy."
+    },
+    "home": {
+      "title": "Habl Allah Quran Academy",
+      "description": "Habl Allah Quran Academy — a comprehensive Quranic learning platform for adults and children. The light of guidance starts here."
+    },
+    "faq": {
+      "title": "FAQ — Habl Allah Academy",
+      "description": "Answers to the most common questions about Habl Allah Academy, its programs, and its learning platforms."
+    },
+    "privacy": {
+      "title": "Privacy Policy — Habl Allah Academy",
+      "description": "Learn how we protect your personal information and respect your privacy at Habl Allah Academy."
+    },
+    "terms": {
+      "title": "Terms of Use — Habl Allah Academy",
+      "description": "Terms and conditions governing the use of Habl Allah Academy's learning platforms and services."
+    },
+    "quranHome": {
+      "title": "Habl Allah Quran Memorization Platform",
+      "description": "Learn and memorize the Holy Quran with certified male and female teachers in live one-on-one sessions for children and adults."
+    },
+    "quranFaq": {
+      "title": "FAQ — Habl Allah Quran Memorization Platform",
+      "description": "Frequently asked questions about Quran memorization circles, teachers, and courses at Habl Allah."
+    },
+    "chooseTeacher": {
+      "title": "Choose Your Teacher — Habl Allah Academy",
+      "description": "Choose from certified male and female Quran teachers to begin your recitation and memorization journey."
+    },
+    "teachersMale": {
+      "title": "Male Quran Teachers — Habl Allah Academy",
+      "description": "Browse profiles of specialized male Quran teachers in recitation, Tajweed, and memorization."
+    },
+    "teachersFemale": {
+      "title": "Female Quran Teachers — Habl Allah Academy",
+      "description": "Browse profiles of specialized female Quran teachers dedicated to women and children."
+    },
+    "teacherProfile": {
+      "title": "Teacher Profile — Habl Allah Academy",
+      "description": "Explore the biography, specializations, and student reviews of our Quran teachers at Habl Allah Academy."
+    },
+    "competitions": {
+      "title": "Quranic Competitions — Habl Allah Academy",
+      "description": "Join Habl Allah Academy's Quranic competitions and compete in memorizing and reciting the Book of Allah."
+    },
+    "competitionDetail": {
+      "title": "Competition Details — Habl Allah Academy",
+      "description": "View rules, awards, stages, and registration details for this Quranic competition at Habl Allah Academy."
+    },
+    "courses": {
+      "title": "Quranic Courses — Habl Allah Academy",
+      "description": "Structured courses in Tajweed, Quranic recitation, and Islamic studies led by experienced instructors."
+    },
+    "courseDetail": {
+      "title": "Course Details — Habl Allah Academy",
+      "description": "Explore the curriculum, lectures, and learning outcomes for this course at Habl Allah Academy."
+    },
+    "courseWatch": {
+      "title": "Watch Course — Habl Allah Academy",
+      "description": "Watch course lectures, track your progress, and keep personal study notes on the Habl Allah platform."
+    },
+    "studentLogin": {
+      "title": "Student Login — Habl Allah Academy",
+      "description": "Sign in to your Habl Allah student account to follow your Quran lessons and memorization reports."
+    },
+    "studentSignup": {
+      "title": "Student Sign Up — Habl Allah Academy",
+      "description": "Create a new Habl Allah student account to access courses and track your Quran memorization progress."
+    },
+    "studentDashboard": {
+      "title": "Student Dashboard — Habl Allah Academy",
+      "description": "Personal student dashboard for lessons, courses, and progress at Habl Allah Academy."
+    },
+    "studentLessons": {
+      "title": "Quran Lesson Reports — Habl Allah Academy",
+      "description": "View your Quran lesson reports history and teacher feedback."
+    },
+    "studentProfile": {
+      "title": "Student Profile — Habl Allah Academy",
+      "description": "Manage your Habl Allah student account details and preferences."
+    }
+  },
+  "templates": {
+    "teacherProfileTitle": "{{name}} — Habl Allah Academy",
+    "courseDetailTitle": "{{name}} — Habl Allah Academy",
+    "courseWatchTitle": "{{name}} — Watch | Habl Allah Academy",
+    "competitionDetailTitle": "{{name}} — Habl Allah Academy",
+    "pageTitle": "{{title}} — Habl Allah Academy"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "validation": {
+    "invalidStudentName": "Please enter the student's name (maximum 200 characters).",
+    "invalidWhatsapp": "Please enter a valid WhatsApp number of 10 to 15 digits, including the country code for international numbers.",
+    "invalidAge": "Please enter a valid age between 5 and 99, or leave it blank.",
+    "descriptionTooLong": "Please shorten your description to 4,000 characters or fewer."
+  },
+  "edge": {
+    "METHOD_NOT_ALLOWED": "Request method is not allowed.",
+    "INVALID_JSON_BODY": "Invalid request payload.",
+    "INVALID_REQUEST_BODY": "Invalid request payload.",
+    "TEACHER_ID_NOT_ACCEPTED": "A teacher cannot be assigned during self-signup.",
+    "MISSING_REQUIRED_FIELDS": "Please fill in all required fields.",
+    "INVALID_PHONE": "Phone number must be between 10 and 15 digits.",
+    "INVALID_FULL_NAME": "Full name must be at least 2 characters long.",
+    "PASSWORD_TOO_SHORT": "Password must be at least 6 characters long.",
+    "INVALID_GENDER": "Please select a valid gender.",
+    "INVALID_COUNTRY": "Please select a country from the list.",
+    "INVALID_BIRTH_DATE": "Please enter a valid date of birth.",
+    "PHONE_ALREADY_REGISTERED": "This phone number is already registered.",
+    "AUTH_CREATE_FAILED": "Unable to create your account right now. Please try again.",
+    "PROFILE_CREATE_FAILED": "Could not create the student profile automatically.",
+    "INVALID_LECTURE_ID": "Invalid lecture identifier.",
+    "LECTURE_NOT_FOUND": "Lecture not found or unavailable.",
+    "VIDEO_NOT_AVAILABLE": "The lecture video is not available right now.",
+    "INTERNAL_ERROR": "An internal server error occurred. Please try again later."
+  },
+  "students": {
+    "actionSignUp": "account signup",
+    "serviceNotEnabled": "The {{action}} service is not enabled on the backend yet. Please connect its Edge Function and try again.",
+    "actionFailed": "Unable to complete {{action}} right now.",
+    "adminCreateFailed": "An error occurred while creating the account.",
+    "adminResetPasswordFailed": "An error occurred while resetting the password.",
+    "adminDeleteFailed": "An error occurred while deleting the account."
+  },
+  "teachers": {
+    "requestsUnavailable": "The request submission service is currently unavailable. Please try again later."
+  },
+  "lectureQuestions": {
+    "loginRequired": "You must sign in to ask a question."
+  },
+  "courseLectures": {
+    "featureUploadVideo": "video upload",
+    "featurePlayVideo": "video playback",
+    "featureDeleteVideo": "video deletion",
+    "featureDeleteVideos": "video files deletion",
+    "serviceNotEnabled": "The {{feature}} service is not enabled on the backend yet. Please connect its Edge Function and try again.",
+    "actionFailed": "Unable to complete {{feature}} right now.",
+    "storageCorsError": "Failed to upload the video file to storage. Cloudflare R2 CORS settings do not appear to allow PUT requests from this origin yet. Add the current origin with PUT and Content-Type to the bucket CORS policy and try again.",
+    "storageConnectionError": "Failed to upload the video file to storage due to a connection error.",
+    "storageSignatureMismatch": "Failed to upload the video file to storage because the presigned upload URL or required headers did not match the expected signature.",
+    "storageAccessDenied": "Failed to upload the video file to storage because access was denied.",
+    "storageWithDetails": "Failed to upload the video file to storage ({{details}}).",
+    "storageHttpStatus": "Failed to upload the video file to storage (HTTP {{status}}).",
+    "uploadAborted": "Video upload was cancelled before completion.",
+    "selectVideoFirst": "Please choose a video file first.",
+    "mp4Only": "Only MP4 video files are currently supported.",
+    "invalidUploadUrl": "The video upload service did not return a valid upload URL.",
+    "missingUploadMetadata": "The video upload service did not return the metadata required to save the video.",
+    "invalidPlaybackUrl": "The video playback service did not return a valid playback URL."
+  },
+  "competitions": {
+    "studentStageRequired": "Please select the target stage to move the student to.",
+    "invalidStudentStatus": "Invalid student status.",
+    "guestStageRequired": "Please select the target stage to move the participant to.",
+    "invalidGuestStatus": "Invalid participant status.",
+    "noChangesRequested": "No changes were requested."
+  }
+}

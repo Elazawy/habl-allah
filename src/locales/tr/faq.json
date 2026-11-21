@@ -1,0 +1,16 @@
+{
+  "backToHomeAria": "Ana sayfaya dön",
+  "homeLink": "Ana Sayfa",
+  "loading": "Sorular yükleniyor…",
+  "empty": "Şu anda sıkça sorulan soru bulunmuyor",
+  "general": {
+    "pageTitle": "Sıkça Sorulan Sorular — Habl Allah Akademisi",
+    "heading": "Sıkça Sorulan Sorular",
+    "subtitle": "Habl Allah Akademisi ve eğitim platformları hakkında en çok sorulan soruların yanıtları"
+  },
+  "quran": {
+    "pageTitle": "Sıkça Sorulan Sorular — Habl Allah Kur'an Ezber Platformu",
+    "heading": "Sıkça Sorulan Sorular",
+    "subtitle": "Habl Allah Kur'an-ı Kerim Ezber Platformu hakkında en çok sorulan soruların yanıtları"
+  }
+}

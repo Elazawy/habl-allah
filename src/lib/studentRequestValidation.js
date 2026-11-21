@@ -1,14 +1,22 @@
+import i18n from 'i18next';
 import { isValidStudentPhone, normalizeStudentPhone } from './studentPhone.js';
+
+function createValidationError(code, key) {
+  const message = i18n.isInitialized ? i18n.t(key) : code;
+  const err = new Error(message || code);
+  err.code = code;
+  return err;
+}
 
 export function prepareStudentRequest({ student_name, whatsapp }) {
   const name = String(student_name ?? '').trim();
   if (!name || name.length > 200) {
-    throw new Error('يرجى إدخال اسم الطالب، بحد أقصى ٢٠٠ حرف.');
+    throw createValidationError('INVALID_STUDENT_NAME', 'errors:validation.invalidStudentName');
   }
   // An international number cannot start with a zero country code. Rejecting
   // it also keeps the canonical digits stable when the database normalizes it.
   if (!isValidStudentPhone(whatsapp) || normalizeStudentPhone(whatsapp).startsWith('0')) {
-    throw new Error('يرجى إدخال رقم واتساب صحيح من ١٠ إلى ١٥ رقماً، مع رمز الدولة للأرقام الدولية.');
+    throw createValidationError('INVALID_WHATSAPP', 'errors:validation.invalidWhatsapp');
   }
   return { student_name: name, whatsapp: normalizeStudentPhone(whatsapp) };
 }
@@ -20,10 +28,12 @@ export function preparePreferenceRequest(values) {
     ? null
     : (/^\d+$/.test(rawAge) ? Number(rawAge) : NaN);
   if (age !== null && (!Number.isInteger(age) || age < 5 || age > 99)) {
-    throw new Error('يرجى إدخال عمر صحيح بين ٥ و٩٩ عاماً، أو تركه فارغاً.');
+    throw createValidationError('INVALID_AGE', 'errors:validation.invalidAge');
   }
   const description = String(values.description ?? '').trim();
-  if (description.length > 4000) throw new Error('يرجى اختصار وصف احتياجك إلى ٤٠٠٠ حرف.');
+  if (description.length > 4000) {
+    throw createValidationError('DESCRIPTION_TOO_LONG', 'errors:validation.descriptionTooLong');
+  }
   return {
     ...contact,
     age,

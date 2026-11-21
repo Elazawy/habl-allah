@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { WHATSAPP_NUMBER } from '../lib/constants';
-
+import { stripLanguagePrefix } from '../i18n';
 
 function WhatsAppIcon({ size = 24 }) {
   return (
@@ -18,28 +19,31 @@ function WhatsAppIcon({ size = 24 }) {
 
 export default function FloatingWhatsApp() {
   const location = useLocation();
+  const { t } = useTranslation(['home', 'common']);
+
+  const canonicalPath = stripLanguagePrefix(location.pathname);
 
   // Check if we are in quran platform routes
-  if (!location.pathname.startsWith('/quran')) {
+  if (!canonicalPath.startsWith('/quran')) {
     return null;
   }
 
   // Hide on course watch pages to avoid covering UI elements
-  if (location.pathname.endsWith('/watch') || location.pathname.includes('/watch/')) {
+  if (canonicalPath.endsWith('/watch') || canonicalPath.includes('/watch/')) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 group flex justify-center items-center">
+    <div className="fixed bottom-6 start-6 z-50 group flex justify-center items-center">
       {/* Soft static glow instead of annoying ping */}
-      <div className="absolute inset-0 rounded-full bg-green-500 blur-lg opacity-30 group-hover:opacity-50 group-hover:scale-125 transition-all duration-500"></div>
-      
+      <div className="absolute inset-0 rounded-full bg-green-500 blur-lg opacity-30 group-hover:opacity-50 group-hover:scale-125 transition-all duration-500" />
+
       {/* WhatsApp Button */}
       <a
-        href={`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent('السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل')}`}
+        href={`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(t('common:whatsapp.quranSubscriptionMessage'))}`}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="تواصل عبر واتساب"
+        aria-label={t('home:floatingWhatsApp.ariaLabel')}
         className="relative flex items-center justify-center w-14 h-14 bg-green-500 text-white rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
       >
         <WhatsAppIcon size={32} />

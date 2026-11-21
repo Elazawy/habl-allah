@@ -1,0 +1,45 @@
+{
+  "brand": {
+    "shortName": "حبل الله",
+    "academyName": "أكاديمية حبل الله",
+    "quranicSubtitle": "القرآنية",
+    "logoAlt": "شعار حبل الله"
+  },
+  "languageSwitcher": {
+    "label": "تغيير اللغة",
+    "selectLanguage": "اختر اللغة"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "studentHome": "الصفحة الرئيسية",
+    "chooseTeacher": "اختر معلمك",
+    "lessons": "الدروس",
+    "competitions": "المسابقات",
+    "courses": "الدورات",
+    "dashboardWithUser": "لوحة التحكم ({{name}})",
+    "welcomeUser": "مرحباً، {{name}}",
+    "signOut": "تسجيل الخروج",
+    "logoutShort": "خروج",
+    "studentLogin": "دخول الطلاب",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة",
+    "admin": "المدير",
+    "student": "طالب"
+  },
+  "footer": {
+    "faq": "الأسئلة الشائعة",
+    "contactUs": "اتصل بنا",
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfUse": "شروط الاستخدام",
+    "copyright": "© {{year}} أكاديمية حبل الله القرآني. جميع الحقوق محفوظة.",
+    "quranTagline": "منصة رائدة تهدف لتقديم تعليم قرآني متميز يجمع بين الأصالة والتقنية الحديثة.",
+    "quranCopyright": "© {{year}} حبل الله . جميع الحقوق محفوظة."
+  },
+  "social": {
+    "whatsapp": "واتساب",
+    "facebook": "فيسبوك"
+  },
+  "whatsapp": {
+    "quranSubscriptionMessage": "السلام عليكم ورحمة الله وبركاته، ارغب في الاشتراك في حفظ القرآن الكريم، ارغب في معرفة التفاصيل"
+  }
+}

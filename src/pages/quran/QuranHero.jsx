@@ -1,37 +1,39 @@
+import { useTranslation } from 'react-i18next';
 import quranHero from '../../assets/quran-hero.png';
 
 export default function QuranHero() {
+  const { t } = useTranslation('quranHome');
+
   return (
     <section
-      className="relative min-h-[600px] flex flex-col md:flex-row-reverse items-center overflow-hidden"
+      className="relative min-h-[600px] flex flex-col md:flex-row items-center overflow-hidden"
       style={{ backgroundColor: 'var(--t-bg-page)' }}
     >
-      {/* Text side — slides in from right on mount */}
+      {/* Text side — sits at inline-start in both RTL and LTR */}
       <div className="w-full md:w-1/2 px-6 md:px-12 z-10 py-16 md:py-0 flex flex-col justify-center">
         <span
           className="hero-text-in inline-block text-xs font-bold tracking-widest uppercase mb-6 px-4 py-1.5 rounded-full w-fit"
           style={{ backgroundColor: 'var(--t-primary-light)', color: 'var(--t-primary)', animationDelay: '0s' }}
         >
-          أكاديمية حبل الله القرآنية
+          {t('hero.badge')}
         </span>
 
         <h1
           className="hero-text-in text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6"
           style={{ color: 'var(--t-primary)', animationDelay: '0.12s' }}
         >
-          رحلة نورانية لتعلم
+          {t('hero.titleLine1')}
           <br />
-          <span style={{ color: 'var(--t-secondary)' }}>القرآن الكريم</span>
+          <span style={{ color: 'var(--t-secondary)' }}>{t('hero.titleHighlight')}</span>
           <br />
-          من منزلك
+          {t('hero.titleLine3')}
         </h1>
 
         <p
           className="hero-text-in text-lg leading-relaxed mb-10 max-w-xl"
           style={{ color: 'var(--t-text-muted)', animationDelay: '0.22s' }}
         >
-          نقدم لك تجربة تعليمية فريدة مع نخبة من المجازين والقراء، بمسارات تعليمية
-          مخصصة تناسب وقتك ومستواك.
+          {t('hero.description')}
         </p>
 
         <div className="hero-text-in flex flex-wrap gap-4" style={{ animationDelay: '0.32s' }}>
@@ -40,7 +42,7 @@ export default function QuranHero() {
             className="px-10 py-4 rounded-2xl font-bold text-lg text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:translate-y-0"
             style={{ backgroundColor: 'var(--t-secondary)', boxShadow: '0 8px 24px color-mix(in srgb, var(--t-secondary) 35%, transparent)' }}
           >
-            ابدأ رحلتك الآن
+            {t('hero.cta')}
           </button>
         </div>
       </div>
@@ -49,10 +51,10 @@ export default function QuranHero() {
       <div className="hero-img-in w-full md:w-1/2 relative h-[380px] md:h-[640px]" style={{ animationDelay: '0.1s' }}>
         <img
           src={quranHero}
-          alt="القرآن الكريم على رحل خشبي في مسجد مضاء بضوء ذهبي"
+          alt={t('hero.imageAlt')}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Fade gradient — right edge toward text */}
+        {/* Fade gradient — inner edge toward text (mirrored in index.css for [dir="ltr"]) */}
         <div
           className="absolute inset-0 hidden md:block"
           style={{ background: 'var(--t-hero-gradient)' }}

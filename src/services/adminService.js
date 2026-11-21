@@ -89,12 +89,31 @@ export async function isCurrentUserAdmin(userId) {
   return (count ?? 0) > 0;
 }
 
+function normalizeOptionalText(value) {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') return value ?? null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
+function normalizeTeacherPayload(payload = {}) {
+  const next = { ...payload };
+  for (const field of ['name_latin', 'bio_en', 'bio_tr']) {
+    if (field in payload) {
+      next[field] = normalizeOptionalText(payload[field]);
+    }
+  }
+  return Object.fromEntries(
+    Object.entries(next).filter(([, value]) => value !== undefined)
+  );
+}
+
 /** Fetch ALL teachers regardless of gender (admin view) */
 export async function fetchAllTeachers() {
   const { data, error } = await supabase
     .from('teachers')
     .select(`
-      id, name, gender, bio, photo_url,
+      id, name, name_latin, gender, bio, bio_en, bio_tr, photo_url,
       recitation_url, recitation_type, free_trial_enabled, created_at,
       teacher_reviews (*)
     `)
@@ -106,7 +125,7 @@ export async function fetchAllTeachers() {
 export async function fetchTeacherAdminById(id) {
   const { data, error } = await supabase
     .from('teachers')
-    .select('id, name, gender, bio, photo_url, recitation_url, recitation_type, free_trial_enabled, created_at')
+    .select('id, name, name_latin, gender, bio, bio_en, bio_tr, photo_url, recitation_url, recitation_type, free_trial_enabled, created_at')
     .eq('id', id)
     .single();
 
@@ -118,7 +137,7 @@ export async function fetchTeacherAdminById(id) {
 export async function createTeacher(payload) {
   const { data, error } = await supabase
     .from('teachers')
-    .insert([payload])
+    .insert([normalizeTeacherPayload(payload)])
     .select()
     .single();
   if (error) throw error;
@@ -129,7 +148,7 @@ export async function createTeacher(payload) {
 export async function updateTeacher(id, payload) {
   const { data, error } = await supabase
     .from('teachers')
-    .update(payload)
+    .update(normalizeTeacherPayload(payload))
     .eq('id', id)
     .select()
     .single();

@@ -1,3 +1,6 @@
+import { DEFAULT_LANGUAGE, LANGUAGE_LOCALE } from '../i18n/config.js';
+import { normalizeLanguage } from '../i18n/routing.js';
+
 /**
  * Country list — ISO 3166-1 alpha-2 codes with Arabic names.
  * Used by the student signup form, profile page, competition registration,
@@ -261,11 +264,72 @@ export const COUNTRY_OPTIONS = [...COUNTRIES].sort((a, b) =>
 );
 
 const countryNameByCode = new Map(COUNTRIES.map((c) => [c.code, c.nameAr]));
+const displayNamesCache = new Map();
+const countryOptionsCache = new Map();
 
-/** Returns the Arabic country name for an ISO alpha-2 code, or the raw code. */
-export function getCountryName(code) {
+function getRegionDisplayNames(lang) {
+  const normalized = normalizeLanguage(lang);
+  if (normalized === DEFAULT_LANGUAGE) return null;
+  if (displayNamesCache.has(normalized)) {
+    return displayNamesCache.get(normalized);
+  }
+  const locale = LANGUAGE_LOCALE[normalized] || normalized;
+  let displayNames = null;
+  if (typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function') {
+    try {
+      displayNames = new Intl.DisplayNames([locale], { type: 'region' });
+    } catch {
+      displayNames = null;
+    }
+  }
+  displayNamesCache.set(normalized, displayNames);
+  return displayNames;
+}
+
+/**
+ * Returns the localized country name for an ISO alpha-2 code, or the raw code.
+ * Defaults to Arabic ('ar') so admin pages and legacy callers remain Arabic-only.
+ */
+export function getCountryName(code, lang = DEFAULT_LANGUAGE) {
   if (!code) return '';
-  return countryNameByCode.get(code) ?? code;
+  const upper = String(code).toUpperCase();
+  const normalized = normalizeLanguage(lang);
+
+  if (normalized !== DEFAULT_LANGUAGE) {
+    const displayNames = getRegionDisplayNames(normalized);
+    if (displayNames) {
+      try {
+        const localized = displayNames.of(upper);
+        if (localized && localized !== upper) {
+          return localized;
+        }
+      } catch {
+        // Fall back to Arabic name or raw code below
+      }
+    }
+  }
+
+  return countryNameByCode.get(upper) ?? code;
+}
+
+/**
+ * Returns country options `{ code, name, nameAr }` localized and sorted for `lang`.
+ */
+export function getCountryOptions(lang = DEFAULT_LANGUAGE) {
+  const normalized = normalizeLanguage(lang);
+  if (countryOptionsCache.has(normalized)) {
+    return countryOptionsCache.get(normalized);
+  }
+
+  const locale = LANGUAGE_LOCALE[normalized] || normalized;
+  const options = COUNTRIES.map((country) => ({
+    code: country.code,
+    name: getCountryName(country.code, normalized),
+    nameAr: country.nameAr,
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
+
+  countryOptionsCache.set(normalized, options);
+  return options;
 }
 
 /** True when the value is a known ISO 3166-1 alpha-2 code. */

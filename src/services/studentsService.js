@@ -13,6 +13,8 @@
  *   - The email is deterministic and derived from the phone number.
  *   - No Twilio / Phone Provider required in Supabase.
  */
+import i18n from '../i18n';
+import { normalizeLanguage } from '../i18n/routing.js';
 import { supabase } from '../lib/supabase';
 import { fetchMyCompetitionParticipants, SUBSCRIBED_STATUSES } from './competitionParticipation';
 import { subscribeStudentToCompetition as subscribeCompetitionParticipant } from './competitionsService';
@@ -76,12 +78,18 @@ function buildPhoneLookupCandidates(phone) {
   return [...candidates];
 }
 
-async function getFunctionErrorMessage(error, actionLabel) {
+async function getFunctionErrorMessage(error, actionLabel, { inferConflictCode } = {}) {
   const response = error?.context;
+  const status = typeof response?.status === 'number' ? response.status : null;
+  let code = null;
+  let message = '';
 
   if (response && typeof response.clone === 'function') {
     try {
       const responseBody = await response.clone().json();
+      if (typeof responseBody?.code === 'string' && responseBody.code.trim()) {
+        code = responseBody.code.trim();
+      }
       const responseMessage =
         typeof responseBody?.error === 'string'
           ? responseBody.error.trim()
@@ -90,13 +98,13 @@ async function getFunctionErrorMessage(error, actionLabel) {
             : '';
 
       if (responseMessage) {
-        return responseMessage;
+        message = responseMessage;
       }
     } catch {
       try {
         const responseText = (await response.clone().text()).trim();
         if (responseText) {
-          return responseText;
+          message = responseText;
         }
       } catch {
         // Ignore response parsing errors and fall back to the client error message.
@@ -104,16 +112,31 @@ async function getFunctionErrorMessage(error, actionLabel) {
     }
   }
 
-  const message = error?.message ?? '';
-
-  if (/Edge Function|FunctionsFetchError|Failed to send a request to the Edge Function|non-2xx/i.test(message)) {
-    return `خدمة ${actionLabel} غير مفعلة في الخلفية بعد. اربط الدالة المخصصة لها ثم أعد المحاولة.`;
+  if (!code && status === 409 && inferConflictCode) {
+    code = inferConflictCode;
   }
 
-  return message || `تعذر ${actionLabel} حالياً.`;
+  if (code && i18n.exists(`errors:edge.${code}`)) {
+    message = i18n.t(`errors:edge.${code}`);
+  }
+
+  if (!message) {
+    const rawMessage = error?.message ?? '';
+
+    if (/Edge Function|FunctionsFetchError|Failed to send a request to the Edge Function|non-2xx/i.test(rawMessage)) {
+      message = i18n.t('errors:students.serviceNotEnabled', { action: actionLabel });
+    } else {
+      message = rawMessage || i18n.t('errors:students.actionFailed', { action: actionLabel });
+    }
+  }
+
+  const err = new Error(message);
+  if (code) err.code = code;
+  if (status !== null) err.status = status;
+  return err;
 }
 
-export async function signUpStudent({ phone, password, fullName, gender, country, birthDate }) {
+export async function signUpStudent({ phone, password, fullName, gender, country, birthDate, preferredLanguage }) {
   const normalizedPhone = normalizeStudentPhone(phone);
   const { error } = await supabase.functions.invoke('student-self-signup', {
     body: {
@@ -123,11 +146,16 @@ export async function signUpStudent({ phone, password, fullName, gender, country
       gender,
       country,
       birthDate,
+      preferredLanguage: normalizeLanguage(preferredLanguage || i18n.language),
     },
   });
 
   if (error) {
-    throw new Error(await getFunctionErrorMessage(error, 'إنشاء الحساب'));
+    throw await getFunctionErrorMessage(
+      error,
+      i18n.t('errors:students.actionSignUp'),
+      { inferConflictCode: 'PHONE_ALREADY_REGISTERED' },
+    );
   }
 
   return signInStudent({ phone: normalizedPhone, password });
@@ -227,7 +255,7 @@ export async function adminCreateStudent({ phone, password, fullName, teacherId,
       country: country || null,
       birthDate: birthDate || null,
     },
-    'حدث خطأ أثناء إنشاء الحساب.'
+    i18n.t('errors:students.adminCreateFailed'),
   );
 
   return result.user;
@@ -238,7 +266,7 @@ export async function adminResetStudentPassword(studentId, newPassword) {
   const result = await invokeAdminFunction(
     'admin-reset-student-password',
     { studentId, newPassword },
-    'حدث خطأ أثناء تغيير كلمة المرور.'
+    i18n.t('errors:students.adminResetPasswordFailed'),
   );
 
   return result;
@@ -248,7 +276,7 @@ export async function adminDeleteStudent(studentId) {
   const result = await invokeAdminFunction(
     'admin-delete-student',
     { studentId },
-    'حدث خطأ أثناء حذف الحساب.'
+    i18n.t('errors:students.adminDeleteFailed'),
   );
 
   return result.student;
@@ -277,7 +305,7 @@ export async function fetchMyStudentProfile(userId) {
 
   const { data, error } = await supabase
     .from('student_profiles')
-    .select('*, teachers(id, name, photo_url)')
+    .select('*, teachers(id, name, name_latin, photo_url)')
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
@@ -304,7 +332,7 @@ export async function fetchStudentById(studentId) {
   const { data, error } = await supabase
     .from('student_profiles')
     .select(`
-      id, full_name, phone, teacher_id, created_at, gender, country, birth_date,
+      id, full_name, phone, teacher_id, created_at, gender, country, birth_date, preferred_language,
       teachers(id, name, photo_url),
       student_course_subscriptions(*, quran_courses(id, name, slug, is_free, is_published)),
       student_competition_subscriptions:competition_guest_participants(*, quran_competitions(id, name, slug))
@@ -346,9 +374,14 @@ export async function updateStudentTeacher(studentId, teacherId) {
 
 /** Admin: update student's basic info */
 export async function updateStudentProfile(studentId, payload) {
+  const updates =
+    payload && payload.preferred_language !== undefined
+      ? { ...payload, preferred_language: normalizeLanguage(payload.preferred_language) }
+      : payload;
+
   const { data, error } = await supabase
     .from('student_profiles')
-    .update(payload)
+    .update(updates)
     .eq('id', studentId)
     .select()
     .single();
@@ -443,7 +476,7 @@ export async function fetchMySubscribedCourses() {
 
   const { data, error } = await supabase
     .from('student_course_subscriptions')
-    .select('*, quran_courses(id, slug, name, short_description, image_url, is_free)')
+    .select('*, quran_courses(id, slug, name, name_en, name_tr, short_description, short_description_en, short_description_tr, image_url, is_free)')
     .eq('student_id', user.id)
     .eq('is_active', true);
   if (error) throw error;

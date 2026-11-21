@@ -10,6 +10,8 @@
  *   subscription_requests (id, teacher_id, teacher_name, student_name, whatsapp, created_at)
  */
 
+import i18n from '../i18n';
+import { normalizeLanguage } from '../i18n/routing.js';
 import { supabase, publicSupabase } from '../lib/supabase';
 import { mockTeachers } from '../data/teachers';
 import { preparePreferenceRequest, prepareStudentRequest } from '../lib/studentRequestValidation';
@@ -27,6 +29,9 @@ function normalizeTeacher(teacher) {
 
   return {
     ...teacher,
+    name_latin: teacher.name_latin ?? null,
+    bio_en: teacher.bio_en ?? null,
+    bio_tr: teacher.bio_tr ?? null,
     teacher_reviews: reviews,
     reviews,
   };
@@ -39,7 +44,7 @@ export async function fetchTeachers(gender) {
     const { data, error } = await client
       .from('teachers')
       .select(`
-        id, name, gender, bio, photo_url,
+        id, name, name_latin, gender, bio, bio_en, bio_tr, photo_url,
         recitation_url, recitation_type, free_trial_enabled,
         teacher_reviews (*)
       `)
@@ -60,7 +65,7 @@ export async function fetchTeacherById(id) {
     const { data, error } = await client
       .from('teachers')
       .select(`
-        id, name, gender, bio, photo_url,
+        id, name, name_latin, gender, bio, bio_en, bio_tr, photo_url,
         recitation_url, recitation_type, free_trial_enabled,
         teacher_reviews (*)
       `)
@@ -81,8 +86,12 @@ export async function submitPreferenceForm({
   whatsapp,
   description,
   gender_preference,
+  preferred_language,
 }) {
-  const payload = preparePreferenceRequest({ student_name, age, whatsapp, description, gender_preference });
+  const payload = {
+    ...preparePreferenceRequest({ student_name, age, whatsapp, description, gender_preference }),
+    preferred_language: normalizeLanguage(preferred_language || i18n.language),
+  };
 
   if (supabase) {
     const { error } = await supabase
@@ -90,7 +99,7 @@ export async function submitPreferenceForm({
       .insert([payload]);
     if (error) throw error;
   } else {
-    throw new Error('خدمة إرسال الطلبات غير متاحة حالياً. يرجى المحاولة لاحقاً.');
+    throw new Error(i18n.t('errors:teachers.requestsUnavailable'));
   }
 }
 
@@ -102,8 +111,14 @@ export async function submitSubscriptionRequest({
   teacher_name,
   student_name,
   whatsapp,
+  preferred_language,
 }) {
-  const payload = { teacher_id, teacher_name, ...prepareStudentRequest({ student_name, whatsapp }) };
+  const payload = {
+    teacher_id,
+    teacher_name,
+    ...prepareStudentRequest({ student_name, whatsapp }),
+    preferred_language: normalizeLanguage(preferred_language || i18n.language),
+  };
 
   if (supabase) {
     const { error } = await supabase
@@ -111,6 +126,6 @@ export async function submitSubscriptionRequest({
       .insert([payload]);
     if (error) throw error;
   } else {
-    throw new Error('خدمة إرسال الطلبات غير متاحة حالياً. يرجى المحاولة لاحقاً.');
+    throw new Error(i18n.t('errors:teachers.requestsUnavailable'));
   }
 }

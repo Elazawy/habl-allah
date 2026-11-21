@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+import { getLocalizedField } from '../i18n/content';
 import { WHATSAPP_NUMBER } from './constants';
 
 export function buildWhatsAppUrl(number, message) {
@@ -10,14 +12,16 @@ export function buildWhatsAppUrl(number, message) {
 export function buildCompetitionParticipationMessage(competition) {
   const competitionName = typeof competition === 'string'
     ? competition.trim()
-    : competition?.name?.trim();
+    : getLocalizedField(competition, 'name', i18n.language).trim();
 
-  return `السلام عليكم ورحمة الله وبركاته، أرغب في المشاركة في مسابقة ${competitionName || 'المسابقة القرآنية'}، وأود معرفة خطوات التسجيل والشروط.`;
+  return i18n.t('home:whatsapp.competitionParticipation', {
+    name: competitionName || i18n.t('home:whatsapp.defaultCompetitionName'),
+  });
 }
 
 export function getWhatsAppJoinLink(competition) {
   return buildWhatsAppUrl(
     WHATSAPP_NUMBER,
-    buildCompetitionParticipationMessage(competition)
+    buildCompetitionParticipationMessage(competition),
   );
 }

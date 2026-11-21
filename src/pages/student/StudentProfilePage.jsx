@@ -1,15 +1,31 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { updateMyProfile } from '../../services/studentsService';
-import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
+import { getCountryOptions, getCountryName } from '../../data/countries';
 import QuranNav from '../quran/QuranNav';
 import QuranFooter from '../quran/QuranFooter';
 import { User, Calendar, MapPin, Phone, GraduationCap, Loader, Save, ArrowRight } from 'lucide-react';
+import {
+  DirectionalIcon,
+  LocalizedLink,
+  useFormatters,
+  useLanguage,
+  useLocalizedContent,
+  useLocalizedNavigate,
+} from '../../i18n';
 
 export default function StudentProfilePage() {
   const { user, studentProfile, refreshStudentProfile, signOut } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
+  const { language } = useLanguage();
+  const { formatDate } = useFormatters();
+  const { latinName } = useLocalizedContent();
+  const { t } = useTranslation(['student', 'common']);
+  const countryOptions = getCountryOptions(language);
+  const teacherName = studentProfile?.teachers
+    ? latinName(studentProfile.teachers, 'name')
+    : null;
 
   const [fullName, setFullName] = useState('');
   const [country, setCountry] = useState('');
@@ -31,14 +47,14 @@ export default function StudentProfilePage() {
     setSuccess('');
 
     if (fullName.trim().length < 2) {
-      setError('يرجى كتابة الاسم الكامل بشكل صحيح (ثنائي على الأقل).');
+      setError(t('validation.fullNameMin'));
       return;
     }
 
     if (birthDate) {
       const parsed = new Date(`${birthDate}T00:00:00`);
       if (Number.isNaN(parsed.getTime())) {
-        setError('يرجى كتابة تاريخ ميلاد صحيح.');
+        setError(t('validation.invalidBirthDate'));
         return;
       }
     }
@@ -51,10 +67,10 @@ export default function StudentProfilePage() {
         birth_date: birthDate || null,
       });
       await refreshStudentProfile(user);
-      setSuccess('تم حفظ البيانات بنجاح.');
+      setSuccess(t('profile.saveSuccess'));
     } catch (err) {
       console.error(err);
-      setError(err.message ?? 'حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.');
+      setError(err.message ?? t('profile.saveError'));
     } finally {
       setSaving(false);
     }
@@ -66,13 +82,13 @@ export default function StudentProfilePage() {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
 
       <main className="flex-1 py-10 px-5 md:px-8 relative overflow-hidden">
         {/* Background Gradients */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 start-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 end-0 w-[400px] h-[400px] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-2xl mx-auto space-y-8 relative z-10">
 
@@ -83,29 +99,29 @@ export default function StudentProfilePage() {
                 className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-black shrink-0"
                 style={{ backgroundColor: 'var(--t-primary)' }}
               >
-                {(studentProfile?.full_name ?? '؟').trim().charAt(0)}
+                {(studentProfile?.full_name ?? t('profile.avatarFallback')).trim().charAt(0)}
               </div>
               <div>
-                <span className="text-xs font-bold block mb-1" style={{ color: 'var(--t-primary)' }}>ملفي الشخصي</span>
-                <h1 className="text-2xl font-black" style={{ color: 'var(--t-text)' }}>
+                <span className="text-xs font-bold block mb-1" style={{ color: 'var(--t-primary)' }}>{t('profile.eyebrow')}</span>
+                <h1 dir="auto" className="text-2xl font-black" style={{ color: 'var(--t-text)' }}>
                   {studentProfile?.full_name}
                 </h1>
               </div>
             </div>
             <div className="flex items-center gap-2 mt-4 md:mt-0">
-              <Link
+              <LocalizedLink
                 to="/quran/student/dashboard"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
                 style={{ backgroundColor: 'var(--t-primary-light)', color: 'var(--t-primary)' }}
               >
-                <ArrowRight size={14} />
-                العودة للوحة التحكم
-              </Link>
+                <DirectionalIcon icon={ArrowRight} flipIn="ltr" size={14} />
+                {t('profile.backToDashboard')}
+              </LocalizedLink>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
               >
-                تسجيل الخروج
+                {t('common:nav.signOut')}
               </button>
             </div>
           </div>
@@ -118,13 +134,13 @@ export default function StudentProfilePage() {
           >
             <h2 className="text-lg font-black flex items-center gap-2" style={{ color: 'var(--t-text)' }}>
               <User className="w-5 h-5" style={{ color: 'var(--t-primary)' }} />
-              البيانات الشخصية
+              {t('profile.personalInfoTitle')}
             </h2>
 
             {/* Editable: full name */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="profile-fullname" className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
-                الاسم الكامل
+                {t('fields.fullName')}
               </label>
               <input
                 id="profile-fullname"
@@ -144,7 +160,7 @@ export default function StudentProfilePage() {
             {/* Editable: country */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="profile-country" className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
-                الدولة
+                {t('fields.country')}
               </label>
               <select
                 id="profile-country"
@@ -157,10 +173,10 @@ export default function StudentProfilePage() {
                   color: 'var(--t-text)',
                 }}
               >
-                <option value="">--لم يتم تحديد الدولة--</option>
-                {COUNTRY_OPTIONS.map((c) => (
+                <option value="">{t('profile.countryUnsetOption')}</option>
+                {countryOptions.map((c) => (
                   <option key={c.code} value={c.code}>
-                    {c.nameAr}
+                    {c.name}
                   </option>
                 ))}
               </select>
@@ -169,7 +185,7 @@ export default function StudentProfilePage() {
             {/* Editable: birth date */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="profile-birthdate" className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
-                تاريخ الميلاد
+                {t('fields.birthDate')}
               </label>
               <input
                 id="profile-birthdate"
@@ -189,7 +205,7 @@ export default function StudentProfilePage() {
             {/* Read-only: phone */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="profile-phone" className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
-                رقم الهاتف (لا يمكن تعديله)
+                {t('profile.phoneReadOnly')}
               </label>
               <input
                 id="profile-phone"
@@ -212,7 +228,7 @@ export default function StudentProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
-                  <span className="inline-flex items-center gap-1"><User size={12} /> الجنس (لا يمكن تعديله)</span>
+                  <span className="inline-flex items-center gap-1"><User size={12} /> {t('profile.genderReadOnly')}</span>
                 </span>
                 <div
                   className="py-2.5 px-4 rounded-xl border text-sm font-bold"
@@ -222,15 +238,20 @@ export default function StudentProfilePage() {
                     color: 'var(--t-text-muted)',
                   }}
                 >
-                  {studentProfile?.gender === 'male' ? 'ذكر' : studentProfile?.gender === 'female' ? 'أنثى' : 'غير محدد'}
+                  {studentProfile?.gender === 'male'
+                    ? t('gender.male')
+                    : studentProfile?.gender === 'female'
+                      ? t('gender.female')
+                      : t('gender.unspecified')}
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
-                  <span className="inline-flex items-center gap-1"><GraduationCap size={12} /> المعلم المتابع</span>
+                  <span className="inline-flex items-center gap-1"><GraduationCap size={12} /> {t('profile.assignedTeacher')}</span>
                 </span>
                 <div
+                  dir={teacherName?.text ? teacherName.dir : undefined}
                   className="py-2.5 px-4 rounded-xl border text-sm font-bold"
                   style={{
                     backgroundColor: 'var(--t-bg-page)',
@@ -238,7 +259,7 @@ export default function StudentProfilePage() {
                     color: 'var(--t-text-muted)',
                   }}
                 >
-                  {studentProfile?.teachers?.name ?? 'بدون معلم'}
+                  {teacherName?.text || t('profile.noTeacher')}
                 </div>
               </div>
             </div>
@@ -265,27 +286,31 @@ export default function StudentProfilePage() {
                 style={{ backgroundColor: 'var(--t-secondary)' }}
               >
                 {saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />}
-                <span>{saving ? 'جاري الحفظ...' : 'حفظ البيانات'}</span>
+                <span>{saving ? t('profile.saving') : t('profile.saveButton')}</span>
               </button>
             </div>
           </form>
 
           {/* Info hints */}
           <p className="text-xs text-center leading-relaxed" style={{ color: 'var(--t-text-muted)' }}>
-            <Phone size={12} className="inline-block ml-1" />
-            رقم الهاتف والجنس والمعلم المتابع لا يمكن تعديلهما من هنا — يرجى التواصل مع الإدارة لأي تعديل عليها.
+            <Phone size={12} className="inline-block me-1" />
+            {t('profile.readOnlyHint')}
             {studentProfile?.country ? (
               <span>
                 {' '}
-                <MapPin size={12} className="inline-block ml-1" />
-                دولتك الحالية: {getCountryName(studentProfile.country)}
+                <MapPin size={12} className="inline-block me-1" />
+                {t('profile.currentCountryHint', {
+                  country: getCountryName(studentProfile.country, language),
+                })}
               </span>
             ) : null}
             {studentProfile?.birth_date ? (
               <span>
                 {' '}
-                <Calendar size={12} className="inline-block ml-1" />
-                تاريخ ميلادك المسجل: {new Date(studentProfile.birth_date).toLocaleDateString('ar-EG')}
+                <Calendar size={12} className="inline-block me-1" />
+                {t('profile.registeredBirthDateHint', {
+                  date: formatDate(studentProfile.birth_date),
+                })}
               </span>
             ) : null}
           </p>

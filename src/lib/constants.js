@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+
 /**
  * App-wide constants
  * ─────────────────
@@ -5,11 +7,21 @@
  * Format: country code + number, no spaces, no + (e.g. "201001234567")
  */
 
-export const WHATSAPP_NUMBER = '201024744963'; // ← رقم الواتساب الرسمي
+export const WHATSAPP_NUMBER = '201024744963';
+
+export function getGenderLabel(gender) {
+  if (gender === 'male') return i18n.t('home:gender.male');
+  if (gender === 'female') return i18n.t('home:gender.female');
+  return i18n.t('home:gender.default');
+}
 
 export const GENDER_LABELS = {
-  male: 'قسم المعلمين',
-  female: 'قسم المعلمات',
+  get male() {
+    return i18n.t('home:gender.male');
+  },
+  get female() {
+    return i18n.t('home:gender.female');
+  },
 };
 
 export const GENDER_PATHS = {

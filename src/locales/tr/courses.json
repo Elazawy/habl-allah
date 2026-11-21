@@ -1,0 +1,47 @@
+{
+  "list": {
+    "badge": "Öne Çıkan Kurslarımız",
+    "title": "Kur'an-ı Kerim ve Tecvid Öğrenin",
+    "subtitle": "Size uygun eğitim yolunu seçin ve seçkin hocalarımız eşliğinde Allah'ın Kitabı'nı anlama ve ezberleme yolundaki mübarek yolculuğunuza başlayın.",
+    "loading": "Kurslar yükleniyor...",
+    "emptyTitle": "Şu anda mevcut kurs bulunmuyor",
+    "emptySubtitle": "Eğitim kurslarımızı hazırlıyoruz. Daha fazla detay için yakında tekrar ziyaret edin.",
+    "freeInitiative": "Ücretsiz Program",
+    "subscribedBadge": "Kayıtlı ✅",
+    "priceLabel": "Kayıt Ücreti",
+    "freePrice": "Tamamen Ücretsiz",
+    "continueLearning": "Öğrenmeye Devam Et",
+    "startNow": "Hemen Başla",
+    "subscribeNow": "Şimdi Kayıt Ol",
+    "details": "Detaylar"
+  },
+  "detail": {
+    "documentTitle": "{{name}} - Habl Allah Kur'an Platformu",
+    "defaultDocumentTitle": "Kurs Detayları - Habl Allah",
+    "loading": "Kurs detayları yükleniyor...",
+    "notFoundTitle": "Kurs Bulunamadı",
+    "notFoundDefault": "Üzgünüz, aradığınız eğitim kursu bulunamadı.",
+    "errors": {
+      "notFound": "İstenen kurs bulunamadı.",
+      "loadFailed": "Kurs detayları şu anda yüklenemiyor."
+    },
+    "backToCourses": "Kurslara Dön",
+    "freeInitiative": "Ücretsiz Program",
+    "educationalCourse": "Eğitim Kursu",
+    "teacherPrefix": "Eğitmen:",
+    "learningOutcomesTitle": "Öğrenme Çıktıları ve Kazanılan Beceriler",
+    "contentTitle": "Kurs İçeriği",
+    "lectureCount_one": "{{formattedCount}} ders",
+    "lectureCount_other": "{{formattedCount}} ders",
+    "freeBadge": "Ücretsiz",
+    "continueLearning": "Öğrenmeye Devam Et",
+    "joinFreeCta": "Programa Ücretsiz Katıl",
+    "subscribeCta": "Kayıt Ol ve Hemen Öğrenmeye Başla",
+    "whatsappSubtitle": "Akademi koordinatörleriyle canlı sohbet üzerinden kayıt hızlı ve kolaydır",
+    "priceLabel": "Kayıt Ücreti:",
+    "contactForPrice": "Ücret için bizimle iletişime geçin",
+    "startWatching": "İzlemeye Başla",
+    "clickToSubscribe": "Kayıt İçin Tıkla",
+    "whatsappSubscribeMessage": "Selamün Aleyküm, ({{name}}) kursuna kayıt olmak istiyorum. Detaylar ve nasıl başlayacağım hakkında bilgi paylaşabilir misiniz?"
+  }
+}

@@ -59,6 +59,35 @@ function uniquePath(file) {
   return `covers/${suffix}.${ext}`;
 }
 
+const OPTIONAL_COURSE_TEXT_FIELDS = [
+  'name_en',
+  'name_tr',
+  'short_description_en',
+  'short_description_tr',
+  'long_description_en',
+  'long_description_tr',
+  'price_en',
+  'price_tr',
+  'teacher_name_latin',
+];
+
+function normalizeOptionalText(value) {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') return value ?? null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
+function normalizeOptionalStringList(value) {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) return null;
+  const items = value
+    .filter((item) => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length > 0 ? items : null;
+}
+
 /**
  * Strip undefined values from a payload before sending to Supabase.
  * Keeps null (explicit clear) but drops keys the caller never set.
@@ -67,6 +96,30 @@ function cleanPayload(payload = {}) {
   return Object.fromEntries(
     Object.entries(payload).filter(([, v]) => v !== undefined)
   );
+}
+
+function normalizeCoursePayload(payload = {}) {
+  const next = { ...payload };
+
+  for (const field of OPTIONAL_COURSE_TEXT_FIELDS) {
+    if (field in payload) {
+      next[field] = normalizeOptionalText(payload[field]);
+    }
+  }
+
+  for (const field of ['learning_outcomes_en', 'learning_outcomes_tr']) {
+    if (field in payload) {
+      next[field] = normalizeOptionalStringList(payload[field]);
+    }
+  }
+
+  if (next.is_free === true) {
+    next.price = '';
+    next.price_en = null;
+    next.price_tr = null;
+  }
+
+  return cleanPayload(next);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -83,7 +136,7 @@ export async function fetchPublishedCourses() {
   const { data, error } = await client
     .from('quran_courses')
     .select(
-      'id, slug, name, short_description, price, is_free, image_url, sort_order, created_at'
+      'id, slug, name, name_en, name_tr, short_description, short_description_en, short_description_tr, price, price_en, price_tr, is_free, image_url, sort_order, created_at'
     )
     .eq('is_published', true)
     .order('sort_order', { ascending: true })
@@ -104,7 +157,7 @@ export async function fetchCourseBySlug(slug) {
   const { data, error } = await client
     .from('quran_courses')
     .select(
-      'id, slug, name, short_description, long_description, price, is_free, image_url, learning_outcomes, sort_order, created_at, teacher_name'
+      'id, slug, name, name_en, name_tr, short_description, short_description_en, short_description_tr, long_description, long_description_en, long_description_tr, price, price_en, price_tr, is_free, image_url, learning_outcomes, learning_outcomes_en, learning_outcomes_tr, sort_order, created_at, teacher_name, teacher_name_latin'
     )
     .eq('slug', slug)
     .eq('is_published', true)
@@ -166,7 +219,7 @@ export async function createCourse(payload) {
 
   const { data, error } = await client
     .from('quran_courses')
-    .insert([cleanPayload(payload)])
+    .insert([normalizeCoursePayload(payload)])
     .select('*')
     .single();
 
@@ -187,7 +240,7 @@ export async function updateCourse(id, payload) {
   const { data, error } = await client
     .from('quran_courses')
     .update({
-      ...cleanPayload(payload),
+      ...normalizeCoursePayload(payload),
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

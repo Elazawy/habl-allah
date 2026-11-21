@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronDown, HelpCircle, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ChevronDown, HelpCircle, ArrowLeft } from 'lucide-react';
 import { fetchFaqs } from '../services/faqService';
 import DarkModeToggle from '../components/DarkModeToggle';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import Footer from '../components/Footer';
 import logoGold from '../assets/logo-gold.png';
+import { DirectionalIcon, LocalizedLink, useLocalizedContent } from '../i18n';
 
 function AccordionItem({ faq, isOpen, onToggle }) {
+  const { field } = useLocalizedContent();
+  const question = field(faq, 'question');
+  const answer = field(faq, 'answer');
+
   return (
     <div className="faq-accordion-item" id={`faq-item-${faq.id}`}>
       <button
@@ -15,7 +21,7 @@ function AccordionItem({ faq, isOpen, onToggle }) {
         aria-expanded={isOpen}
         aria-controls={`faq-answer-${faq.id}`}
       >
-        <span className="faq-accordion-question">{faq.question}</span>
+        <span className="faq-accordion-question" dir={question.dir}>{question.text}</span>
         <ChevronDown
           size={20}
           className={`faq-accordion-chevron ${isOpen ? 'faq-accordion-chevron--open' : ''}`}
@@ -26,13 +32,14 @@ function AccordionItem({ faq, isOpen, onToggle }) {
         className={`faq-accordion-panel ${isOpen ? 'faq-accordion-panel--open' : ''}`}
         role="region"
       >
-        <div className="faq-accordion-answer">{faq.answer}</div>
+        <div className="faq-accordion-answer" dir={answer.dir}>{answer.text}</div>
       </div>
     </div>
   );
 }
 
 export default function FaqPage() {
+  const { t } = useTranslation(['faq', 'common']);
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
@@ -44,31 +51,28 @@ export default function FaqPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    document.title = 'الأسئلة الشائعة — أكاديمية حبل الله';
-  }, []);
-
   const toggleItem = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
   };
 
   return (
-    <div dir="rtl" className="faq-page-shell" style={{ backgroundColor: 'var(--t-bg)' }}>
-      {/* Dark mode toggle */}
-      <div className="fixed top-5 left-5 z-50">
+    <div className="faq-page-shell" style={{ backgroundColor: 'var(--t-bg)' }}>
+      {/* Floating controls */}
+      <div className="fixed top-5 end-5 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
         <DarkModeToggle />
       </div>
 
       {/* Header */}
       <header className="faq-header">
         <div className="faq-header-inner">
-          <Link to="/" className="faq-back-link" aria-label="العودة للرئيسية">
-            <ArrowRight size={20} />
-            <span>الرئيسية</span>
-          </Link>
-          <Link to="/" className="faq-logo-link">
-            <img src={logoGold} alt="شعار حبل الله" className="faq-logo-img" />
-          </Link>
+          <LocalizedLink to="/" className="faq-back-link" aria-label={t('faq:backToHomeAria')}>
+            <DirectionalIcon icon={ArrowLeft} size={20} />
+            <span>{t('faq:homeLink')}</span>
+          </LocalizedLink>
+          <LocalizedLink to="/" className="faq-logo-link">
+            <img src={logoGold} alt={t('common:brand.logoAlt')} className="faq-logo-img" />
+          </LocalizedLink>
         </div>
       </header>
 
@@ -78,9 +82,9 @@ export default function FaqPage() {
           <div className="faq-hero-icon-wrap">
             <HelpCircle size={48} />
           </div>
-          <h1 className="faq-hero-title">الأسئلة الشائعة</h1>
+          <h1 className="faq-hero-title">{t('faq:general.heading')}</h1>
           <p className="faq-hero-subtitle">
-            إجابات على الأسئلة الأكثر شيوعاً حول أكاديمية حبل الله ومنصاتها التعليمية
+            {t('faq:general.subtitle')}
           </p>
         </div>
       </section>
@@ -91,12 +95,12 @@ export default function FaqPage() {
           {loading ? (
             <div className="faq-loading">
               <div className="admin-spinner-lg" />
-              <span style={{ color: 'var(--t-text-muted)' }}>جارٍ تحميل الأسئلة…</span>
+              <span style={{ color: 'var(--t-text-muted)' }}>{t('faq:loading')}</span>
             </div>
           ) : faqs.length === 0 ? (
             <div className="faq-empty">
               <HelpCircle size={48} />
-              <p>لا توجد أسئلة شائعة حالياً</p>
+              <p>{t('faq:empty')}</p>
             </div>
           ) : (
             <div className="faq-accordion">

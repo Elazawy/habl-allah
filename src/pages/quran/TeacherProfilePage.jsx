@@ -1,8 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, PlayCircle, BookOpen, MessageSquare, Play, Pause, Volume2, X, Gift } from 'lucide-react';
+import {
+  DirectionalIcon,
+  LocalizedLink,
+  truncateMetaDescription,
+  useLanguage,
+  useLocalizedContent,
+  usePageMeta,
+} from '../../i18n';
 import { fetchTeacherById } from '../../services/teachersService';
-import { GENDER_LABELS, WHATSAPP_NUMBER } from '../../lib/constants';
+import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import { FemaleMonogram, MalePhoto } from './TeacherCard';
 import SubscribeModal from './SubscribeModal';
@@ -91,10 +100,11 @@ function AudioPlayer({ src }) {
 }
 
 function ReviewImageCard({ review, onOpen, className = '' }) {
+  const { t } = useTranslation('teachers');
   return (
     <button
       type="button"
-      className={`text-right rounded-2xl overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${className}`}
+      className={`text-start rounded-2xl overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${className}`}
       style={{
         backgroundColor: '#091111',
         borderColor: 'var(--t-border)',
@@ -103,7 +113,7 @@ function ReviewImageCard({ review, onOpen, className = '' }) {
     >
       <img
         src={review.image_url}
-        alt="صورة مراجعة طالب"
+        alt={t('profile.reviewImageAlt')}
         className="w-full h-80 object-contain opacity-90 transition-opacity hover:opacity-100"
         loading="lazy"
         style={{ backgroundColor: '#091111' }}
@@ -113,6 +123,7 @@ function ReviewImageCard({ review, onOpen, className = '' }) {
 }
 
 function ReviewImageLightbox({ review, onClose }) {
+  const { t } = useTranslation('teachers');
   if (!review) return null;
 
   return (
@@ -124,9 +135,10 @@ function ReviewImageLightbox({ review, onClose }) {
     >
       <button
         type="button"
-        className="absolute top-4 left-4 w-12 h-12 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
+        className="absolute top-4 end-4 w-12 h-12 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
         style={{ color: '#fff' }}
         onClick={onClose}
+        aria-label={t('subscribeModal.closeAriaLabel')}
       >
         <X size={24} />
       </button>
@@ -134,7 +146,7 @@ function ReviewImageLightbox({ review, onClose }) {
       <div className="max-w-4xl w-full max-h-[88vh] rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
         <img
           src={review.image_url}
-          alt="صورة مراجعة طالب"
+          alt={t('profile.reviewImageAlt')}
           className="w-full max-h-[80vh] object-contain bg-black"
         />
       </div>
@@ -143,6 +155,8 @@ function ReviewImageLightbox({ review, onClose }) {
 }
 
 function ReviewCarousel({ reviews, onOpen }) {
+  const { t } = useTranslation('teachers');
+  const { isRTL } = useLanguage();
   const scrollRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -160,14 +174,14 @@ function ReviewCarousel({ reviews, onOpen }) {
           if (isAtEnd) {
              scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
           } else {
-             scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+             scrollRef.current.scrollBy({ left: isRTL ? -scrollAmount : scrollAmount, behavior: 'smooth' });
           }
         }
       }, 3000);
     }
 
     return () => clearInterval(intervalId);
-  }, [isHovered, reviews.length]);
+  }, [isHovered, reviews.length, isRTL]);
 
   return (
     <div 
@@ -182,19 +196,19 @@ function ReviewCarousel({ reviews, onOpen }) {
         <div className="hidden md:block">
         <button 
           type="button"
-          onClick={() => scrollRef.current?.scrollBy({ left: 320, behavior: 'smooth' })}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
-          aria-label="السابق"
+          onClick={() => scrollRef.current?.scrollBy({ left: isRTL ? 320 : -320, behavior: 'smooth' })}
+          className="absolute start-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
+          aria-label={t('profile.carouselPrev')}
         >
-          <ChevronRight size={20} />
+          <DirectionalIcon icon={ChevronRight} flipIn="ltr" size={20} />
         </button>
         <button 
           type="button"
-          onClick={() => scrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' })}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
-          aria-label="التالي"
+          onClick={() => scrollRef.current?.scrollBy({ left: isRTL ? -320 : 320, behavior: 'smooth' })}
+          className="absolute end-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white hover:scale-105 transition-all"
+          aria-label={t('profile.carouselNext')}
         >
-          <ChevronLeft size={20} />
+          <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={20} />
         </button>
       </div>
       )}
@@ -218,13 +232,30 @@ function ReviewCarousel({ reviews, onOpen }) {
 
 export default function TeacherProfilePage() {
   const { gender, id } = useParams();
+  const { t } = useTranslation(['teachers', 'common', 'seo']);
+  const { field, latinName } = useLocalizedContent();
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
 
+  const activeTeacher = !loading ? teacher : null;
+  const teacherName = activeTeacher ? latinName(activeTeacher, 'name') : null;
+  const teacherBio = activeTeacher ? field(activeTeacher, 'bio') : null;
+
+  usePageMeta({
+    title: teacherName?.text
+      ? t('seo:templates.teacherProfileTitle', { name: teacherName.text })
+      : undefined,
+    description: teacherBio?.text ? truncateMetaDescription(teacherBio.text) : undefined,
+  });
+
   const isMale = gender === 'male';
-  const genderLabel = GENDER_LABELS[gender] ?? 'المعلمون';
+  const genderLabel = gender === 'male'
+    ? t('gender.male')
+    : gender === 'female'
+      ? t('gender.female')
+      : t('gender.default');
 
   useEffect(() => {
     let active = true;
@@ -256,7 +287,7 @@ export default function TeacherProfilePage() {
   /* ── Loading state ── */
   if (loading) {
     return (
-      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)' }}>
         <QuranNav />
         <div className="flex-1 flex items-center justify-center">
           <div
@@ -271,10 +302,10 @@ export default function TeacherProfilePage() {
   /* ── Not found ── */
   if (!teacher) {
     return (
-      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)' }}>
         <QuranNav />
         <main className="flex-1 flex items-center justify-center">
-          <p className="text-lg" style={{ color: 'var(--t-text-muted)' }}>لم يُعثر على هذا المعلم.</p>
+          <p className="text-lg" style={{ color: 'var(--t-text-muted)' }}>{t('profile.notFound')}</p>
         </main>
         <QuranFooter />
       </div>
@@ -284,7 +315,7 @@ export default function TeacherProfilePage() {
   const reviews = teacher.reviews ?? teacher.teacher_reviews ?? [];
 
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
       <QuranNav />
 
       {/* Immersive Hero Header */}
@@ -301,43 +332,43 @@ export default function TeacherProfilePage() {
         
         {/* Breadcrumb Navigation in Header */}
         <div className="absolute top-4 md:top-6 inset-x-0 z-20 w-full max-w-5xl mx-auto px-5 md:px-8">
-           <nav className="flex items-center gap-1.5 text-xs md:text-sm flex-wrap drop-shadow-md" aria-label="مسار التنقل" style={anim(0.05)}>
-             <Link to="/quran" className="font-semibold text-white/70 hover:text-white transition-colors">حبل الله</Link>
-             <ChevronLeft size={14} className="text-white/40" />
-             <Link to="/quran/teachers" className="font-semibold text-white/70 hover:text-white transition-colors">اختر معلمك</Link>
-             <ChevronLeft size={14} className="text-white/40" />
-             <Link to={`/quran/teachers/${gender}`} className="font-semibold text-white/70 hover:text-white transition-colors">{genderLabel}</Link>
-             <ChevronLeft size={14} className="text-white/40" />
-             <span className="font-bold text-white">{teacher.name}</span>
+           <nav className="flex items-center gap-1.5 text-xs md:text-sm flex-wrap drop-shadow-md" aria-label={t('breadcrumbAriaLabel')} style={anim(0.05)}>
+             <LocalizedLink to="/quran" className="font-semibold text-white/70 hover:text-white transition-colors">{t('common:brand.shortName')}</LocalizedLink>
+             <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={14} className="text-white/40" />
+             <LocalizedLink to="/quran/teachers" className="font-semibold text-white/70 hover:text-white transition-colors">{t('common:nav.chooseTeacher')}</LocalizedLink>
+             <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={14} className="text-white/40" />
+             <LocalizedLink to={`/quran/teachers/${gender}`} className="font-semibold text-white/70 hover:text-white transition-colors">{genderLabel}</LocalizedLink>
+             <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={14} className="text-white/40" />
+             <span dir={teacherName.dir} className="font-bold text-white">{teacherName.text}</span>
            </nav>
         </div>
         
         {/* Hero Content */}
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 md:px-8 flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-right" style={anim(0.1)}>
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 md:px-8 flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-start" style={anim(0.1)}>
           <div className="relative">
             {isMale
-              ? <MalePhoto photoUrl={teacher.photo_url} name={teacher.name} size="lg" />
-              : <FemaleMonogram name={teacher.name} size="lg" />
+              ? <MalePhoto photoUrl={teacher.photo_url} name={teacherName.text} size="lg" />
+              : <FemaleMonogram name={teacherName.text} size="lg" />
             }
             <div className="absolute inset-0 rounded-full border-4 border-black/20" />
           </div>
           <div className="flex-1 text-white">
             <p className="text-sm md:text-base font-semibold text-white/80 mb-2">
-              {isMale ? 'معلم قرآن كريم' : 'معلمة قرآن كريم'}
+              {isMale ? t('profile.roleMale') : t('profile.roleFemale')}
             </p>
-            <h1 className="text-3xl md:text-5xl font-black mb-4">{teacher.name}</h1>
+            <h1 dir={teacherName.dir} className="text-3xl md:text-5xl font-black mb-4">{teacherName.text}</h1>
             <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
               <button
                 onClick={() => setShowModal(true)}
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:scale-105"
                 style={{ backgroundColor: '#CFA767', color: '#000' }}
               >
-              اشترك مع المعلم 
-                <ChevronRight size={18} />
+                {t('profile.subscribeButton')}
+                <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={18} />
               </button>
               {teacher.free_trial_enabled && (
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`اود حجز حصة تجريبية مجانية مع ${teacher.gender === 'female' ? 'الأستاذة' : 'الشيخ'} ${teacher.name}`)}`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t(teacher.gender === 'female' ? 'profile.freeTrialWhatsappMessageFemale' : 'profile.freeTrialWhatsappMessageMale', { name: teacherName.text }))}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   id="free-trial-btn"
@@ -345,7 +376,7 @@ export default function TeacherProfilePage() {
                   style={{ backgroundColor: '#25D366', color: '#fff' }}
                 >
                   <Gift size={18} />
-                  جرب حصة مجانية
+                  {t('profile.freeTrialButton')}
                 </a>
               )}
             </div>
@@ -362,10 +393,10 @@ export default function TeacherProfilePage() {
             <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--t-primary-light)' }}>
               <BookOpen size={20} />
             </div>
-            عن المعلم
+            {t('profile.aboutTitle')}
           </h2>
-          <p className="text-lg leading-loose" style={{ color: 'var(--t-text-muted)' }}>
-            {teacher.bio}
+          <p dir={teacherBio.dir} className="text-lg leading-loose" style={{ color: 'var(--t-text-muted)' }}>
+            {teacherBio.text}
           </p>
         </section>
 
@@ -376,7 +407,7 @@ export default function TeacherProfilePage() {
               <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--t-primary-light)' }}>
                 <PlayCircle size={20} />
               </div>
-              الاستماع للتلاوة
+              {t('profile.recitationTitle')}
             </h2>
             {teacher.recitation_type === 'audio' ? (
               <AudioPlayer src={teacher.recitation_url} />
@@ -389,7 +420,7 @@ export default function TeacherProfilePage() {
                   <div className="rounded-2xl overflow-hidden aspect-video bg-black/5">
                     <iframe
                       src={embedSrc}
-                      title="تلاوة المعلم"
+                      title={t('profile.recitationIframeTitle')}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -416,7 +447,7 @@ export default function TeacherProfilePage() {
               <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--t-primary-light)' }}>
                 <MessageSquare size={20} />
               </div>
-              تجارب الطلاب
+              {t('profile.reviewsTitle')}
             </h2>
             
             <ReviewCarousel reviews={reviews} onOpen={setSelectedReview} />

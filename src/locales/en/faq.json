@@ -1,0 +1,16 @@
+{
+  "backToHomeAria": "Back to home",
+  "homeLink": "Home",
+  "loading": "Loading questions…",
+  "empty": "No frequently asked questions available right now",
+  "general": {
+    "pageTitle": "FAQ — Habl Allah Academy",
+    "heading": "Frequently Asked Questions",
+    "subtitle": "Answers to the most common questions about Habl Allah Academy and its learning platforms"
+  },
+  "quran": {
+    "pageTitle": "FAQ — Habl Allah Quran Memorization Platform",
+    "heading": "Frequently Asked Questions",
+    "subtitle": "Answers to the most common questions about the Habl Allah Quran Memorization Platform"
+  }
+}
