@@ -1,0 +1,22 @@
+{
+  "section": {
+    "loading": "Kur'an-ı Kerim yarışmaları yükleniyor...",
+    "heading": "Kur'an-ı Kerim Yarışmaları",
+    "subtitle": "Seçkin Kur'an-ı Kerim yarışmalarımıza katılın ve manevi rekabet ruhunu deneyimleyin",
+    "viewAll": "Tüm Yarışmaları Gör"
+  },
+  "card": {
+    "activeBadge": "Aktif",
+    "startDate": "Başlangıç tarihi: {{date}}",
+    "registrationDeadline": "Son kayıt tarihi: {{date}}",
+    "trackProgress": "İlerlemeni Takip Et",
+    "details": "Detaylar"
+  },
+  "errors": {
+    "configMissing": "Veritabanı yapılandırması eksik olduğu için yarışmalar şu anda yüklenemiyor.",
+    "loadFailed": "Yarışmalar şu anda yüklenemedi. Lütfen daha sonra tekrar deneyin."
+  },
+  "progressLine": {
+    "ariaLabel": "Yarışma aşamaları"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "hero": {
+    "badge": "Habl Allah Quranic Academy",
+    "titleLine1": "A Radiant Journey to Learn",
+    "titleHighlight": "The Holy Quran",
+    "titleLine3": "From Your Home",
+    "description": "We offer you a unique learning experience with certified Ijazah holders and renowned Quran reciters, through personalized learning paths tailored to your schedule and level.",
+    "cta": "Start Your Journey Now",
+    "imageAlt": "The Holy Quran resting on a wooden stand in a mosque illuminated by golden light"
+  },
+  "portals": {
+    "heading": "Choose Your Section",
+    "cta": "Choose from this section",
+    "male": {
+      "label": "Male Teachers",
+      "desc": "Certified male teachers with Ijazah in the Ten Qira'at for men and children"
+    },
+    "female": {
+      "label": "Female Teachers",
+      "desc": "Distinguished female teachers for women and girls in complete privacy"
+    }
+  },
+  "howItWorks": {
+    "heading": "How to Start Your Journey",
+    "steps": {
+      "chooseTeacher": {
+        "title": "Choose Your Preferred Teacher",
+        "desc": "Browse teacher profiles and pick the one who matches your learning style"
+      },
+      "schedule": {
+        "title": "Pick Your Suitable Time",
+        "desc": "Flexible scheduling that fits your routine, available around the clock"
+      },
+      "startLearning": {
+        "title": "Start Learning",
+        "desc": "Begin your Quranic journey with live, interactive sessions"
+      }
+    }
+  },
+  "whyChooseUs": {
+    "heading": "Why Do Students Choose Our Academy?",
+    "imageAlt": "A student learning the Holy Quran on a tablet",
+    "features": {
+      "eliteTeachers": {
+        "title": "Elite Teachers",
+        "desc": "Certified teachers with Ijazah in the Ten Qira'at and years of teaching experience."
+      },
+      "safeEnvironment": {
+        "title": "Safe Environment",
+        "desc": "Complete privacy for male and female students in a respectful learning environment."
+      },
+      "flexibleTimes": {
+        "title": "Flexible Schedules",
+        "desc": "Choose times that fit your daily schedule, with 24/7 availability."
+      },
+      "progressTracking": {
+        "title": "Progress Tracking",
+        "desc": "Regular, comprehensive reports on each student's level and progress in Hifz and Tajweed."
+      }
+    }
+  },
+  "featuredCourses": {
+    "heading": "Featured Courses & Initiatives",
+    "subtitle": "Choose from a diverse selection of specialized courses thoughtfully designed for all levels and ages.",
+    "freeBadge": "Free",
+    "completelyFree": "Completely Free",
+    "details": "Details",
+    "viewAll": "Browse All Courses"
+  },
+  "testimonials": {
+    "heading": "What Our Students Say",
+    "prev": "Previous",
+    "next": "Next",
+    "reviewImageAlt": "Student WhatsApp review screenshot",
+    "lightboxImageAlt": "Student review image",
+    "closeLightbox": "Close"
+  },
+  "newsletter": {
+    "badge": "Newsletter",
+    "heading": "Be the First to Know",
+    "subtitle": "Subscribe to receive updates on our latest Quran courses and competitions",
+    "success": "Thank you! You have been subscribed successfully.",
+    "fullNamePlaceholder": "Full Name",
+    "phonePlaceholder": "Phone Number",
+    "submitting": "Submitting…",
+    "submit": "Subscribe Now",
+    "errors": {
+      "nameRequired": "Please enter your name.",
+      "phoneRequired": "Please enter your phone number.",
+      "submitFailed": "Something went wrong. Please try again."
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './index.css';
 import Hero from './components/Hero';
 import Portals from './components/Portals';
@@ -15,6 +15,7 @@ import TermsPage from './pages/TermsPage';
 import ScrollToTop from './components/ScrollToTop';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import DarkModeToggle from './components/DarkModeToggle';
+import LanguageSwitcher from './components/LanguageSwitcher';
 import { AuthProvider } from './context/AuthContext';
 import RequireAuth from './components/RequireAuth';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
@@ -51,11 +52,24 @@ import UsersManagementPage from './pages/admin/UsersManagementPage';
 import UserDetailPage from './pages/admin/UserDetailPage';
 import StudentRequestsPage from './pages/admin/StudentRequestsPage';
 
+import {
+  LanguageSync,
+  PREFIXED_LANGUAGES,
+  SeoHead,
+  stripLanguagePrefix,
+} from './i18n';
+
+const PUBLIC_ROUTE_PREFIXES = [
+  '',
+  ...PREFIXED_LANGUAGES.map((lang) => `/${lang}`),
+];
+
 function HomePage() {
   return (
-    <div dir="rtl" className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
-      {/* Floating dark mode toggle */}
-      <div className="fixed top-5 left-5 z-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--t-bg)' }}>
+      {/* Floating controls */}
+      <div className="fixed top-5 end-5 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
         <DarkModeToggle />
       </div>
       <Hero />
@@ -76,38 +90,59 @@ function ProtectedAdmin({ children }) {
   );
 }
 
+function AdminPrefixRedirect() {
+  const location = useLocation();
+  const targetPath = stripLanguagePrefix(location.pathname);
+  return <Navigate to={`${targetPath}${location.search}${location.hash}`} replace />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
+      <LanguageSync />
+      <SeoHead />
       <ScrollToTop />
       <FloatingWhatsApp />
       <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/faq" element={<FaqPage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/quran" element={<QuranPage />} />
-        <Route path="/quran/faq" element={<QuranFaqPage />} />
-        <Route path="/quran/teachers" element={<ChooseTeacherPage />} />
-        <Route path="/quran/teachers/:gender" element={<TeacherListPage />} />
-        <Route path="/quran/teachers/:gender/:id" element={<TeacherProfilePage />} />
-        <Route path="/quran/competitions" element={<CompetitionsPage />} />
-        <Route path="/quran/competition/:slug" element={<CompetitionDetailsPage />} />
-        <Route path="/quran/courses" element={<CoursesPage />} />
-        <Route path="/quran/courses/:courseSlug/watch/:lectureSlug" element={<CourseWatchPage />} />
-        <Route path="/quran/courses/:courseSlug/watch" element={<CourseWatchPage />} />
-        <Route path="/quran/courses/:slug" element={<CourseDetailPage />} />
+        {/* Localized public & student routes ('', '/en', '/tr') */}
+        {PUBLIC_ROUTE_PREFIXES.map((prefix) => (
+          <Route key={prefix || 'default'} path={prefix || '/'}>
+            <Route index element={<HomePage />} />
+            <Route path="faq" element={<FaqPage />} />
+            <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="terms" element={<TermsPage />} />
+            <Route path="quran" element={<QuranPage />} />
+            <Route path="quran/faq" element={<QuranFaqPage />} />
+            <Route path="quran/teachers" element={<ChooseTeacherPage />} />
+            <Route path="quran/teachers/:gender" element={<TeacherListPage />} />
+            <Route path="quran/teachers/:gender/:id" element={<TeacherProfilePage />} />
+            <Route path="quran/competitions" element={<CompetitionsPage />} />
+            <Route path="quran/competition/:slug" element={<CompetitionDetailsPage />} />
+            <Route path="quran/courses" element={<CoursesPage />} />
+            <Route path="quran/courses/:courseSlug/watch/:lectureSlug" element={<CourseWatchPage />} />
+            <Route path="quran/courses/:courseSlug/watch" element={<CourseWatchPage />} />
+            <Route path="quran/courses/:slug" element={<CourseDetailPage />} />
 
-        {/* Student auth & pages */}
-        <Route path="/quran/student/login" element={<StudentLoginPage />} />
-        <Route path="/quran/student/signup" element={<StudentSignupPage />} />
-        <Route path="/quran/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
-        <Route path="/quran/student/dashbaord" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
-        <Route path="/quran/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />
-        <Route path="/quran/student/profile" element={<RequireStudent><StudentProfilePage /></RequireStudent>} />
+            {/* Student auth & pages */}
+            <Route path="quran/student/login" element={<StudentLoginPage />} />
+            <Route path="quran/student/signup" element={<StudentSignupPage />} />
+            <Route path="quran/student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
+            <Route path="quran/student/dashbaord" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
+            <Route path="quran/student/lessons" element={<RequireStudent><StudentQuranLessons /></RequireStudent>} />
+            <Route path="quran/student/profile" element={<RequireStudent><StudentProfilePage /></RequireStudent>} />
+          </Route>
+        ))}
 
-        {/* Admin auth */}
+        {/* Redirect /en/admin/* and /tr/admin/* -> /admin/* */}
+        {PREFIXED_LANGUAGES.map((lang) => (
+          <Route
+            key={`admin-redirect-${lang}`}
+            path={`/${lang}/admin/*`}
+            element={<AdminPrefixRedirect />}
+          />
+        ))}
+
+        {/* Admin auth (Arabic-only, unprefixed) */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
 
         {/* Protected admin routes — Main Platform */}
@@ -130,7 +165,7 @@ export default function App() {
         <Route path="/admin/quran/users/:id" element={<ProtectedAdmin><UserDetailPage /></ProtectedAdmin>} />
         <Route path="/admin/quran/requests" element={<ProtectedAdmin><StudentRequestsPage /></ProtectedAdmin>} />
 
-        {/* Redirect old /admin/teachers → /admin/quran/teachers */}
+        {/* Redirect old /admin/teachers -> /admin/quran/teachers */}
         <Route path="/admin/teachers" element={<Navigate to="/admin/quran/teachers" replace />} />
       </Routes>
     </AuthProvider>

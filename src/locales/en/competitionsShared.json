@@ -1,0 +1,22 @@
+{
+  "section": {
+    "loading": "Loading Quran competitions...",
+    "heading": "Quran Competitions",
+    "subtitle": "Join our distinguished Quran competitions and experience an inspiring spirit of faithful competition",
+    "viewAll": "View All Competitions"
+  },
+  "card": {
+    "activeBadge": "Active",
+    "startDate": "Start date: {{date}}",
+    "registrationDeadline": "Registration closes: {{date}}",
+    "trackProgress": "Track Your Progress",
+    "details": "Details"
+  },
+  "errors": {
+    "configMissing": "Unable to load competitions right now because the database configuration is incomplete.",
+    "loadFailed": "Unable to load competitions right now. Please try again later."
+  },
+  "progressLine": {
+    "ariaLabel": "Competition stages"
+  }
+}

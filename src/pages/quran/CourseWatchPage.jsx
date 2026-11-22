@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   BookOpen,
 } from 'lucide-react';
@@ -17,6 +18,14 @@ import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import WatchFocusLayout from './watch/WatchFocusLayout';
 import { useAuth } from '../../context/AuthContext';
 import { checkMyCourseAccess } from '../../services/studentsService';
+import {
+  LocalizedLink,
+  truncateMetaDescription,
+  useLocalizedContent,
+  useLocalizedNavigate,
+  useLocalizedPath,
+  usePageMeta,
+} from '../../i18n';
 
 function getCompletedLecturesStorageKey(courseId) {
   return courseId ? `completed_lectures_${courseId}` : '';
@@ -86,8 +95,11 @@ function clearCompletedLecturesFromStorage(courseId) {
 }
 
 export default function CourseWatchPage() {
+  const { t } = useTranslation(['courseWatch', 'seo']);
+  const { text } = useLocalizedContent();
   const { courseSlug, lectureSlug } = useParams();
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
+  const localizedPath = useLocalizedPath();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user, isAdmin, isStudent } = useAuth();
@@ -160,7 +172,7 @@ export default function CourseWatchPage() {
         if (!data.course) {
           setCourse(null);
           setLectures([]);
-          setError('الدورة المطلوبة غير موجودة أو غير منشورة.');
+          setError(t('watch.errors.courseNotFound'));
           return;
         }
 
@@ -186,7 +198,7 @@ export default function CourseWatchPage() {
         if (!active) return;
         setCourse(null);
         setLectures([]);
-        setError(loadError.message ?? 'تعذر تحميل صفحة المشاهدة حالياً.');
+        setError(loadError.message ?? t('watch.errors.loadFailed'));
       } finally {
         if (active) {
           setLoading(false);
@@ -200,7 +212,7 @@ export default function CourseWatchPage() {
     return () => {
       active = false;
     };
-  }, [courseSlug, user, isAdmin]);
+  }, [courseSlug, user, isAdmin, t]);
 
   // Load completed lectures from Supabase for signed-in students, with guest localStorage as fallback.
   useEffect(() => {
@@ -296,15 +308,27 @@ export default function CourseWatchPage() {
     }
   }, [course]);
 
-  // Update Page Document Title
-  useEffect(() => {
-    if (course) {
-      document.title = `${course.name} - المشاهدة | منصة القرآن حبل الله`;
-      return;
-    }
+  const activeCourse = !loading && !error ? course : null;
+  const courseTitleText = activeCourse ? text(activeCourse, 'name') : '';
+  const lectureTitleText = activeCourse && selectedLecture ? text(selectedLecture, 'title') : '';
+  const watchTitleArg =
+    lectureTitleText && courseTitleText
+      ? `${lectureTitleText} — ${courseTitleText}`
+      : courseTitleText;
+  const watchDescriptionText = activeCourse
+    ? (selectedLecture && text(selectedLecture, 'description')) ||
+      text(activeCourse, 'short_description') ||
+      text(activeCourse, 'long_description')
+    : '';
 
-    document.title = 'صفحة المشاهدة - حبل الله';
-  }, [course]);
+  usePageMeta({
+    title: watchTitleArg
+      ? t('seo:templates.courseWatchTitle', { name: watchTitleArg })
+      : undefined,
+    description: watchDescriptionText
+      ? truncateMetaDescription(watchDescriptionText)
+      : undefined,
+  });
 
   // Keep the watch URL canonical with the lecture slug in the pathname.
   useEffect(() => {
@@ -313,12 +337,12 @@ export default function CourseWatchPage() {
     const canonicalPath = `/quran/courses/${course.slug}/watch/${selectedLecture.slug}`;
     const hasLegacyLectureQuery = searchParams.has('lecture');
 
-    if (location.pathname === canonicalPath && !hasLegacyLectureQuery) {
+    if (location.pathname === localizedPath(canonicalPath) && !hasLegacyLectureQuery) {
       return;
     }
 
     navigate(canonicalPath, { replace: true });
-  }, [course, lectureSlug, location.pathname, navigate, searchParams, selectedLecture]);
+  }, [course, lectureSlug, localizedPath, location.pathname, navigate, searchParams, selectedLecture]);
 
   // Load Playback URL for secure MP4 files
   useEffect(() => {
@@ -350,7 +374,7 @@ export default function CourseWatchPage() {
         setPlaybackState({
           loading: false,
           url: '',
-          error: playbackError.message ?? 'تعذر تحميل رابط تشغيل الفيديو.',
+          error: playbackError.message ?? t('watch.errors.playbackUrlFailed'),
           expiresAt: null,
         });
       }
@@ -361,7 +385,7 @@ export default function CourseWatchPage() {
     return () => {
       active = false;
     };
-  }, [course, isFreeCourse, selectedLectureId, playbackRefreshKey, hasAccess]);
+  }, [course, isFreeCourse, selectedLectureId, playbackRefreshKey, hasAccess, t]);
 
   // Event handlers
   const handleSelectLecture = (nextLectureSlug) => {
@@ -372,8 +396,8 @@ export default function CourseWatchPage() {
   const handleSubscribe = () => {
     if (!course) return;
 
-    const text = `السلام عليكم ورحمة الله وبركاته، أرغب في الاشتراك في دورة: (${course.name})، يرجى إفادتي بالتفاصيل وكيفية البدء.`;
-    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
+    const message = t('watch.whatsappSubscribeMessage', { name: text(course, 'name') });
+    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -415,7 +439,7 @@ export default function CourseWatchPage() {
       }
 
       setCompletedLectures(reverted);
-      window.alert('تعذر حفظ تقدمك حالياً. حاول مرة أخرى.');
+      window.alert(t('watch.errors.progressSaveFailed'));
     }
   };
 
@@ -431,11 +455,11 @@ export default function CourseWatchPage() {
   // Loading indicator screen
   if (loading || accessLoading || progressLoading) {
     return (
-      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
         <QuranNav />
         <div className="flex-1 flex flex-col items-center justify-center py-24 gap-4">
           <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-600 rounded-full animate-spin" />
-          <p className="text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>جاري تحميل صفحة المشاهدة والتحقق من الصلاحية...</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--t-text-muted)' }}>{t('watch.loading')}</p>
         </div>
       </div>
     );
@@ -444,20 +468,20 @@ export default function CourseWatchPage() {
   // Error page load screen
   if (error || !course) {
     return (
-      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
         <QuranNav />
         <div className="flex-1 flex flex-col items-center justify-center py-24 px-5 text-center">
           <BookOpen className="w-16 h-16 text-red-500/40 mb-4" />
-          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>تعذر فتح صفحة المشاهدة</h2>
+          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>{t('watch.errorTitle')}</h2>
           <p className="text-sm max-w-md mx-auto mb-8" style={{ color: 'var(--t-text-muted)' }}>
-            {error || 'المعذرة، لم نتمكن من تحميل هذه الدورة حالياً.'}
+            {error || t('watch.errorFallback')}
           </p>
-          <Link
+          <LocalizedLink
             to="/quran/courses"
             className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
           >
-            العودة إلى صفحة الدورات
-          </Link>
+            {t('watch.backToCourses')}
+          </LocalizedLink>
         </div>
       </div>
     );
@@ -466,20 +490,20 @@ export default function CourseWatchPage() {
   // Not logged in screen
   if (!course.is_free && !user) {
     return (
-      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
         <QuranNav />
         <div className="flex-1 flex flex-col items-center justify-center py-24 px-5 text-center">
           <BookOpen className="w-16 h-16 text-emerald-600/40 mb-4" />
-          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>تسجيل الدخول مطلوب</h2>
+          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>{t('watch.loginRequiredTitle')}</h2>
           <p className="text-sm max-w-md mx-auto mb-8" style={{ color: 'var(--t-text-muted)' }}>
-            لمشاهدة محاضرات هذه الدورة، يرجى تسجيل الدخول إلى حساب الطالب الخاص بك أولاً.
+            {t('watch.loginRequiredSubtitle')}
           </p>
-          <Link
+          <LocalizedLink
             to="/quran/student/login"
             className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
           >
-            تسجيل الدخول كطالب
-          </Link>
+            {t('watch.studentLogin')}
+          </LocalizedLink>
         </div>
       </div>
     );
@@ -488,27 +512,27 @@ export default function CourseWatchPage() {
   // Subscribed but not authorized screen
   if (!hasAccess) {
     return (
-      <div dir="rtl" className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--t-bg-page)', color: 'var(--t-text)' }}>
         <QuranNav />
         <div className="flex-1 flex flex-col items-center justify-center py-24 px-5 text-center">
           <BookOpen className="w-16 h-16 text-amber-500/40 mb-4" />
-          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>الوصول غير مفعل</h2>
+          <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--t-primary)' }}>{t('watch.accessDeniedTitle')}</h2>
           <p className="text-sm max-w-md mx-auto mb-8" style={{ color: 'var(--t-text-muted)' }}>
-            هذه الدورة مدفوعة، وحسابك غير مشترك فيها حالياً. يرجى التواصل مع إدارة المنصة لتفعيل الدورة لحسابك.
+            {t('watch.accessDeniedSubtitle')}
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center">
             <button
               onClick={handleSubscribe}
               className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
             >
-              طلب تفعيل الاشتراك عبر الواتساب
+              {t('watch.activateViaWhatsapp')}
             </button>
-            <Link
+            <LocalizedLink
               to="/quran/courses"
               className="inline-flex items-center gap-2 py-3.5 px-6 rounded-xl font-bold text-emerald-700 border border-emerald-600/20 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/10 transition-colors cursor-pointer"
             >
-              تصفح الدورات الأخرى
-            </Link>
+              {t('watch.browseOtherCourses')}
+            </LocalizedLink>
           </div>
         </div>
       </div>
@@ -517,7 +541,6 @@ export default function CourseWatchPage() {
 
   return (
     <div 
-      dir="rtl" 
       className="min-h-screen flex flex-col transition-colors duration-300" 
       style={{ 
         backgroundColor: 'var(--t-bg-page)', 

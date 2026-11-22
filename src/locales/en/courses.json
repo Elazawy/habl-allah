@@ -1,0 +1,47 @@
+{
+  "list": {
+    "badge": "Featured Courses",
+    "title": "Learn the Holy Quran & Tajweed",
+    "subtitle": "Choose the learning path that suits you and begin your blessed journey in understanding and memorizing the Book of Allah with distinguished scholars and teachers.",
+    "loading": "Loading courses...",
+    "emptyTitle": "No courses available right now",
+    "emptySubtitle": "We are preparing our educational courses. Check back soon for more details.",
+    "freeInitiative": "Free Initiative",
+    "subscribedBadge": "Enrolled ✅",
+    "priceLabel": "Course Fee",
+    "freePrice": "Completely Free",
+    "continueLearning": "Continue Learning",
+    "startNow": "Start Now",
+    "subscribeNow": "Enroll Now",
+    "details": "Details"
+  },
+  "detail": {
+    "documentTitle": "{{name}} - Habl Allah Quran Platform",
+    "defaultDocumentTitle": "Course Details - Habl Allah",
+    "loading": "Loading course details...",
+    "notFoundTitle": "Course Not Found",
+    "notFoundDefault": "Sorry, we could not find the requested educational course.",
+    "errors": {
+      "notFound": "The requested course was not found.",
+      "loadFailed": "Unable to load course details right now."
+    },
+    "backToCourses": "Back to Courses",
+    "freeInitiative": "Free Initiative",
+    "educationalCourse": "Educational Course",
+    "teacherPrefix": "Instructor:",
+    "learningOutcomesTitle": "Learning Outcomes & Skills Gained",
+    "contentTitle": "Course Curriculum",
+    "lectureCount_one": "{{formattedCount}} lecture",
+    "lectureCount_other": "{{formattedCount}} lectures",
+    "freeBadge": "Free",
+    "continueLearning": "Continue Learning",
+    "joinFreeCta": "Join the Initiative for Free",
+    "subscribeCta": "Enroll and Start Learning Now",
+    "whatsappSubtitle": "Registration is easy and direct via live chat with the academy coordinators",
+    "priceLabel": "Course Fee:",
+    "contactForPrice": "Contact us for pricing",
+    "startWatching": "Start Watching",
+    "clickToSubscribe": "Click to Enroll",
+    "whatsappSubscribeMessage": "Assalamu Alaikum wa Rahmatullahi wa Barakatuh, I would like to enroll in the course: ({{name}}). Please share the details and how to get started."
+  }
+}

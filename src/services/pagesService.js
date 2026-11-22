@@ -27,12 +27,31 @@ export async function fetchAllPages() {
   return data;
 }
 
+function normalizeOptionalText(value) {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') return value ?? null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
+function normalizePagePayload(payload = {}) {
+  const next = { ...payload };
+  for (const field of ['title_en', 'title_tr', 'content_en', 'content_tr']) {
+    if (field in payload) {
+      next[field] = normalizeOptionalText(payload[field]);
+    }
+  }
+  return Object.fromEntries(
+    Object.entries(next).filter(([, value]) => value !== undefined)
+  );
+}
+
 /** Update a page's content by slug */
 export async function updatePage(slug, payload) {
   const { data, error } = await supabase
     .from('pages')
     .update({
-      ...payload,
+      ...normalizePagePayload(payload),
       updated_at: new Date().toISOString(),
     })
     .eq('slug', slug)

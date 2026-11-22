@@ -1,0 +1,51 @@
+{
+  "list": {
+    "badge": "دوراتنا المتميزة",
+    "title": "تعلّم القرآن الكريم وتجويده",
+    "subtitle": "اختر مسارك التعليمي المناسب وابدأ رحلتك المباركة في فهم وحفظ كتاب الله مع أفضل الشيوخ والمعلمين.",
+    "loading": "جاري تحميل الدورات...",
+    "emptyTitle": "لا توجد دورات متاحة حالياً",
+    "emptySubtitle": "نعمل على إعداد دوراتنا التعليمية. تابعونا قريباً لمزيد من التفاصيل.",
+    "freeInitiative": "مبادرة مجانية",
+    "subscribedBadge": "مشترك ✅",
+    "priceLabel": "سعر الاشتراك",
+    "freePrice": "مجاني بالكامل",
+    "continueLearning": "اكمل تعلمك",
+    "startNow": "ابدأ الآن",
+    "subscribeNow": "اشترك الآن",
+    "details": "التفاصيل"
+  },
+  "detail": {
+    "documentTitle": "{{name}} - منصة القرآن حبل الله",
+    "defaultDocumentTitle": "تفاصيل الدورة - حبل الله",
+    "loading": "جاري تحميل تفاصيل الدورة...",
+    "notFoundTitle": "تعذر العثور على الدورة",
+    "notFoundDefault": "المعذرة، لم نتمكن من العثور على الدورة التعليمية المطلوبة.",
+    "errors": {
+      "notFound": "الدورة المطلوبة غير موجودة.",
+      "loadFailed": "تعذر تحميل تفاصيل الدورة حالياً."
+    },
+    "backToCourses": "العودة لصفحة الدورات",
+    "freeInitiative": "مبادرة مجانية",
+    "educationalCourse": "دورة تعليمية",
+    "teacherPrefix": "فضيلة الشيخ:",
+    "learningOutcomesTitle": "مخرجات التعلم والمهارات المكتسبة",
+    "contentTitle": "محتوى الدورة",
+    "lectureCount_zero": "{{formattedCount}} محاضرة",
+    "lectureCount_one": "{{formattedCount}} محاضرة",
+    "lectureCount_two": "{{formattedCount}} محاضرتان",
+    "lectureCount_few": "{{formattedCount}} محاضرات",
+    "lectureCount_many": "{{formattedCount}} محاضرة",
+    "lectureCount_other": "{{formattedCount}} محاضرة",
+    "freeBadge": "مجاني",
+    "continueLearning": "اكمل تعلمك",
+    "joinFreeCta": "انضم للمبادرة مجاناً",
+    "subscribeCta": "اشترك وابدأ التعلم الآن",
+    "whatsappSubtitle": "التسجيل سهل ومباشر عبر المحادثة المباشرة مع منسقي الأكاديمية",
+    "priceLabel": "سعر الاشتراك:",
+    "contactForPrice": "تواصل معنا للسعر",
+    "startWatching": "ابدأ المشاهدة",
+    "clickToSubscribe": "اضغط للاشتراك",
+    "whatsappSubscribeMessage": "السلام عليكم ورحمة الله وبركاته، أرغب في الاشتراك في دورة: ({{name}})، يرجى إفادتي بالتفاصيل وكيفية البدء."
+  }
+}

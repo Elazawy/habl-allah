@@ -1,0 +1,190 @@
+{
+  "auth": {
+    "noLinkedAccount": "لم يتم العثور على حساب طالب مرتبط."
+  },
+  "fields": {
+    "fullName": "الاسم الكامل",
+    "phone": "رقم الهاتف",
+    "country": "الدولة",
+    "birthDate": "تاريخ الميلاد",
+    "gender": "الجنس",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور"
+  },
+  "gender": {
+    "male": "ذكر",
+    "female": "أنثى",
+    "unspecified": "غير محدد"
+  },
+  "validation": {
+    "fullNameMin": "يرجى كتابة الاسم الكامل بشكل صحيح (ثنائي على الأقل).",
+    "invalidPhone": "يرجى كتابة رقم هاتف صحيح يتكون من 10 إلى 15 رقماً.",
+    "countryRequired": "يرجى اختيار الدولة.",
+    "birthDateRequired": "يرجى كتابة تاريخ الميلاد بشكل صحيح.",
+    "invalidBirthDate": "يرجى كتابة تاريخ ميلاد صحيح.",
+    "ageRange": "العمر يجب أن يكون بين 3 و 120 عاماً.",
+    "genderRequired": "يرجى تحديد الجنس.",
+    "passwordMin": "يجب أن تتكون كلمة المرور من 6 خانات على الأقل.",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين."
+  },
+  "login": {
+    "subtitle": "بوابة حسابات الطلاب",
+    "phonePlaceholder": "01xxxxxxxxx",
+    "submit": "تسجيل الدخول",
+    "noAccount": "لا تمتلك حساباً؟",
+    "createAccountLink": "أنشئ حسابك الآن",
+    "afterSignupNote": "بعد إنشاء الحساب يبدأ الطالب بحالة <status>--بدون معلم</status>، وتقوم الإدارة بإسناد المعلم لاحقاً عند الحاجة.",
+    "errors": {
+      "invalidCredentials": "رقم الهاتف أو كلمة المرور غير صحيحة.",
+      "generic": "حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "signup": {
+    "title": "إنشاء حساب طالب",
+    "subtitle": "انضم إلينا في حفظ ومدارسة كتاب الله",
+    "fullNamePlaceholder": "مثال: أحمد محمد حمدي",
+    "phonePlaceholder": "01xxxxxxxxx أو +201xxxxxxxxx",
+    "countryPlaceholder": "اختر دولتك...",
+    "submit": "إنشاء الحساب",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "loginLink": "سجل دخولك هنا",
+    "errors": {
+      "phoneAlreadyRegistered": "رقم الهاتف هذا مسجل بالفعل. يرجى تسجيل الدخول بدلاً من ذلك.",
+      "generic": "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "dashboard": {
+    "welcomeBadge": "أهلاً بك يا قارئ القرآن",
+    "assignedTeacher": "الشيخ المتابع: {{name}}",
+    "myProfile": "ملفي الشخصي",
+    "loading": "جاري تحميل بيانات لوحة التحكم...",
+    "details": "التفاصيل",
+    "noTeacher": {
+      "title": "أنت غير مشترك مع معلم حالياً",
+      "description": "لتبدأ حلقات الحفظ والتسميع المباشرة ومتابعة ورقة تقييم القرآن الخاصة بك، يرجى اختيار المعلم المناسب لك والاشتراك معه.",
+      "cta": "تصفح قائمة المعلمين والاشتراك"
+    },
+    "latestLesson": {
+      "title": "آخر تقرير لدرس القرآن",
+      "viewAll": "عرض كل التقارير ({{total}})",
+      "empty": "لم يتم تسجيل أي تقارير قرآن لك بعد من قبل الشيخ المتابع."
+    },
+    "courses": {
+      "title": "دوراتي التدريبية",
+      "empty": "أنت غير مشترك في أي دورة تعليمية حالياً.",
+      "activeBadge": "دورة مفعلة",
+      "watchCta": "مشاهدة",
+      "suggestedTitle": "دورات مقترحة لك:",
+      "free": "مجانية",
+      "paid": "مدفوعة"
+    },
+    "competitions": {
+      "title": "المسابقات والفعاليات",
+      "empty": "أنت غير مسجل في أي مسابقة قرأنية حالياً.",
+      "enrolledBadge": "أنت مشترك",
+      "stage": "المرحلة: {{stage}}",
+      "currentStageShort": "الحالية",
+      "winnerBadge": "🏆 فائز بالمسابقة",
+      "failedStage": "لم يجتاز {{stage}}",
+      "currentStageFull": "المرحلة الحالية",
+      "trackProgress": "تابع تقدمك",
+      "availableTitle": "مسابقات متاحة للتسجيل:",
+      "clickToRegister": "انقر للتسجيل"
+    }
+  },
+  "lessons": {
+    "backToDashboard": "العودة إلى لوحة التحكم",
+    "pageTitle": "سجل تقارير دروس القرآن",
+    "pageSubtitle": "متابعة الدروس والتسميع والقراءة والتجويد مع المعلم.",
+    "lessonsCount": "عدد الدروس: {{total}}",
+    "loading": "جاري تحميل سجل الدروس...",
+    "emptyTitle": "لا يوجد دروس مسجلة بعد",
+    "emptyDescription": "سجل التقييمات يظهر هنا بمجرد إضافة أول درس أو تقييم من الشيخ المتابع لك.",
+    "todayEvalDate": "تاريخ تقييم اليوم",
+    "evalDate": "تاريخ التقييم",
+    "recitationTodayHeading": "📌 تسميع اليوم",
+    "currentLabel": "الحاضر:",
+    "surahRange": "سورة {{surah}} (من {{from}} إلى {{to}})",
+    "surahOnly": "سورة {{surah}}",
+    "toEnd": "الآخر",
+    "memorizationLevelLabel": "مستوى الحفظ:",
+    "noRecitationToday": "لا يوجد تسميع حاضر اليوم.",
+    "pastReviewLabel": "الماضي:",
+    "pastLevelLabel": "مستوى الماضي:",
+    "readingAndTajweedHeading": "📌 القراءة والتجويد",
+    "readingLabel": "القراءة:",
+    "readingLevelLabel": "مستوى القراءة:",
+    "noReadingToday": "لا يوجد درس قراءة اليوم.",
+    "tajweedLabel": "التجويد:",
+    "interactionLabel": "📌 التفاعل والنشاط:",
+    "teacherNotesLabel": "📌 ملاحظات المعلم العامة:",
+    "homeworkHeading": "📌 الواجبات والتحضير للمرة القادمة",
+    "homeworkCurrentLabel": "واجب الحاضر:",
+    "homeworkPastLabel": "واجب الماضي:",
+    "levels": {
+      "excellent": "ممتاز",
+      "veryGood": "جيد جداً",
+      "good": "جيد",
+      "acceptable": "مقبول",
+      "weak": "ضعيف"
+    }
+  },
+  "profile": {
+    "eyebrow": "ملفي الشخصي",
+    "avatarFallback": "؟",
+    "backToDashboard": "العودة للوحة التحكم",
+    "personalInfoTitle": "البيانات الشخصية",
+    "countryUnsetOption": "--لم يتم تحديد الدولة--",
+    "phoneReadOnly": "رقم الهاتف (لا يمكن تعديله)",
+    "genderReadOnly": "الجنس (لا يمكن تعديله)",
+    "assignedTeacher": "المعلم المتابع",
+    "noTeacher": "بدون معلم",
+    "saveButton": "حفظ البيانات",
+    "saving": "جاري الحفظ...",
+    "saveSuccess": "تم حفظ البيانات بنجاح.",
+    "saveError": "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.",
+    "readOnlyHint": "رقم الهاتف والجنس والمعلم المتابع لا يمكن تعديلهما من هنا — يرجى التواصل مع الإدارة لأي تعديل عليها.",
+    "currentCountryHint": "دولتك الحالية: {{country}}",
+    "registeredBirthDateHint": "تاريخ ميلادك المسجل: {{date}}"
+  },
+  "celebration": {
+    "defaults": {
+      "studentName": "طالب القرآن الكريم",
+      "competitionName": "المسابقة القرآنية",
+      "level": "المستوى العام"
+    },
+    "ranks": {
+      "first": {
+        "title": "المركز الأول",
+        "honorTitle": "الفائز بالمركز الأول الذهبي",
+        "badge": "🥇 المركز الأول"
+      },
+      "second": {
+        "title": "المركز الثاني",
+        "honorTitle": "الفائز بالمركز الثاني الفضي",
+        "badge": "🥈 المركز الثاني"
+      },
+      "third": {
+        "title": "المركز الثالث",
+        "honorTitle": "الفائز بالمركز الثالث البرونزي",
+        "badge": "🥉 المركز الثالث"
+      },
+      "passed": {
+        "title": "اجتياز وتفوق",
+        "honorTitle": "مجتاز للمسابقة بتفوق وتميز",
+        "badge": "🌟 اجتياز وتفوق"
+      }
+    },
+    "balloonClusterTitle": "اضغط للاحتفال مجدداً!",
+    "ribbonBanner": "مُبَارَكٌ الفَوْزُ وَالاجْتِيَازُ يَا بَطَلَ القُرْآنِ!",
+    "supervisedBy": "بإشراف المعلم: {{teacherName}}",
+    "recelebrateTitle": "إطلاق الزينة والبلالين والاحتفال",
+    "recelebrate": "احتفل مجدداً",
+    "duaa": "بَارَكَ اللَّهُ لَكَ فِي حِفْظِكَ، وَجَعَلَ القُرْآنَ العَظِيمَ نُوراً لِقَلْبِكَ وَرِفْعَةً لَكَ فِي الدَّارَيْنِ، وَهَنِيئاً لِوَالِدَيْكَ تَاجَ الوَقَارِ.",
+    "shareJoy": "مشاركة الفرحة",
+    "copied": "تم النسخ!",
+    "copyGreeting": "نسخ التهنئة",
+    "shareTitle": "مبارك فوز الطالب {{studentName}} في مسابقة {{competitionName}}",
+    "shareText": "الحمد لله الذي بنعمته تتم الصالحات! 🌟\nبفضل الله وتوفيقه، اجتزت مسابقة \"{{competitionName}}\" ({{badge}}) في أكاديمية حبل الله للقرآن الكريم. 📜✨\nنسأل الله أن يجعل القرآن ربيع قلوبنا وشفيعاً لنا يوم القيامة."
+  }
+}

@@ -5,11 +5,19 @@ import {
   updateTeacher,
   uploadTeacherPhoto,
 } from '../../services/adminService';
+import {
+  TEACHER_TRANSLATION_SPECS,
+  getMissingTranslations,
+} from '../../i18n/content.js';
+import TranslationTabs from './components/TranslationTabs';
 
 const EMPTY_FORM = {
   name: '',
+  name_latin: '',
   gender: 'male',
   bio: '',
+  bio_en: '',
+  bio_tr: '',
   photo_url: '',
   recitation_url: '',
   recitation_type: '',
@@ -17,16 +25,24 @@ const EMPTY_FORM = {
 };
 
 export default function TeacherFormModal({ teacher, onClose, onSaved }) {
-  const [form, setForm] = useState(teacher ? {
-    name: teacher.name ?? '',
-    gender: teacher.gender ?? 'male',
-    bio: teacher.bio ?? '',
-    photo_url: teacher.photo_url ?? '',
-    recitation_url: teacher.recitation_url ?? '',
-    recitation_type: teacher.recitation_type ?? '',
-    free_trial_enabled: teacher.free_trial_enabled ?? false,
-  } : EMPTY_FORM);
+  const [form, setForm] = useState(
+    teacher
+      ? {
+          name: teacher.name ?? '',
+          name_latin: teacher.name_latin ?? '',
+          gender: teacher.gender ?? 'male',
+          bio: teacher.bio ?? '',
+          bio_en: teacher.bio_en ?? '',
+          bio_tr: teacher.bio_tr ?? '',
+          photo_url: teacher.photo_url ?? '',
+          recitation_url: teacher.recitation_url ?? '',
+          recitation_type: teacher.recitation_type ?? '',
+          free_trial_enabled: teacher.free_trial_enabled ?? false,
+        }
+      : { ...EMPTY_FORM }
+  );
 
+  const [activeLang, setActiveLang] = useState('ar');
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(teacher?.photo_url ?? null);
   const [saving, setSaving] = useState(false);
@@ -34,12 +50,18 @@ export default function TeacherFormModal({ teacher, onClose, onSaved }) {
   const fileInputRef = useRef(null);
   const isEdit = Boolean(teacher);
 
+  useEffect(() => {
+    setActiveLang('ar');
+  }, [teacher?.id]);
+
   // Trap focus inside modal
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
+
+  const { missingEn, missingTr } = getMissingTranslations(form, TEACHER_TRANSLATION_SPECS);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -55,10 +77,23 @@ export default function TeacherFormModal({ teacher, onClose, onSaved }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!form.name.trim()) {
+      setActiveLang('ar');
+      setError('يرجى إدخال اسم المعلم باللغة العربية.');
+      return;
+    }
+
     setSaving(true);
 
     try {
-      let payload = { ...form };
+      let payload = {
+        ...form,
+        name: form.name.trim(),
+        name_latin: form.name_latin.trim() || null,
+        bio_en: form.bio_en.trim() || null,
+        bio_tr: form.bio_tr.trim() || null,
+      };
 
       // Upload photo if a new file was selected
       if (photoFile) {
@@ -148,19 +183,96 @@ export default function TeacherFormModal({ teacher, onClose, onSaved }) {
             )}
           </div>
 
-          {/* Name */}
-          <div className="admin-field-group">
-            <label htmlFor="teacher-name" className="admin-label">الاسم *</label>
-            <input
-              id="teacher-name"
-              type="text"
-              className="admin-input"
-              value={form.name}
-              onChange={(e) => handleField('name', e.target.value)}
-              placeholder="الشيخ / الأستاذة …"
-              required
-            />
-          </div>
+          <TranslationTabs
+            activeLang={activeLang}
+            onChange={setActiveLang}
+            missingEn={missingEn}
+            missingTr={missingTr}
+          />
+
+          {activeLang === 'ar' ? (
+            <>
+              {/* Name (AR) */}
+              <div className="admin-field-group">
+                <label htmlFor="teacher-name" className="admin-label">الاسم *</label>
+                <input
+                  id="teacher-name"
+                  type="text"
+                  className="admin-input"
+                  value={form.name}
+                  onChange={(e) => handleField('name', e.target.value)}
+                  placeholder="الشيخ / الأستاذة …"
+                  required
+                />
+              </div>
+
+              {/* Bio (AR) */}
+              <div className="admin-field-group">
+                <label htmlFor="teacher-bio" className="admin-label">النبذة التعريفية</label>
+                <textarea
+                  id="teacher-bio"
+                  className="admin-input admin-textarea"
+                  value={form.bio}
+                  onChange={(e) => handleField('bio', e.target.value)}
+                  placeholder="اكتب نبذة عن المعلم…"
+                  rows={4}
+                />
+              </div>
+            </>
+          ) : (
+            <div dir="ltr" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Name (Latin — shared EN & TR) */}
+              <div className="admin-field-group">
+                <label htmlFor="teacher-name-latin" className="admin-label" dir="rtl">
+                  الاسم بالحروف اللاتينية (مشترك للإنجليزية والتركية)
+                </label>
+                {form.name.trim() && (
+                  <p className="admin-field-hint" dir="rtl">
+                    النص العربي: {form.name}
+                  </p>
+                )}
+                <input
+                  id="teacher-name-latin"
+                  type="text"
+                  className="admin-input"
+                  value={form.name_latin}
+                  onChange={(e) => handleField('name_latin', e.target.value)}
+                  placeholder="e.g. Sheikh Ahmed Al-Masri"
+                />
+              </div>
+
+              {/* Bio (EN / TR) */}
+              {activeLang === 'en' ? (
+                <div className="admin-field-group">
+                  <label htmlFor="teacher-bio-en" className="admin-label" dir="rtl">
+                    النبذة التعريفية (English)
+                  </label>
+                  <textarea
+                    id="teacher-bio-en"
+                    className="admin-input admin-textarea"
+                    value={form.bio_en}
+                    onChange={(e) => handleField('bio_en', e.target.value)}
+                    placeholder="Write teacher biography in English..."
+                    rows={4}
+                  />
+                </div>
+              ) : (
+                <div className="admin-field-group">
+                  <label htmlFor="teacher-bio-tr" className="admin-label" dir="rtl">
+                    النبذة التعريفية (Türkçe)
+                  </label>
+                  <textarea
+                    id="teacher-bio-tr"
+                    className="admin-input admin-textarea"
+                    value={form.bio_tr}
+                    onChange={(e) => handleField('bio_tr', e.target.value)}
+                    placeholder="Öğretmen hakkında biyografi yazın..."
+                    rows={4}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Gender */}
           <div className="admin-field-group">
@@ -181,19 +293,6 @@ export default function TeacherFormModal({ teacher, onClose, onSaved }) {
                 </label>
               ))}
             </div>
-          </div>
-
-          {/* Bio */}
-          <div className="admin-field-group">
-            <label htmlFor="teacher-bio" className="admin-label">النبذة التعريفية</label>
-            <textarea
-              id="teacher-bio"
-              className="admin-input admin-textarea"
-              value={form.bio}
-              onChange={(e) => handleField('bio', e.target.value)}
-              placeholder="اكتب نبذة عن المعلم…"
-              rows={4}
-            />
           </div>
 
           {/* Recitation URL */}

@@ -1,15 +1,17 @@
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
+import { DirectionalIcon, LocalizedLink, useLocalizedContent } from '../../i18n';
 
-/** Extract first Arabic character from a name string */
-function getMonogram(name) {
-  if (!name) return '؟';
-  return name.trim().split(/\s+/)[0]?.[0] ?? '؟';
+/** Extract first character from a name string */
+function getMonogram(name, fallback = '?') {
+  if (!name) return fallback;
+  return name.trim().split(/\s+/)[0]?.[0] ?? fallback;
 }
 
 /** Gradient monogram for female teachers (no photo) */
 export function FemaleMonogram({ name, size = 'md' }) {
-  const letter = getMonogram(name);
+  const { t } = useTranslation('teachers');
+  const letter = getMonogram(name, t('card.unknownInitial'));
   const sizeClass = size === 'lg'
     ? 'w-28 h-28 text-4xl'
     : 'w-20 h-20 text-3xl';
@@ -37,11 +39,12 @@ export function FemaleMonogram({ name, size = 'md' }) {
 
 /** Circular photo for male teachers */
 export function MalePhoto({ photoUrl, name, size = 'md' }) {
+  const { t } = useTranslation('teachers');
   const sizeClass = size === 'lg'
     ? 'w-28 h-28 text-4xl'
     : 'w-20 h-20 text-3xl';
 
-  const letter = getMonogram(name);
+  const letter = getMonogram(name, t('card.unknownInitial'));
 
   if (photoUrl) {
     return (
@@ -76,11 +79,14 @@ export function MalePhoto({ photoUrl, name, size = 'md' }) {
  * them with a staggered CSS animation applied from the parent grid.
  */
 export default function TeacherCard({ teacher, index = 0 }) {
-  const { id, name, gender } = teacher;
+  const { t } = useTranslation('teachers');
+  const { latinName } = useLocalizedContent();
+  const { id, gender } = teacher;
+  const teacherName = latinName(teacher, 'name');
   const path = `/quran/teachers/${gender}/${id}`;
 
   return (
-    <Link
+    <LocalizedLink
       to={path}
       id={`card-${id}`}
       className="group flex flex-col items-center text-center rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border relative overflow-hidden"
@@ -105,18 +111,19 @@ export default function TeacherCard({ teacher, index = 0 }) {
       {/* Avatar */}
       <div className="mb-4 transition-transform duration-300 group-hover:scale-105 relative z-10">
         {gender === 'female' ? (
-          <FemaleMonogram name={name} size="md" />
+          <FemaleMonogram name={teacherName.text} size="md" />
         ) : (
-          <MalePhoto photoUrl={teacher.photo_url} name={name} size="md" />
+          <MalePhoto photoUrl={teacher.photo_url} name={teacherName.text} size="md" />
         )}
       </div>
 
       {/* Name only */}
       <h3
+        dir={teacherName.dir}
         className="text-base font-bold leading-snug relative z-10"
         style={{ color: 'var(--t-text)' }}
       >
-        {name}
+        {teacherName.text}
       </h3>
 
       {/* CTA indicator */}
@@ -124,9 +131,14 @@ export default function TeacherCard({ teacher, index = 0 }) {
         className="mt-3 inline-flex items-center gap-1 text-xs font-semibold transition-all duration-300 group-hover:gap-2 relative z-10"
         style={{ color: 'var(--t-primary)' }}
       >
-        عرض الملف
-        <ArrowLeft size={12} className="transition-transform duration-300 group-hover:-translate-x-0.5" />
+        {t('card.viewProfile')}
+        <DirectionalIcon
+          icon={ArrowLeft}
+          flipIn="ltr"
+          size={12}
+          className="transition-transform duration-300 rtl:group-hover:-translate-x-0.5 ltr:group-hover:translate-x-0.5"
+        />
       </span>
-    </Link>
+    </LocalizedLink>
   );
 }

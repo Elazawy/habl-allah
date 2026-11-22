@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { isValidStudentPhone, normalizeStudentPhone, signUpStudent } from '../../services/studentsService';
-import { COUNTRY_OPTIONS } from '../../data/countries';
+import { getCountryOptions } from '../../data/countries';
 import { useAuth } from '../../context/AuthContext';
+import { LocalizedLink, useLocalizedNavigate, useLanguage } from '../../i18n';
+import DarkModeToggle from '../../components/DarkModeToggle';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 import logoGold from '../../assets/logo-gold.png';
 
 function calcAgeInYears(dateString) {
@@ -18,8 +21,11 @@ function calcAgeInYears(dateString) {
 }
 
 export default function StudentSignupPage() {
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
   const { refreshStudentProfile } = useAuth();
+  const { language } = useLanguage();
+  const { t } = useTranslation(['student', 'common']);
+  const countryOptions = getCountryOptions(language);
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -39,42 +45,42 @@ export default function StudentSignupPage() {
 
     // Validations
     if (fullName.trim().length < 2) {
-      setError('يرجى كتابة الاسم الكامل بشكل صحيح (ثنائي على الأقل).');
+      setError(t('validation.fullNameMin'));
       return;
     }
 
     if (!isValidStudentPhone(phone)) {
-      setError('يرجى كتابة رقم هاتف صحيح يتكون من 10 إلى 15 رقماً.');
+      setError(t('validation.invalidPhone'));
       return;
     }
 
     if (!country) {
-      setError('يرجى اختيار الدولة.');
+      setError(t('validation.countryRequired'));
       return;
     }
 
     const age = calcAgeInYears(birthDate);
     if (!birthDate || Number.isNaN(age)) {
-      setError('يرجى كتابة تاريخ الميلاد بشكل صحيح.');
+      setError(t('validation.birthDateRequired'));
       return;
     }
     if (age < 3 || age > 120) {
-      setError('العمر يجب أن يكون بين 3 و 120 عاماً.');
+      setError(t('validation.ageRange'));
       return;
     }
 
     if (gender !== 'male' && gender !== 'female') {
-      setError('يرجى تحديد الجنس.');
+      setError(t('validation.genderRequired'));
       return;
     }
 
     if (password.length < 6) {
-      setError('يجب أن تتكون كلمة المرور من 6 خانات على الأقل.');
+      setError(t('validation.passwordMin'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('كلمتا المرور غير متطابقتين.');
+      setError(t('validation.passwordMismatch'));
       return;
     }
 
@@ -88,6 +94,7 @@ export default function StudentSignupPage() {
         gender,
         country,
         birthDate,
+        preferredLanguage: language,
       });
 
       // Refresh student states in AuthContext
@@ -99,14 +106,14 @@ export default function StudentSignupPage() {
     } catch (err) {
       console.error(err);
       if (
+        err.code === 'PHONE_ALREADY_REGISTERED' ||
         err.message?.includes('unique') ||
         err.message?.includes('already exists') ||
-        err.message?.includes('مسجل بالفعل') ||
         err.message?.includes('has already been registered')
       ) {
-        setError('رقم الهاتف هذا مسجل بالفعل. يرجى تسجيل الدخول بدلاً من ذلك.');
+        setError(t('signup.errors.phoneAlreadyRegistered'));
       } else {
-        setError(err.message ?? 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.');
+        setError(err.message ?? t('signup.errors.generic'));
       }
     } finally {
       setLoading(false);
@@ -114,26 +121,32 @@ export default function StudentSignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-12 px-6" style={{ backgroundColor: 'var(--t-bg-page)' }} dir="rtl">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20 pb-12 px-6" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+      {/* Floating controls */}
+      <div className="fixed top-5 end-5 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
+        <DarkModeToggle />
+      </div>
+
       {/* Background Orbs */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-primary), transparent)' }} />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-secondary), transparent)' }} />
+        <div className="absolute top-[-10%] end-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-primary), transparent)' }} />
+        <div className="absolute bottom-[-10%] start-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-secondary), transparent)' }} />
       </div>
 
       <div className="relative z-10 w-full max-w-md bg-white dark:bg-emerald-950/20 backdrop-blur-md border border-emerald-600/10 dark:border-emerald-400/10 rounded-3xl p-8 md:p-10 shadow-2xl shadow-emerald-900/5">
         
         {/* Brand Logo & Titles */}
         <div className="text-center mb-6">
-          <Link to="/quran">
+          <LocalizedLink to="/quran">
             <img
               src={logoGold}
-              alt="شعار حبل الله"
+              alt={t('common:brand.logoAlt')}
               className="w-20 h-20 mx-auto object-contain mb-4 filter drop-shadow-md"
             />
-          </Link>
-          <h1 className="text-2xl font-black mb-1 text-emerald-900 dark:text-emerald-400">إنشاء حساب طالب</h1>
-          <p className="text-sm font-semibold text-emerald-800/60 dark:text-emerald-200/60">انضم إلينا في حفظ ومدارسة كتاب الله</p>
+          </LocalizedLink>
+          <h1 className="text-2xl font-black mb-1 text-emerald-900 dark:text-emerald-400">{t('signup.title')}</h1>
+          <p className="text-sm font-semibold text-emerald-800/60 dark:text-emerald-200/60">{t('signup.subtitle')}</p>
         </div>
 
         {/* Signup Form */}
@@ -141,14 +154,14 @@ export default function StudentSignupPage() {
           
           <div className="flex flex-col gap-1.5">
             <label htmlFor="name-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              الاسم الكامل
+              {t('fields.fullName')}
             </label>
             <input
               id="name-input"
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="مثال: أحمد محمد حمدي"
+              placeholder={t('signup.fullNamePlaceholder')}
               required
               className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 placeholder-emerald-800/40 dark:placeholder-emerald-200/40 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
             />
@@ -156,14 +169,14 @@ export default function StudentSignupPage() {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="phone-signup-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              رقم الهاتف
+              {t('fields.phone')}
             </label>
             <input
               id="phone-signup-input"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="01xxxxxxxxx أو +201xxxxxxxxx"
+              placeholder={t('signup.phonePlaceholder')}
               required
               className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 placeholder-emerald-800/40 dark:placeholder-emerald-200/40 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
               dir="ltr"
@@ -172,7 +185,7 @@ export default function StudentSignupPage() {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="country-signup-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              الدولة
+              {t('fields.country')}
             </label>
             <select
               id="country-signup-input"
@@ -181,10 +194,10 @@ export default function StudentSignupPage() {
               required
               className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
             >
-              <option value="">اختر دولتك...</option>
-              {COUNTRY_OPTIONS.map((c) => (
+              <option value="">{t('signup.countryPlaceholder')}</option>
+              {countryOptions.map((c) => (
                 <option key={c.code} value={c.code}>
-                  {c.nameAr}
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -192,7 +205,7 @@ export default function StudentSignupPage() {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="birthdate-signup-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              تاريخ الميلاد
+              {t('fields.birthDate')}
             </label>
             <input
               id="birthdate-signup-input"
@@ -207,7 +220,7 @@ export default function StudentSignupPage() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              الجنس
+              {t('fields.gender')}
             </label>
             <div className="flex gap-3">
               <label className="flex-1 flex items-center gap-2 py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-sm font-semibold text-emerald-950 dark:text-emerald-100 cursor-pointer">
@@ -220,7 +233,7 @@ export default function StudentSignupPage() {
                   className="accent-emerald-700 dark:accent-emerald-400"
                   required
                 />
-                ذكر
+                {t('gender.male')}
               </label>
               <label className="flex-1 flex items-center gap-2 py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-sm font-semibold text-emerald-950 dark:text-emerald-100 cursor-pointer">
                 <input
@@ -231,14 +244,14 @@ export default function StudentSignupPage() {
                   onChange={() => setGender('female')}
                   className="accent-emerald-700 dark:accent-emerald-400"
                 />
-                أنثى
+                {t('gender.female')}
               </label>
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="password-signup-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              كلمة المرور
+              {t('fields.password')}
             </label>
             <input
               id="password-signup-input"
@@ -254,7 +267,7 @@ export default function StudentSignupPage() {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="confirm-password-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
-              تأكيد كلمة المرور
+              {t('fields.confirmPassword')}
             </label>
             <input
               id="confirm-password-input"
@@ -283,7 +296,7 @@ export default function StudentSignupPage() {
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
             ) : (
-              'إنشاء الحساب'
+              t('signup.submit')
             )}
           </button>
         </form>
@@ -291,13 +304,13 @@ export default function StudentSignupPage() {
         {/* Switch to Login */}
         <div className="mt-6 text-center border-t border-emerald-600/10 dark:border-emerald-400/10 pt-4">
           <p className="text-xs font-bold text-emerald-900/60 dark:text-emerald-100/60">
-            لديك حساب بالفعل؟{' '}
-            <Link
+            {t('signup.alreadyHaveAccount')}{' '}
+            <LocalizedLink
               to="/quran/student/login"
               className="text-emerald-700 dark:text-emerald-400 hover:underline"
             >
-              سجل دخولك هنا
-            </Link>
+              {t('signup.loginLink')}
+            </LocalizedLink>
           </p>
         </div>
 

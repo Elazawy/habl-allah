@@ -1,0 +1,88 @@
+{
+  "gender": {
+    "male": "Male Teachers",
+    "female": "Female Teachers",
+    "default": "Teachers"
+  },
+  "sections": {
+    "male": {
+      "label": "Male Teachers",
+      "desc": "Certified teachers with Ijazah in the Ten Qira'at for teaching men and children"
+    },
+    "female": {
+      "label": "Female Teachers",
+      "desc": "Distinguished female teachers for teaching women and girls in complete privacy"
+    }
+  },
+  "breadcrumbAriaLabel": "Breadcrumb",
+  "choose": {
+    "badge": "Start Your Journey",
+    "title": "Choose <highlight>Your Teacher</highlight>",
+    "subtitle": "Choose the section that suits you, then browse teachers or let us recommend the ideal teacher for you",
+    "goToSection": "Go to {{section}}",
+    "browseTeachers": "Browse Teachers"
+  },
+  "list": {
+    "tabs": {
+      "browse": "Browse and choose your teacher",
+      "form": "Help me choose my teacher"
+    },
+    "fetchError": "Unable to load the teachers list. Please refresh the page.",
+    "retryError": "Unable to load the teachers list.",
+    "retryButton": "Try Again",
+    "empty": "No teachers are currently available."
+  },
+  "preferenceForm": {
+    "title": "Tell Us What You Need",
+    "subtitle": "Your name and WhatsApp number are required so we can contact you; age and description are optional.",
+    "studentNameLabel": "Student Name (Required)",
+    "studentNamePlaceholder": "Enter your name here…",
+    "ageLabel": "Age",
+    "agePlaceholder": "e.g. 25",
+    "whatsappLabel": "Contact Number (WhatsApp, Required)",
+    "whatsappPlaceholder": "e.g. 01012345678",
+    "whatsappHint": "For follow-up by the academy team. Add your country code if your number is outside Egypt.",
+    "descriptionLabel": "What are you looking for in a teacher?",
+    "descriptionPlaceholder": "e.g. I want a teacher specialized in beginner Tajweed, suitable for a 10-year-old child…",
+    "submitButton": "Submit Request",
+    "submitting": "Sending…",
+    "submitError": "An error occurred. Please try again.",
+    "successTitle": "Your request was sent successfully",
+    "successSubtitle": "We will contact you and select the right teacher for you",
+    "successNote": "You can continue browsing for your ideal teacher"
+  },
+  "card": {
+    "unknownInitial": "?",
+    "viewProfile": "View Profile"
+  },
+  "profile": {
+    "notFound": "This teacher could not be found.",
+    "roleMale": "Quran Teacher",
+    "roleFemale": "Quran Teacher",
+    "subscribeButton": "Subscribe with Teacher",
+    "freeTrialButton": "Try a Free Session",
+    "freeTrialWhatsappMessageMale": "I would like to book a free trial session with Sheikh {{name}}",
+    "freeTrialWhatsappMessageFemale": "I would like to book a free trial session with Ustadha {{name}}",
+    "aboutTitle": "About the Teacher",
+    "recitationTitle": "Listen to Recitation",
+    "recitationIframeTitle": "Teacher's recitation",
+    "reviewsTitle": "Student Experiences",
+    "reviewImageAlt": "Student review screenshot",
+    "carouselPrev": "Previous",
+    "carouselNext": "Next"
+  },
+  "subscribeModal": {
+    "title": "Subscription Request",
+    "closeAriaLabel": "Close",
+    "withTeacher": "with <teacher>{{name}}</teacher>",
+    "teacherLabel": "Teacher",
+    "studentNameLabel": "Your Name",
+    "studentNamePlaceholder": "Enter your full name…",
+    "whatsappLabel": "WhatsApp Number",
+    "whatsappPlaceholder": "e.g. 01012345678",
+    "whatsappHint": "For follow-up by the academy team. Add your country code if your number is outside Egypt.",
+    "submitButton": "Request Subscription with Teacher",
+    "submitting": "Sending…",
+    "whatsappMessage": "Hello, I would like to subscribe with {{teacherName}}.\nName: {{studentName}}"
+  }
+}

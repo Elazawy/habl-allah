@@ -1,0 +1,17 @@
+{
+  "backToHomeAria": "Back to home",
+  "homeLink": "Home",
+  "loading": "Loading…",
+  "notFound": "Content not found",
+  "lastUpdated": "Last updated: {{date}}",
+  "terms": {
+    "pageTitle": "Terms of Use — Habl Allah Academy",
+    "heading": "Terms of Use",
+    "subtitle": "The terms and conditions governing the use of Habl Allah Academy's learning platforms"
+  },
+  "privacy": {
+    "pageTitle": "Privacy Policy — Habl Allah Academy",
+    "heading": "Privacy Policy",
+    "subtitle": "How we protect your data and respect your privacy at Habl Allah Academy"
+  }
+}

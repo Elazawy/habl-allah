@@ -1,0 +1,190 @@
+{
+  "auth": {
+    "noLinkedAccount": "Bağlı bir öğrenci hesabı bulunamadı."
+  },
+  "fields": {
+    "fullName": "Ad Soyad",
+    "phone": "Telefon Numarası",
+    "country": "Ülke",
+    "birthDate": "Doğum Tarihi",
+    "gender": "Cinsiyet",
+    "password": "Şifre",
+    "confirmPassword": "Şifreyi Onayla"
+  },
+  "gender": {
+    "male": "Erkek",
+    "female": "Kadın",
+    "unspecified": "Belirtilmedi"
+  },
+  "validation": {
+    "fullNameMin": "Lütfen adınızı ve soyadınızı eksiksiz giriniz.",
+    "invalidPhone": "Lütfen 10 ila 15 rakamdan oluşan geçerli bir telefon numarası giriniz.",
+    "countryRequired": "Lütfen ülkenizi seçiniz.",
+    "birthDateRequired": "Lütfen doğum tarihinizi doğru şekilde giriniz.",
+    "invalidBirthDate": "Lütfen geçerli bir doğum tarihi giriniz.",
+    "ageRange": "Yaş 3 ile 120 arasında olmalıdır.",
+    "genderRequired": "Lütfen cinsiyetinizi seçiniz.",
+    "passwordMin": "Şifre en az 6 karakterden oluşmalıdır.",
+    "passwordMismatch": "Şifreler eşleşmiyor."
+  },
+  "login": {
+    "subtitle": "Öğrenci Hesap Portalı",
+    "phonePlaceholder": "01xxxxxxxxx",
+    "submit": "Giriş Yap",
+    "noAccount": "Hesabınız yok mu?",
+    "createAccountLink": "Hemen hesabınızı oluşturun",
+    "afterSignupNote": "Hesap oluşturulduktan sonra öğrenci <status>--Öğretmen Yok</status> durumuyla başlar ve yönetim gerektiğinde daha sonra bir öğretmen atar.",
+    "errors": {
+      "invalidCredentials": "Telefon numarası veya şifre hatalı.",
+      "generic": "Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin."
+    }
+  },
+  "signup": {
+    "title": "Öğrenci Hesabı Oluştur",
+    "subtitle": "Allah'ın Kitabı'nı ezberlemek ve öğrenmek için bize katılın",
+    "fullNamePlaceholder": "Örn: Ahmet Mehmet Yılmaz",
+    "phonePlaceholder": "01xxxxxxxxx veya +201xxxxxxxxx",
+    "countryPlaceholder": "Ülkenizi seçin...",
+    "submit": "Hesap Oluştur",
+    "alreadyHaveAccount": "Zaten bir hesabınız var mı?",
+    "loginLink": "Buradan giriş yapın",
+    "errors": {
+      "phoneAlreadyRegistered": "Bu telefon numarası zaten kayıtlı. Lütfen bunun yerine giriş yapın.",
+      "generic": "Hesabınız oluşturulurken bir hata oluştu. Lütfen tekrar deneyin."
+    }
+  },
+  "dashboard": {
+    "welcomeBadge": "Hoş geldin, Kur'an-ı Kerim Okuyucusu",
+    "assignedTeacher": "Sorumlu Hocanız: {{name}}",
+    "myProfile": "Profilim",
+    "loading": "Kontrol paneli verileriniz yükleniyor...",
+    "details": "Detaylar",
+    "noTeacher": {
+      "title": "Şu anda kayıtlı bir öğretmeniniz bulunmamaktadır",
+      "description": "Canlı hıfz ve ezber dinletme halkalarına başlamak ve Kur'an değerlendirme çizelgenizi takip etmek için lütfen size uygun öğretmeni seçip kayıt olun.",
+      "cta": "Öğretmenleri İncele ve Kayıt Ol"
+    },
+    "latestLesson": {
+      "title": "Son Kur'an Dersi Raporu",
+      "viewAll": "Tüm raporları görüntüle ({{total}})",
+      "empty": "Hocanız tarafından sizin için henüz bir Kur'an dersi raporu kaydedilmedi."
+    },
+    "courses": {
+      "title": "Kurslarım",
+      "empty": "Şu anda kayıtlı olduğunuz bir eğitim kursu bulunmamaktadır.",
+      "activeBadge": "Aktif Kurs",
+      "watchCta": "İzle",
+      "suggestedTitle": "Sizin için önerilen kurslar:",
+      "free": "Ücretsiz",
+      "paid": "Ücretli"
+    },
+    "competitions": {
+      "title": "Yarışmalar ve Etkinlikler",
+      "empty": "Şu anda kayıtlı olduğunuz bir Kur'an yarışması bulunmamaktadır.",
+      "enrolledBadge": "Kayıtlısınız",
+      "stage": "Aşama: {{stage}}",
+      "currentStageShort": "Mevcut",
+      "winnerBadge": "🏆 Yarışma Kazananı",
+      "failedStage": "Geçilemedi: {{stage}}",
+      "currentStageFull": "Mevcut Aşama",
+      "trackProgress": "İlerlemeyi Takip Et",
+      "availableTitle": "Kayıt olabileceğiniz yarışmalar:",
+      "clickToRegister": "Kayıt olmak için tıklayın"
+    }
+  },
+  "lessons": {
+    "backToDashboard": "Kontrol Paneline Dön",
+    "pageTitle": "Kur'an Ders Raporları Geçmişi",
+    "pageSubtitle": "Öğretmeninizle yaptığınız dersleri, ezber dinletilerini, okumayı ve tecvidi takip edin.",
+    "lessonsCount": "Toplam Ders: {{total}}",
+    "loading": "Ders geçmişi yükleniyor...",
+    "emptyTitle": "Henüz kaydedilmiş bir ders yok",
+    "emptyDescription": "Hocanız ilk dersinizi veya değerlendirmenizi eklediğinde değerlendirme kaydınız burada görünecektir.",
+    "todayEvalDate": "Değerlendirme Tarihi",
+    "evalDate": "Değerlendirme Tarihi",
+    "recitationTodayHeading": "📌 Bugünün Ezberi",
+    "currentLabel": "Yeni Ezber:",
+    "surahRange": "{{surah}} Suresi ({{from}} – {{to}})",
+    "surahOnly": "{{surah}} Suresi",
+    "toEnd": "sonuna kadar",
+    "memorizationLevelLabel": "Hıfz Seviyesi:",
+    "noRecitationToday": "Bugün için yeni ezber dinletisi yok.",
+    "pastReviewLabel": "Tekrar:",
+    "pastLevelLabel": "Tekrar Seviyesi:",
+    "readingAndTajweedHeading": "📌 Okuma ve Tecvid",
+    "readingLabel": "Okuma:",
+    "readingLevelLabel": "Okuma Seviyesi:",
+    "noReadingToday": "Bugün için okuma dersi yok.",
+    "tajweedLabel": "Tecvid:",
+    "interactionLabel": "📌 Katılım ve Etkinlik:",
+    "teacherNotesLabel": "📌 Öğretmenin Genel Notları:",
+    "homeworkHeading": "📌 Bir Sonraki Ders İçin Ödev ve Hazırlık",
+    "homeworkCurrentLabel": "Yeni Ezber Ödevi:",
+    "homeworkPastLabel": "Tekrar Ödevi:",
+    "levels": {
+      "excellent": "Mükemmel",
+      "veryGood": "Çok İyi",
+      "good": "İyi",
+      "acceptable": "Orta",
+      "weak": "Zayıf"
+    }
+  },
+  "profile": {
+    "eyebrow": "Profilim",
+    "avatarFallback": "?",
+    "backToDashboard": "Kontrol Paneline Dön",
+    "personalInfoTitle": "Kişisel Bilgiler",
+    "countryUnsetOption": "--Ülke belirtilmedi--",
+    "phoneReadOnly": "Telefon Numarası (değiştirilemez)",
+    "genderReadOnly": "Cinsiyet (değiştirilemez)",
+    "assignedTeacher": "Sorumlu Öğretmen",
+    "noTeacher": "Öğretmen atanmadı",
+    "saveButton": "Bilgileri Kaydet",
+    "saving": "Kaydediliyor...",
+    "saveSuccess": "Bilgileriniz başarıyla kaydedildi.",
+    "saveError": "Bilgileriniz kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.",
+    "readOnlyHint": "Telefon numarası, cinsiyet ve sorumlu öğretmen buradan değiştirilemez — herhangi bir değişiklik için lütfen yönetimle iletişime geçin.",
+    "currentCountryHint": "Mevcut ülkeniz: {{country}}",
+    "registeredBirthDateHint": "Kayıtlı doğum tarihiniz: {{date}}"
+  },
+  "celebration": {
+    "defaults": {
+      "studentName": "Kur'an-ı Kerim Öğrencisi",
+      "competitionName": "Kur'an-ı Kerim Yarışması",
+      "level": "Genel Seviye"
+    },
+    "ranks": {
+      "first": {
+        "title": "Birincilik",
+        "honorTitle": "Altın Birincilik Kazananı",
+        "badge": "🥇 Birincilik"
+      },
+      "second": {
+        "title": "İkincilik",
+        "honorTitle": "Gümüş İkincilik Kazananı",
+        "badge": "🥈 İkincilik"
+      },
+      "third": {
+        "title": "Üçüncülük",
+        "honorTitle": "Bronz Üçüncülük Kazananı",
+        "badge": "🥉 Üçüncülük"
+      },
+      "passed": {
+        "title": "Üstün Başarı",
+        "honorTitle": "Yarışmayı Üstün Başarıyla Tamamladı",
+        "badge": "🌟 Üstün Başarı"
+      }
+    },
+    "balloonClusterTitle": "Yeniden kutlamak için tıklayın!",
+    "ribbonBanner": "Zaferin ve Başarın Mübarek Olsun, Kur'an Kahramanı!",
+    "supervisedBy": "Danışman Öğretmen: {{teacherName}}",
+    "recelebrateTitle": "Konfeti ve balonlarla yeniden kutla",
+    "recelebrate": "Tekrar Kutla",
+    "duaa": "Allah ezberini mübarek kılsın, Kur'an-ı Kerim'i kalbine nur ve her iki dünyada seni yücelten bir vesile eylesin; anne ve babanı da vakar tacıyla müjdelesin.",
+    "shareJoy": "Sevinci Paylaş",
+    "copied": "Kopyalandı!",
+    "copyGreeting": "Tebriği Kopyala",
+    "shareTitle": "{{competitionName}} yarışmasında başarılı olan {{studentName}} öğrencimizi tebrik ederiz",
+    "shareText": "Nimetiyle salih amellerin tamamlandığı Allah'a hamdolsun! 🌟\nAllah'ın lütfu ve yardımıyla Habl Allah Kur'an-ı Kerim Akademisi'ndeki \"{{competitionName}}\" yarışmasını ({{badge}}) başarıyla tamamladım. 📜✨\nAllah'tan Kur'an-ı Kerim'i kalplerimizin baharı ve kıyamet gününde bizlere şefaatçi kılmasını niyaz ediyoruz."
+  }
+}

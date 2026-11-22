@@ -1,10 +1,14 @@
 export class HttpError extends Error {
   status: number;
+  code?: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = 'HttpError';
     this.status = status;
+    if (code) {
+      this.code = code;
+    }
   }
 }
 
@@ -47,15 +51,18 @@ export async function readJson(req: Request) {
   try {
     return await req.json();
   } catch {
-    throw new HttpError(400, 'Invalid JSON body');
+    throw new HttpError(400, 'Invalid JSON body', 'INVALID_JSON_BODY');
   }
 }
 
 export function errorResponse(error: unknown) {
   if (error instanceof HttpError) {
-    return json({ error: error.message }, { status: error.status });
+    return json(
+      { ...(error.code ? { code: error.code } : {}), error: error.message },
+      { status: error.status },
+    );
   }
 
   console.error('Unhandled edge function error', error);
-  return json({ error: 'Internal server error' }, { status: 500 });
+  return json({ code: 'INTERNAL_ERROR', error: 'Internal server error' }, { status: 500 });
 }

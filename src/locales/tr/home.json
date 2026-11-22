@@ -1,0 +1,80 @@
+{
+  "darkMode": {
+    "enableLightAria": "Açık moda geç",
+    "enableDarkAria": "Koyu moda geç",
+    "lightTitle": "Açık mod",
+    "darkTitle": "Koyu mod"
+  },
+  "floatingWhatsApp": {
+    "ariaLabel": "WhatsApp üzerinden iletişime geç"
+  },
+  "gender": {
+    "male": "Erkek Öğretmenler",
+    "female": "Kadın Öğretmenler",
+    "default": "Öğretmenler"
+  },
+  "whatsapp": {
+    "defaultCompetitionName": "Kur'an Yarışması",
+    "competitionParticipation": "Selamünaleyküm ve rahmetullahi ve berekatüh, {{name}} yarışmasına katılmak, kayıt adımları ve şartlar hakkında bilgi almak istiyorum."
+  },
+  "hero": {
+    "badge": "Kapsamlı Kur'an Eğitim Platformu",
+    "welcomePrefix": "Hoş geldiniz",
+    "academyTitle": "Habl Allah Kur'an Akademisi",
+    "subtitle": "Hidayet ışığı burada başlar; Allah'ın Kitabı'na hizmet için ilmi özgünlüğü modern teknolojilerle buluşturuyoruz.",
+    "cta": "Platformlarımızı Keşfedin",
+    "scrollDownAria": "Aşağı kaydır",
+    "stats": {
+      "experienceValue": "10+",
+      "experienceLabel": "Yıllık Tecrübe",
+      "studentsValue": "500+",
+      "studentsLabel": "Kayıtlı Öğrenci",
+      "teachersValue": "30+",
+      "teachersLabel": "İcazetli Öğretmen"
+    }
+  },
+  "portals": {
+    "badge": "Eğitim Platformlarımız",
+    "heading": "Size Uygun Platformu Seçin",
+    "subtitle": "İster yetişkin ister çocuk olun, her yaş grubuna özel bir eğitim ortamı sunuyoruz",
+    "adults": {
+      "title": "Habl Allah Platformu",
+      "description": "Kur'an-ı Kerim ilimlerinde kapsamlı bir öğrenim yolculuğu; yetkinlik ve mükemmeliyeti hedefleyenler için özel olarak tasarlandı.",
+      "features": {
+        "courses": "Uzmanlaşmış Kur'an kursları",
+        "teachers": "Seçkin icazetli öğretmenler",
+        "competitions": "Düzenli ve ödüllü yarışmalar",
+        "certificates": "Uluslararası geçerliliğe sahip sertifikalar"
+      },
+      "cta": "Eğitim Yolculuğuna Başla"
+    },
+    "kids": {
+      "audience": "Çocuklar İçin",
+      "title": "Usus Habl Allah Platformu",
+      "description": "Çocuklarda iman temellerini ilgi çekici ve sevdirici bir yaklaşımla inşa eden eğlenceli, güvenli ve etkileşimli bir eğitim ortamı.",
+      "features": {
+        "fiqh": "Çocuklar için kolaylaştırılmış fıkıh",
+        "aqeedah": "Etkileşimli yaklaşımla akaid",
+        "seerah": "Peygamberimizin (s.a.v.) güzel siyeri",
+        "games": "Kur'an oyunları ve meydan okumalar"
+      },
+      "cta": "Çocuk Portalına Giriş"
+    }
+  },
+  "about": {
+    "badge": "Bizi Tanıyın",
+    "heading": "Biz Kimiz",
+    "description": "Habl Allah Kur'an Akademisi, Kur'an-ı Kerim ilimlerini yaymayı, tilavetini ve Tecvid kurallarını en yüksek kalite standartlarıyla öğretmeyi amaçlayan öncü bir eğitim kurumudur. Kur'an eğitiminin herkesin hakkı olduğuna inanıyor ve bunu en modern teknolojik imkânlarla kolaylaştırmayı hedefliyoruz.",
+    "visionTitle": "Vizyonumuz",
+    "visionText": "Arap ve İslam dünyasında dijital Kur'an eğitiminde öncü referans olmak.",
+    "missionTitle": "Misyonumuz",
+    "missionText": "İlmi yetkinlik ile modern etkileşimi bir araya getiren özgün ve erişilebilir Kur'an eğitimi sunmak.",
+    "mushafTitle_ar": "القرآن",
+    "mushafSubtitle_ar": "الكريم",
+    "mushafCaption": "Cami ve Mushaf",
+    "yearsValue": "10+",
+    "yearsLabel": "Yıllık Özveri",
+    "satisfactionValue": "%98",
+    "satisfactionLabel": "Öğrenci Memnuniyeti"
+  }
+}

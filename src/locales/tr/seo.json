@@ -1,0 +1,99 @@
+{
+  "routes": {
+    "default": {
+      "title": "Habl Allah Kur'an Akademisi",
+      "description": "Habl Allah Kur'an Akademisi — yetişkinler ve çocuklar için kapsamlı Kur'an eğitim platformu. Hidayet nuru buradan başlar."
+    },
+    "admin": {
+      "title": "Yönetim Paneli — Habl Allah Akademisi",
+      "description": "Habl Allah Kur'an Akademisi yönetim portalı."
+    },
+    "home": {
+      "title": "Habl Allah Kur'an Akademisi",
+      "description": "Habl Allah Kur'an Akademisi — yetişkinler ve çocuklar için kapsamlı Kur'an eğitim platformu. Hidayet nuru buradan başlar."
+    },
+    "faq": {
+      "title": "Sıkça Sorulan Sorular — Habl Allah Akademisi",
+      "description": "Habl Allah Akademisi, programları ve eğitim platformları hakkında en çok sorulan soruların yanıtları."
+    },
+    "privacy": {
+      "title": "Gizlilik Politikası — Habl Allah Akademisi",
+      "description": "Habl Allah Akademisi'nde kişisel verilerinizi nasıl koruduğumuzu ve gizliliğinize nasıl saygı gösterdiğimizi öğrenin."
+    },
+    "terms": {
+      "title": "Kullanım Koşulları — Habl Allah Akademisi",
+      "description": "Habl Allah Akademisi eğitim platformları ve hizmetlerinin kullanımını düzenleyen şartlar ve koşullar."
+    },
+    "quranHome": {
+      "title": "Habl Allah Kur'an Ezber Platformu",
+      "description": "Çocuklar ve yetişkinler için canlı birebir derslerde icazetli kadın ve erkek öğretmenlerle Kur'an-ı Kerim öğrenin ve ezberleyin."
+    },
+    "quranFaq": {
+      "title": "Sıkça Sorulan Sorular — Habl Allah Kur'an Ezber Platformu",
+      "description": "Habl Allah Kur'an platformundaki ezber halkaları, öğretmenler ve kurslar hakkında sıkça sorulan sorular."
+    },
+    "chooseTeacher": {
+      "title": "Öğretmenini Seç — Habl Allah Akademisi",
+      "description": "Tilavet ve ezber yolculuğunuza başlamak için alanlarında uzman kadın ve erkek Kur'an öğretmenlerinden birini seçin."
+    },
+    "teachersMale": {
+      "title": "Erkek Kur'an Öğretmenleri — Habl Allah Akademisi",
+      "description": "Tilavet, tecvid ve hafızlık alanlarında uzman erkek Kur'an öğretmenlerinin profillerini inceleyin."
+    },
+    "teachersFemale": {
+      "title": "Kadın Kur'an Öğretmenleri — Habl Allah Akademisi",
+      "description": "Hanımlar ve çocuklar için uzmanlaşmış kadın Kur'an öğretmenlerinin profillerini inceleyin."
+    },
+    "teacherProfile": {
+      "title": "Öğretmen Profili — Habl Allah Akademisi",
+      "description": "Habl Allah Kur'an Akademisi öğretmenlerinin özgeçmişini, uzmanlık alanlarını ve öğrenci değerlendirmelerini keşfedin."
+    },
+    "competitions": {
+      "title": "Kur'an Yarışmaları — Habl Allah Akademisi",
+      "description": "Habl Allah Akademisi'nin düzenlediği Kur'an yarışmalarına katılın ve Allah'ın kitabını ezberleme ve güzel okumada yarışın."
+    },
+    "competitionDetail": {
+      "title": "Yarışma Detayları — Habl Allah Akademisi",
+      "description": "Habl Allah Akademisi'ndeki bu Kur'an yarışmasının kurallarını, ödüllerini, aşamalarını ve kayıt bilgilerini inceleyin."
+    },
+    "courses": {
+      "title": "Kur'an Kursları — Habl Allah Akademisi",
+      "description": "Tecvid, Kur'an tilaveti ve İslami ilimler alanlarında uzman eğitmenler eşliğinde hazırlanan yapılandırılmış kurslar."
+    },
+    "courseDetail": {
+      "title": "Kurs Detayları — Habl Allah Akademisi",
+      "description": "Habl Allah Akademisi'ndeki bu kursun müfredatını, derslerini ve öğrenme kazanımlarını inceleyin."
+    },
+    "courseWatch": {
+      "title": "Kursu İzle — Habl Allah Akademisi",
+      "description": "Habl Allah platformu üzerinden kurs derslerini izleyin, ilerlemenizi takip edin ve kişisel notlar alın."
+    },
+    "studentLogin": {
+      "title": "Öğrenci Girişi — Habl Allah Akademisi",
+      "description": "Kur'an derslerinizi ve ezber raporlarınızı takip etmek için Habl Allah öğrenci hesabınıza giriş yapın."
+    },
+    "studentSignup": {
+      "title": "Öğrenci Kaydı — Habl Allah Akademisi",
+      "description": "Kurslara erişmek ve Kur'an ezber ilerlemenizi takip etmek için yeni bir Habl Allah öğrenci hesabı oluşturun."
+    },
+    "studentDashboard": {
+      "title": "Öğrenci Paneli — Habl Allah Akademisi",
+      "description": "Habl Allah Akademisi'ndeki dersleriniz, kurslarınız ve ilerlemeniz için kişisel öğrenci paneli."
+    },
+    "studentLessons": {
+      "title": "Kur'an Ders Raporları — Habl Allah Akademisi",
+      "description": "Kur'an ders raporları geçmişinizi ve öğretmen değerlendirmelerini görüntüleyin."
+    },
+    "studentProfile": {
+      "title": "Öğrenci Profili — Habl Allah Akademisi",
+      "description": "Habl Allah öğrenci hesap bilgilerinizi ve tercihlerinizi yönetin."
+    }
+  },
+  "templates": {
+    "teacherProfileTitle": "{{name}} — Habl Allah Akademisi",
+    "courseDetailTitle": "{{name}} — Habl Allah Akademisi",
+    "courseWatchTitle": "{{name}} — İzle | Habl Allah Akademisi",
+    "competitionDetailTitle": "{{name}} — Habl Allah Akademisi",
+    "pageTitle": "{{title}} — Habl Allah Akademisi"
+  }
+}

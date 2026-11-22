@@ -1,15 +1,18 @@
 import { HelpCircle, Phone, Shield, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import logoGold from '../assets/logo-gold.png';
+import LanguageSwitcher from './LanguageSwitcher';
+import { LocalizedLink } from '../i18n';
 
 export default function Footer() {
+  const { t } = useTranslation('common');
   const year = new Date().getFullYear();
 
   const links = [
-    { icon: HelpCircle, label: 'الأسئلة الشائعة', href: '/faq', isRoute: true },
-    { icon: Phone,      label: 'اتصل بنا', href: 'https://api.whatsapp.com/send?phone=201024744963' },
-    { icon: Shield,     label: 'سياسة الخصوصية',  href: '/privacy-policy', isRoute: true },
-    { icon: FileText,   label: 'شروط الاستخدام',  href: '/terms', isRoute: true },
+    { icon: HelpCircle, label: t('footer.faq'), href: '/faq', isRoute: true },
+    { icon: Phone, label: t('footer.contactUs'), href: 'https://api.whatsapp.com/send?phone=201024744963' },
+    { icon: Shield, label: t('footer.privacyPolicy'), href: '/privacy-policy', isRoute: true },
+    { icon: FileText, label: t('footer.termsOfUse'), href: '/terms', isRoute: true },
   ];
 
   return (
@@ -33,12 +36,16 @@ export default function Footer() {
           <div className="flex items-center gap-3">
             <img
               src={logoGold}
-              alt="شعار حبل الله"
+              alt={t('brand.logoAlt')}
               className="w-11 h-11 rounded-xl object-contain"
             />
             <div>
-              <div className="font-black text-lg text-white leading-none">أكاديمية حبل الله</div>
-              <div className="text-emerald-400 text-xs mt-0.5">القرآنية</div>
+              <div className="font-black text-lg text-white leading-none">
+                {t('brand.academyName')}
+              </div>
+              <div className="text-emerald-400 text-xs mt-0.5">
+                {t('brand.quranicSubtitle')}
+              </div>
             </div>
           </div>
 
@@ -46,32 +53,33 @@ export default function Footer() {
           <nav className="flex items-center gap-6 flex-wrap justify-center">
             {links.map(({ icon: Icon, label, href, isRoute }) =>
               isRoute ? (
-                <Link
-                  key={label}
+                <LocalizedLink
+                  key={href}
                   to={href}
                   className="flex items-center gap-1.5 text-emerald-300 hover:text-amber-400 text-sm transition-colors duration-200"
                 >
                   <Icon size={14} />
                   {label}
-                </Link>
+                </LocalizedLink>
               ) : (
                 <a
-                  key={label}
+                  key={href}
                   href={href}
                   className="flex items-center gap-1.5 text-emerald-300 hover:text-amber-400 text-sm transition-colors duration-200"
                 >
                   <Icon size={14} />
                   {label}
                 </a>
-              )
+              ),
             )}
           </nav>
         </div>
 
         {/* Divider */}
-        <div className="border-t border-emerald-800 pt-6 text-center">
+        <div className="border-t border-emerald-800 pt-6 flex flex-col items-center gap-3 text-center">
+          <LanguageSwitcher variant="compact" tone="emerald" />
           <p className="text-emerald-400 text-sm">
-            © {year} أكاديمية حبل الله القرآني. جميع الحقوق محفوظة.
+            {t('footer.copyright', { year })}
           </p>
         </div>
       </div>

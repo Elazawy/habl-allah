@@ -1,0 +1,45 @@
+{
+  "brand": {
+    "shortName": "Habl Allah",
+    "academyName": "Habl Allah Akademisi",
+    "quranicSubtitle": "Kur'an Eğitimi",
+    "logoAlt": "Habl Allah logosu"
+  },
+  "languageSwitcher": {
+    "label": "Dili değiştir",
+    "selectLanguage": "Dil seçin"
+  },
+  "nav": {
+    "home": "Ana Sayfa",
+    "studentHome": "Ana Sayfa",
+    "chooseTeacher": "Öğretmenini Seç",
+    "lessons": "Dersler",
+    "competitions": "Yarışmalar",
+    "courses": "Kurslar",
+    "dashboardWithUser": "Kontrol Paneli ({{name}})",
+    "welcomeUser": "Hoş geldiniz, {{name}}",
+    "signOut": "Çıkış Yap",
+    "logoutShort": "Çıkış",
+    "studentLogin": "Öğrenci Girişi",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "admin": "Yönetici",
+    "student": "Öğrenci"
+  },
+  "footer": {
+    "faq": "Sıkça Sorulan Sorular",
+    "contactUs": "Bize Ulaşın",
+    "privacyPolicy": "Gizlilik Politikası",
+    "termsOfUse": "Kullanım Koşulları",
+    "copyright": "© {{year}} Habl Allah Kur'an Akademisi. Tüm hakları saklıdır.",
+    "quranTagline": "Özgünlüğü modern teknolojiyle birleştiren seçkin bir Kur'an eğitimi sunmayı hedefleyen öncü platform.",
+    "quranCopyright": "© {{year}} Habl Allah. Tüm hakları saklıdır."
+  },
+  "social": {
+    "whatsapp": "WhatsApp",
+    "facebook": "Facebook"
+  },
+  "whatsapp": {
+    "quranSubscriptionMessage": "Selamünaleyküm ve rahmetullahi ve berekatüh, Kur'an-ı Kerim ezber programına katılmak ve detaylar hakkında bilgi almak istiyorum."
+  }
+}

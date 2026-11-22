@@ -56,13 +56,25 @@ function phoneToAuthEmail(phone: string): string {
   return `s${normalizeStudentPhone(phone)}@habl-allah.app`;
 }
 
+const SUPPORTED_LANGUAGES = new Set(['ar', 'en', 'tr']);
+
+function normalizePreferredLanguage(value: unknown): string {
+  if (typeof value !== 'string') return 'ar';
+  const base = value.trim().toLowerCase().split('-')[0];
+  return SUPPORTED_LANGUAGES.has(base) ? base : 'ar';
+}
+
 class HttpError extends Error {
   status: number;
+  code?: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = 'HttpError';
     this.status = status;
+    if (code) {
+      this.code = code;
+    }
   }
 }
 
@@ -95,17 +107,20 @@ async function readJson(req: Request) {
   try {
     return await req.json();
   } catch {
-    throw new HttpError(400, 'Invalid JSON body');
+    throw new HttpError(400, 'Invalid JSON body', 'INVALID_JSON_BODY');
   }
 }
 
 function errorResponse(error: unknown) {
   if (error instanceof HttpError) {
-    return json({ error: error.message }, { status: error.status });
+    return json(
+      { ...(error.code ? { code: error.code } : {}), error: error.message },
+      { status: error.status },
+    );
   }
 
   console.error('Unhandled error', error);
-  return json({ error: 'Internal server error' }, { status: 500 });
+  return json({ code: 'INTERNAL_ERROR', error: 'Internal server error' }, { status: 500 });
 }
 
 Deno.serve(async (req: Request) => {
@@ -114,10 +129,21 @@ Deno.serve(async (req: Request) => {
 
   try {
     if (req.method !== 'POST') {
-      return json({ error: 'Method not allowed' }, { status: 405 });
+      return json({ code: 'METHOD_NOT_ALLOWED', error: 'Method not allowed' }, { status: 405 });
     }
 
-    const { phone, password, fullName, teacherId, teacher_id: teacherIdSnakeCase, gender, country, birthDate } = await readJson(req) as {
+    const {
+      phone,
+      password,
+      fullName,
+      teacherId,
+      teacher_id: teacherIdSnakeCase,
+      gender,
+      country,
+      birthDate,
+      preferredLanguage,
+      preferred_language: preferredLanguageSnakeCase,
+    } = await readJson(req) as {
       phone?: string;
       password?: string;
       fullName?: string;
@@ -126,44 +152,50 @@ Deno.serve(async (req: Request) => {
       gender?: string;
       country?: string;
       birthDate?: string;
+      preferredLanguage?: string;
+      preferred_language?: string;
     };
 
     if (teacherId !== undefined || teacherIdSnakeCase !== undefined) {
-      return json({ error: 'teacherId is not accepted in student self-signup.' }, { status: 400 });
+      return json({ code: 'TEACHER_ID_NOT_ACCEPTED', error: 'teacherId is not accepted in student self-signup.' }, { status: 400 });
     }
 
     if (!phone || !password || !fullName) {
-      return json({ error: 'phone, password, and fullName are required' }, { status: 400 });
+      return json({ code: 'MISSING_REQUIRED_FIELDS', error: 'phone, password, and fullName are required' }, { status: 400 });
     }
 
     const normalizedPhone = normalizeStudentPhone(phone);
     if (!/^[1-9]\d{9,14}$/.test(normalizedPhone)) {
-      return json({ error: 'رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.' }, { status: 400 });
+      return json({ code: 'INVALID_PHONE', error: 'رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.' }, { status: 400 });
     }
 
     if (fullName.trim().length < 2) {
-      return json({ error: 'الاسم الكامل يجب أن يكون ثنائياً على الأقل.' }, { status: 400 });
+      return json({ code: 'INVALID_FULL_NAME', error: 'الاسم الكامل يجب أن يكون ثنائياً على الأقل.' }, { status: 400 });
     }
 
     if (password.length < 6) {
-      return json({ error: 'يجب أن تتكون كلمة المرور من 6 خانات على الأقل.' }, { status: 400 });
+      return json({ code: 'PASSWORD_TOO_SHORT', error: 'يجب أن تتكون كلمة المرور من 6 خانات على الأقل.' }, { status: 400 });
     }
 
     if (gender !== 'male' && gender !== 'female') {
-      return json({ error: 'الجنس يجب أن يكون ذكراً أو أنثى.' }, { status: 400 });
+      return json({ code: 'INVALID_GENDER', error: 'الجنس يجب أن يكون ذكراً أو أنثى.' }, { status: 400 });
     }
 
     const normalizedCountry = country?.trim() ?? '';
     if (!/^[A-Za-z]{2}$/.test(normalizedCountry)) {
-      return json({ error: 'يرجى اختيار الدولة من القائمة.' }, { status: 400 });
+      return json({ code: 'INVALID_COUNTRY', error: 'يرجى اختيار الدولة من القائمة.' }, { status: 400 });
     }
 
     if (typeof birthDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
-      return json({ error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
+      return json({ code: 'INVALID_BIRTH_DATE', error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
     }
     if (Number.isNaN(new Date(`${birthDate}T00:00:00Z`).getTime())) {
-      return json({ error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
+      return json({ code: 'INVALID_BIRTH_DATE', error: 'يرجى كتابة تاريخ ميلاد صحيح.' }, { status: 400 });
     }
+
+    const normalizedPreferredLanguage = normalizePreferredLanguage(
+      preferredLanguage ?? preferredLanguageSnakeCase,
+    );
 
     const adminClient = createAdminClient();
     const email = phoneToAuthEmail(normalizedPhone);
@@ -178,6 +210,7 @@ Deno.serve(async (req: Request) => {
         gender,
         country: normalizedCountry.toUpperCase(),
         birth_date: birthDate,
+        preferred_language: normalizedPreferredLanguage,
       },
     });
 
@@ -186,10 +219,10 @@ Deno.serve(async (req: Request) => {
         authError.message?.toLowerCase().includes('already registered') ||
         authError.message?.toLowerCase().includes('already exists')
       ) {
-        return json({ error: 'رقم الهاتف هذا مسجل بالفعل.' }, { status: 409 });
+        return json({ code: 'PHONE_ALREADY_REGISTERED', error: 'رقم الهاتف هذا مسجل بالفعل.' }, { status: 409 });
       }
 
-      return json({ error: authError.message }, { status: 400 });
+      return json({ code: 'AUTH_CREATE_FAILED', error: authError.message }, { status: 400 });
     }
 
     const userId = authData.user.id;
@@ -202,7 +235,7 @@ Deno.serve(async (req: Request) => {
 
     if (profileLookupError || !studentProfile) {
       await adminClient.auth.admin.deleteUser(userId);
-      return json({ error: profileLookupError?.message ?? 'تعذر إنشاء ملف الطالب تلقائياً.' }, { status: 500 });
+      return json({ code: 'PROFILE_CREATE_FAILED', error: profileLookupError?.message ?? 'تعذر إنشاء ملف الطالب تلقائياً.' }, { status: 500 });
     }
 
     return json({

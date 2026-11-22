@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllCompetitions, deleteCompetition, updateCompetition } from '../../services/competitionsService';
 import CompetitionFormModal from './CompetitionFormModal';
+import TranslationStatusBadge from './components/TranslationStatusBadge';
+import { COMPETITION_TRANSLATION_SPECS } from '../../i18n/content.js';
 import { Plus, Pencil, Trash2, Search, Trophy, Eye, EyeOff, Calendar, Clock, RefreshCcw, Users, ChevronDown } from 'lucide-react';
 
 function getLoadErrorMessage(error) {
@@ -254,7 +256,13 @@ export default function CompetitionsManagementPage() {
                   <td data-label="المسابقة" className="admin-card-cell--summary admin-card-cell--title admin-card-cell--summary-last">
                     <div className="admin-card-title-bar">
                       <div>
-                        <div className="admin-teacher-name">{c.name}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <div className="admin-teacher-name">{c.name}</div>
+                          <TranslationStatusBadge
+                            record={c}
+                            specs={COMPETITION_TRANSLATION_SPECS}
+                          />
+                        </div>
                         <div className="admin-muted admin-card-detail-only" style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
                           {c.slug}
                         </div>

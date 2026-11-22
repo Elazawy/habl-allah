@@ -1,12 +1,28 @@
 import { useEffect, useState } from 'react';
 import { fetchAllPages, updatePage } from '../../services/pagesService';
 import { FileText, Pencil, Shield, Save, X, Loader } from 'lucide-react';
+import {
+  PAGE_TRANSLATION_SPECS,
+  getMissingTranslations,
+} from '../../i18n/content.js';
+import TranslationTabs from './components/TranslationTabs';
+import TranslationStatusBadge from './components/TranslationStatusBadge';
+
+const EMPTY_EDIT_FORM = {
+  title: '',
+  title_en: '',
+  title_tr: '',
+  content: '',
+  content_en: '',
+  content_tr: '',
+};
 
 export default function PagesManagementPage() {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingPage, setEditingPage] = useState(null);
-  const [editForm, setEditForm] = useState({ title: '', content: '' });
+  const [editForm, setEditForm] = useState({ ...EMPTY_EDIT_FORM });
+  const [activeLang, setActiveLang] = useState('ar');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,27 +38,52 @@ export default function PagesManagementPage() {
     return FileText;
   };
 
-
   const openEditor = (page) => {
     setEditingPage(page);
-    setEditForm({ title: page.title, content: page.content });
+    setEditForm({
+      title: page.title ?? '',
+      title_en: page.title_en ?? '',
+      title_tr: page.title_tr ?? '',
+      content: page.content ?? '',
+      content_en: page.content_en ?? '',
+      content_tr: page.content_tr ?? '',
+    });
+    setActiveLang('ar');
     setError('');
   };
 
   const closeEditor = () => {
     setEditingPage(null);
-    setEditForm({ title: '', content: '' });
+    setEditForm({ ...EMPTY_EDIT_FORM });
+    setActiveLang('ar');
     setError('');
   };
 
   const handleSave = async () => {
     if (!editingPage) return;
-    setSaving(true);
     setError('');
+
+    if (!editForm.title.trim()) {
+      setActiveLang('ar');
+      setError('يرجى إدخال عنوان الصفحة باللغة العربية.');
+      return;
+    }
+
+    if (!editForm.content.trim()) {
+      setActiveLang('ar');
+      setError('يرجى إدخال محتوى الصفحة باللغة العربية.');
+      return;
+    }
+
+    setSaving(true);
     try {
       const updated = await updatePage(editingPage.slug, {
-        title: editForm.title,
+        title: editForm.title.trim(),
+        title_en: editForm.title_en.trim() || null,
+        title_tr: editForm.title_tr.trim() || null,
         content: editForm.content,
+        content_en: editForm.content_en.trim() ? editForm.content_en : null,
+        content_tr: editForm.content_tr.trim() ? editForm.content_tr : null,
       });
       setPages((prev) =>
         prev.map((p) => (p.slug === updated.slug ? { ...p, ...updated } : p))
@@ -63,6 +104,10 @@ export default function PagesManagementPage() {
       return () => document.removeEventListener('keydown', handleKey);
     }
   }, [editingPage]);
+
+  const { missingEn, missingTr } = getMissingTranslations(editForm, PAGE_TRANSLATION_SPECS);
+  const langSuffix = activeLang === 'ar' ? '' : `_${activeLang}`;
+  const langLabel = activeLang === 'en' ? 'English' : 'Türkçe';
 
   return (
     <div className="admin-page">
@@ -95,7 +140,13 @@ export default function PagesManagementPage() {
                   </div>
                   <div>
                     <h3 className="admin-page-card-title">{page.title}</h3>
-                    <span className="admin-badge admin-badge--neutral">/{page.slug}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                      <span className="admin-badge admin-badge--neutral">/{page.slug}</span>
+                      <TranslationStatusBadge
+                        record={page}
+                        specs={PAGE_TRANSLATION_SPECS}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="admin-page-card-meta">
@@ -138,33 +189,87 @@ export default function PagesManagementPage() {
             </div>
 
             <div className="admin-modal-body">
-              <div className="admin-field-group">
-                <label htmlFor="page-title" className="admin-label">عنوان الصفحة</label>
-                <input
-                  id="page-title"
-                  type="text"
-                  className="admin-input"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
-                />
-              </div>
+              <TranslationTabs
+                activeLang={activeLang}
+                onChange={setActiveLang}
+                missingEn={missingEn}
+                missingTr={missingTr}
+              />
 
-              <div className="admin-field-group">
-                <label htmlFor="page-content" className="admin-label">
-                  المحتوى (Markdown)
-                </label>
-                <textarea
-                  id="page-content"
-                  className="admin-input admin-textarea page-editor-textarea"
-                  value={editForm.content}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, content: e.target.value }))}
-                  rows={18}
-                  dir="rtl"
-                />
-                <p className="admin-field-hint">
-                  يدعم: # عنوان، ## عنوان فرعي، - قائمة، **نص عريض**
-                </p>
-              </div>
+              {activeLang === 'ar' ? (
+                <>
+                  <div className="admin-field-group">
+                    <label htmlFor="page-title" className="admin-label">عنوان الصفحة *</label>
+                    <input
+                      id="page-title"
+                      type="text"
+                      className="admin-input"
+                      value={editForm.title}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-field-group">
+                    <label htmlFor="page-content" className="admin-label">
+                      المحتوى (Markdown) *
+                    </label>
+                    <textarea
+                      id="page-content"
+                      className="admin-input admin-textarea page-editor-textarea"
+                      value={editForm.content}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, content: e.target.value }))}
+                      rows={18}
+                      dir="rtl"
+                      required
+                    />
+                    <p className="admin-field-hint">
+                      يدعم: # عنوان، ## عنوان فرعي، - قائمة، **نص عريض**
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div dir="ltr" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="admin-field-group">
+                    <label htmlFor={`page-title-${activeLang}`} className="admin-label" dir="rtl">
+                      عنوان الصفحة ({langLabel})
+                    </label>
+                    {editForm.title.trim() && (
+                      <p className="admin-field-hint" dir="rtl">العنوان العربي: {editForm.title}</p>
+                    )}
+                    <input
+                      id={`page-title-${activeLang}`}
+                      type="text"
+                      className="admin-input"
+                      value={editForm[`title${langSuffix}`]}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({ ...prev, [`title${langSuffix}`]: e.target.value }))
+                      }
+                      placeholder={activeLang === 'en' ? 'Page title in English...' : 'Sayfa başlığı...'}
+                    />
+                  </div>
+
+                  <div className="admin-field-group">
+                    <label htmlFor={`page-content-${activeLang}`} className="admin-label" dir="rtl">
+                      المحتوى (Markdown - {langLabel})
+                    </label>
+                    <textarea
+                      id={`page-content-${activeLang}`}
+                      className="admin-input admin-textarea page-editor-textarea"
+                      value={editForm[`content${langSuffix}`]}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({ ...prev, [`content${langSuffix}`]: e.target.value }))
+                      }
+                      placeholder={activeLang === 'en' ? 'Write Markdown content in English...' : 'Türkçe Markdown içeriği yazın...'}
+                      rows={18}
+                      dir="ltr"
+                    />
+                    <p className="admin-field-hint" dir="rtl">
+                      يدعم: # عنوان، ## عنوان فرعي، - قائمة، **نص عريض**
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="admin-error-banner" role="alert">⚠️ {error}</div>

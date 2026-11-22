@@ -13,7 +13,7 @@ type PlaybackUrlRequest = {
 
 function parseRequestBody(payload: unknown): PlaybackUrlRequest {
   if (!payload || typeof payload !== 'object') {
-    throw new HttpError(400, 'Request body must be a JSON object');
+    throw new HttpError(400, 'Request body must be a JSON object', 'INVALID_REQUEST_BODY');
   }
 
   const record = payload as Record<string, unknown>;
@@ -26,7 +26,7 @@ function parseRequestBody(payload: unknown): PlaybackUrlRequest {
   );
 
   if (!UUID_RE.test(lectureId)) {
-    throw new HttpError(400, 'lecture_id must be a valid UUID');
+    throw new HttpError(400, 'lecture_id must be a valid UUID', 'INVALID_LECTURE_ID');
   }
 
   return { lectureId };
@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (req.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, { status: 405 });
+    return json({ code: 'METHOD_NOT_ALLOWED', error: 'Method not allowed' }, { status: 405 });
   }
 
   try {
@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!lecture) {
-      throw new HttpError(404, 'Lecture not found');
+      throw new HttpError(404, 'Lecture not found', 'LECTURE_NOT_FOUND');
     }
 
     const { data: course, error: courseError } = await adminClient
@@ -73,11 +73,11 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!course || course.is_free) {
-      throw new HttpError(404, 'Lecture not found');
+      throw new HttpError(404, 'Lecture not found', 'LECTURE_NOT_FOUND');
     }
 
     if (!lecture.r2_object_key) {
-      throw new HttpError(404, 'Lecture video not available');
+      throw new HttpError(404, 'Lecture video not available', 'VIDEO_NOT_AVAILABLE');
     }
 
     const { url } = await createPresignedR2Url({

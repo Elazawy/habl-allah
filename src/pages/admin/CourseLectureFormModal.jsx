@@ -10,11 +10,20 @@ import {
 } from '../../services/courseLecturesService';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import { normalizeSlug, SLUG_REGEX } from '../../lib/slug';
+import {
+  LECTURE_TRANSLATION_SPECS,
+  getMissingTranslations,
+} from '../../i18n/content.js';
+import TranslationTabs from './components/TranslationTabs';
 
 const EMPTY_FORM = {
   slug: '',
   title: '',
+  title_en: '',
+  title_tr: '',
   description: '',
+  description_en: '',
+  description_tr: '',
   youtube_url: '',
   sort_order: 0,
   is_published: true,
@@ -39,13 +48,18 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
       ? {
           slug: lecture.slug ?? '',
           title: lecture.title ?? '',
+          title_en: lecture.title_en ?? '',
+          title_tr: lecture.title_tr ?? '',
           description: lecture.description ?? '',
+          description_en: lecture.description_en ?? '',
+          description_tr: lecture.description_tr ?? '',
           youtube_url: lecture.youtube_url ?? '',
           sort_order: lecture.sort_order ?? 0,
           is_published: lecture.is_published ?? true,
         }
       : { ...EMPTY_FORM }
   );
+  const [activeLang, setActiveLang] = useState('ar');
   const [videoFile, setVideoFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -53,6 +67,12 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
   const [uploadMessage, setUploadMessage] = useState('');
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(lecture));
+
+  useEffect(() => {
+    setActiveLang('ar');
+  }, [lecture?.id]);
+
+  const { missingEn, missingTr } = getMissingTranslations(form, LECTURE_TRANSLATION_SPECS);
 
   const youtubePreview = isFreeCourse ? getYouTubeEmbedUrl(form.youtube_url) : null;
   const hasExistingVideo = hasLectureUploadedVideo(lecture);
@@ -116,6 +136,13 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
+
+    if (!form.title.trim()) {
+      setActiveLang('ar');
+      setError('يرجى إدخال عنوان المحاضرة باللغة العربية.');
+      return;
+    }
+
     setSaving(true);
 
     let uploadedVideo = null;
@@ -125,7 +152,11 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         course_id: course.id,
         slug: normalizeSlug(form.slug),
         title: form.title.trim(),
+        title_en: form.title_en.trim() || null,
+        title_tr: form.title_tr.trim() || null,
         description: form.description.trim() || null,
+        description_en: form.description_en.trim() || null,
+        description_tr: form.description_tr.trim() || null,
         sort_order: Number(form.sort_order) || 0,
         is_published: Boolean(form.is_published),
       };
@@ -222,6 +253,9 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
     }
   };
 
+  const langSuffix = activeLang === 'ar' ? '' : `_${activeLang}`;
+  const langLabel = activeLang === 'en' ? 'English' : 'Türkçe';
+
   return (
     <div
       className="admin-modal-backdrop"
@@ -243,18 +277,74 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         </div>
 
         <form onSubmit={handleSubmit} className="admin-modal-body" id="course-lecture-form">
-          <div className="admin-field-group">
-            <label htmlFor="course-lecture-title" className="admin-label">عنوان المحاضرة *</label>
-            <input
-              id="course-lecture-title"
-              type="text"
-              className="admin-input"
-              value={form.title}
-              onChange={handleTitleChange}
-              placeholder="مثال: المحاضرة الأولى - مخارج الحروف"
-              required
-            />
-          </div>
+          <TranslationTabs
+            activeLang={activeLang}
+            onChange={setActiveLang}
+            missingEn={missingEn}
+            missingTr={missingTr}
+          />
+
+          {activeLang === 'ar' ? (
+            <>
+              <div className="admin-field-group">
+                <label htmlFor="course-lecture-title" className="admin-label">عنوان المحاضرة *</label>
+                <input
+                  id="course-lecture-title"
+                  type="text"
+                  className="admin-input"
+                  value={form.title}
+                  onChange={handleTitleChange}
+                  placeholder="مثال: المحاضرة الأولى - مخارج الحروف"
+                  required
+                />
+              </div>
+
+              <div className="admin-field-group">
+                <label htmlFor="course-lecture-description" className="admin-label">وصف مختصر</label>
+                <textarea
+                  id="course-lecture-description"
+                  className="admin-input admin-textarea"
+                  value={form.description}
+                  onChange={(event) => handleField('description', event.target.value)}
+                  placeholder="ملخص سريع لما سيتعلمه الطالب في هذه المحاضرة..."
+                  rows={3}
+                />
+              </div>
+            </>
+          ) : (
+            <div dir="ltr" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="admin-field-group">
+                <label htmlFor={`course-lecture-title-${activeLang}`} className="admin-label" dir="rtl">
+                  عنوان المحاضرة ({langLabel})
+                </label>
+                {form.title.trim() && (
+                  <p className="admin-field-hint" dir="rtl">النص العربي: {form.title}</p>
+                )}
+                <input
+                  id={`course-lecture-title-${activeLang}`}
+                  type="text"
+                  className="admin-input"
+                  value={form[`title${langSuffix}`]}
+                  onChange={(event) => handleField(`title${langSuffix}`, event.target.value)}
+                  placeholder={activeLang === 'en' ? 'e.g. Lecture 1 - Articulation Points' : 'Örn: 1. Ders - Harflerin Mahreçleri'}
+                />
+              </div>
+
+              <div className="admin-field-group">
+                <label htmlFor={`course-lecture-description-${activeLang}`} className="admin-label" dir="rtl">
+                  وصف مختصر ({langLabel})
+                </label>
+                <textarea
+                  id={`course-lecture-description-${activeLang}`}
+                  className="admin-input admin-textarea"
+                  value={form[`description${langSuffix}`]}
+                  onChange={(event) => handleField(`description${langSuffix}`, event.target.value)}
+                  placeholder={activeLang === 'en' ? 'Brief summary of what students will learn...' : 'Öğrencilerin bu derste öğreneceklerinin özeti...'}
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="admin-field-group">
             <label htmlFor="course-lecture-slug" className="admin-label">الرابط المختصر للمحاضرة (slug) *</label>
@@ -271,18 +361,6 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
             <p className="admin-field-hint" style={{ lineHeight: 1.8 }}>
               يتم توليد هذا الرابط تلقائياً من العنوان ويمكنك تعديله. إذا كان العنوان بالعربية بالكامل فاكتب رابطاً إنجليزياً قصيراً يدوياً.
             </p>
-          </div>
-
-          <div className="admin-field-group">
-            <label htmlFor="course-lecture-description" className="admin-label">وصف مختصر</label>
-            <textarea
-              id="course-lecture-description"
-              className="admin-input admin-textarea"
-              value={form.description}
-              onChange={(event) => handleField('description', event.target.value)}
-              placeholder="ملخص سريع لما سيتعلمه الطالب في هذه المحاضرة..."
-              rows={3}
-            />
           </div>
 
           {isFreeCourse ? (

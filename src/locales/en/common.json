@@ -1,0 +1,45 @@
+{
+  "brand": {
+    "shortName": "Habl Allah",
+    "academyName": "Habl Allah Academy",
+    "quranicSubtitle": "Quranic Education",
+    "logoAlt": "Habl Allah logo"
+  },
+  "languageSwitcher": {
+    "label": "Change language",
+    "selectLanguage": "Select language"
+  },
+  "nav": {
+    "home": "Home",
+    "studentHome": "Home",
+    "chooseTeacher": "Choose Your Teacher",
+    "lessons": "Lessons",
+    "competitions": "Competitions",
+    "courses": "Courses",
+    "dashboardWithUser": "Dashboard ({{name}})",
+    "welcomeUser": "Welcome, {{name}}",
+    "signOut": "Sign out",
+    "logoutShort": "Sign out",
+    "studentLogin": "Student Login",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "admin": "Admin",
+    "student": "Student"
+  },
+  "footer": {
+    "faq": "FAQ",
+    "contactUs": "Contact Us",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use",
+    "copyright": "© {{year}} Habl Allah Quranic Academy. All rights reserved.",
+    "quranTagline": "A leading platform dedicated to excellence in Quranic education, blending authenticity with modern technology.",
+    "quranCopyright": "© {{year}} Habl Allah. All rights reserved."
+  },
+  "social": {
+    "whatsapp": "WhatsApp",
+    "facebook": "Facebook"
+  },
+  "whatsapp": {
+    "quranSubscriptionMessage": "Assalamu Alaikum wa Rahmatullahi wa Barakatuh, I would like to enroll in Quran memorization and learn more about the details."
+  }
+}

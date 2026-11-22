@@ -1,0 +1,93 @@
+{
+  "hero": {
+    "badge": "Habl Allah Kur'an Akademisi",
+    "titleLine1": "Evinizden Nur Dolu Bir",
+    "titleHighlight": "Kur'an-ı Kerim",
+    "titleLine3": "Öğrenme Yolculuğu",
+    "description": "İcazetli seçkin hocalar ve hafızlar eşliğinde, zamanınıza ve seviyenize uygun özel eğitim programlarıyla benzersiz bir öğrenme deneyimi sunuyoruz.",
+    "cta": "Yolculuğuna Şimdi Başla",
+    "imageAlt": "Altın ışıkla aydınlatılmış bir camide ahşap rahle üzerinde duran Kur'an-ı Kerim"
+  },
+  "portals": {
+    "heading": "Bölümünüzü Seçin",
+    "cta": "Bu bölümden seçin",
+    "male": {
+      "label": "Erkek Öğretmenler",
+      "desc": "Erkekler ve çocuklar için Aşere kıraat icazetli erkek öğretmenler"
+    },
+    "female": {
+      "label": "Kadın Öğretmenler",
+      "desc": "Kadınlar ve kız çocukları için tam mahremiyet içinde seçkin kadın öğretmenler"
+    }
+  },
+  "howItWorks": {
+    "heading": "Yolculuğunuza Nasıl Başlarsınız",
+    "steps": {
+      "chooseTeacher": {
+        "title": "Tercih Ettiğiniz Öğretmeni Seçin",
+        "desc": "Öğretmen profillerini inceleyin ve öğrenme tarzınıza uygun olanı seçin"
+      },
+      "schedule": {
+        "title": "Size Uygun Zamanı Belirleyin",
+        "desc": "Programınıza uyan esnek ders saatleri, günün her saati müsaitlik"
+      },
+      "startLearning": {
+        "title": "Öğrenmeye Başlayın",
+        "desc": "Canlı ve etkileşimli derslerle Kur'an-ı Kerim yolculuğunuza başlayın"
+      }
+    }
+  },
+  "whyChooseUs": {
+    "heading": "Öğrenciler Neden Akademimizi Seçiyor?",
+    "imageAlt": "Tabletten Kur'an-ı Kerim öğrenen bir öğrenci",
+    "features": {
+      "eliteTeachers": {
+        "title": "Seçkin Öğretmenler",
+        "desc": "Yılların deneyimine sahip, Aşere kıraatinde sertifikalı ve icazetli öğretmenler."
+      },
+      "safeEnvironment": {
+        "title": "Güvenli Ortam",
+        "desc": "Erkek ve kız öğrenciler için saygın bir eğitim ortamında tam mahremiyet."
+      },
+      "flexibleTimes": {
+        "title": "Esnek Ders Saatleri",
+        "desc": "Günlük programınıza uygun saatleri seçin; 7/24 ulaşılabiliriz."
+      },
+      "progressTracking": {
+        "title": "Gelişim Takibi",
+        "desc": "Öğrencinin Hıfz ve Tecvid alanındaki seviyesini ve gelişimini gösteren düzenli ve kapsamlı raporlar."
+      }
+    }
+  },
+  "featuredCourses": {
+    "heading": "Öne Çıkan Kurslar ve Programlar",
+    "subtitle": "Her seviyeye ve yaşa uygun olarak özenle hazırlanmış çeşitli uzmanlık kursları arasından seçiminizi yapın.",
+    "freeBadge": "Ücretsiz",
+    "completelyFree": "Tamamen Ücretsiz",
+    "details": "Detaylar",
+    "viewAll": "Tüm Kursları İncele"
+  },
+  "testimonials": {
+    "heading": "Öğrencilerimizin Görüşleri",
+    "prev": "Önceki",
+    "next": "Sonraki",
+    "reviewImageAlt": "Öğrenci WhatsApp değerlendirme görseli",
+    "lightboxImageAlt": "Öğrenci değerlendirme görseli",
+    "closeLightbox": "Kapat"
+  },
+  "newsletter": {
+    "badge": "Bülten",
+    "heading": "İlk Haberdar Olan Siz Olun",
+    "subtitle": "Yeni Kur'an-ı Kerim kurslarımız ve yarışmalarımızdan haberdar olmak için abone olun",
+    "success": "Teşekkürler! Aboneliğiniz başarıyla tamamlandı.",
+    "fullNamePlaceholder": "Ad Soyad",
+    "phonePlaceholder": "Telefon Numarası",
+    "submitting": "Gönderiliyor…",
+    "submit": "Şimdi Abone Ol",
+    "errors": {
+      "nameRequired": "Lütfen adınızı girin.",
+      "phoneRequired": "Lütfen telefon numaranızı girin.",
+      "submitFailed": "Bir hata oluştu, lütfen tekrar deneyin."
+    }
+  }
+}

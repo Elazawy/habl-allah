@@ -15,8 +15,16 @@ import { fetchAllCourses } from '../../services/coursesService';
 import { fetchAllCompetitions } from '../../services/competitionsService';
 import { fetchStudentLessons, deleteQuranLesson } from '../../services/quranLessonsService';
 import QuranLessonFormModal from './QuranLessonFormModal';
+import TranslationStatusBadge from './components/TranslationStatusBadge';
+import { QURAN_LESSON_TRANSLATION_SPECS } from '../../i18n/content.js';
 import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
 import { User, BookOpen, Trophy, Calendar, Pencil, Trash2, Plus, ArrowRight, Loader, KeyRound, RefreshCw } from 'lucide-react';
+
+const PREFERRED_LANGUAGE_LABELS = {
+  ar: 'العربية',
+  en: 'الإنجليزية (English)',
+  tr: 'التركية (Türkçe)',
+};
 
 export default function UserDetailPage() {
   const { id: studentId } = useParams();
@@ -40,6 +48,7 @@ export default function UserDetailPage() {
   // Basic info — new profile fields
   const [gender, setGender] = useState('');
   const [country, setCountry] = useState('');
+  const [preferredLanguage, setPreferredLanguage] = useState('ar');
   const [birthDate, setBirthDate] = useState('');
 
   // Password reset state
@@ -61,6 +70,7 @@ export default function UserDetailPage() {
       setTeacherId(studentData.teacher_id ?? '');
       setGender(studentData.gender ?? '');
       setCountry(studentData.country ?? '');
+      setPreferredLanguage(studentData.preferred_language || 'ar');
       setBirthDate(studentData.birth_date ?? '');
 
       const teachersData = await fetchAllTeachers();
@@ -96,6 +106,7 @@ export default function UserDetailPage() {
         teacher_id: teacherId || null,
         gender: gender || null,
         country: country || null,
+        preferred_language: preferredLanguage || 'ar',
         birth_date: birthDate || null,
       });
       setStudent((prev) => ({
@@ -104,6 +115,7 @@ export default function UserDetailPage() {
         teacher_id: updated.teacher_id,
         gender: updated.gender,
         country: updated.country,
+        preferred_language: updated.preferred_language,
         birth_date: updated.birth_date,
       }));
       alert('تم تحديث البيانات الأساسية بنجاح.');
@@ -242,7 +254,9 @@ export default function UserDetailPage() {
       <div className="admin-page-header" style={{ marginBottom: '1.5rem' }}>
         <div>
           <h1 className="admin-page-title">{student.full_name}</h1>
-          <p className="admin-page-desc">الهاتف: {student.phone} | انضم في {new Date(student.created_at).toLocaleDateString('ar-EG')}</p>
+          <p className="admin-page-desc">
+            الهاتف: {student.phone} | انضم في {new Date(student.created_at).toLocaleDateString('ar-EG')} | اللغة المفضلة: {PREFERRED_LANGUAGE_LABELS[student.preferred_language] ?? PREFERRED_LANGUAGE_LABELS.ar}
+          </p>
         </div>
       </div>
 
@@ -345,6 +359,20 @@ export default function UserDetailPage() {
                   القيمة الحالية المخزنة: {getCountryName(student.country)}
                 </p>
               )}
+            </div>
+
+            <div className="admin-field-group">
+              <label htmlFor="edit-student-preferred-language" className="admin-label">اللغة المفضلة</label>
+              <select
+                id="edit-student-preferred-language"
+                className="admin-input admin-select"
+                value={preferredLanguage}
+                onChange={(e) => setPreferredLanguage(e.target.value)}
+              >
+                <option value="ar">{PREFERRED_LANGUAGE_LABELS.ar}</option>
+                <option value="en">{PREFERRED_LANGUAGE_LABELS.en}</option>
+                <option value="tr">{PREFERRED_LANGUAGE_LABELS.tr}</option>
+              </select>
             </div>
 
             <div className="admin-field-group">
@@ -584,7 +612,15 @@ export default function UserDetailPage() {
                   <tbody>
                     {lessons.map((lesson) => (
                       <tr key={lesson.id} id={`lesson-row-${lesson.id}`}>
-                        <td data-label="التاريخ الميلادي">{new Date(lesson.lesson_date).toLocaleDateString('ar-EG')}</td>
+                        <td data-label="التاريخ الميلادي">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span>{new Date(lesson.lesson_date).toLocaleDateString('ar-EG')}</span>
+                            <TranslationStatusBadge
+                              record={lesson}
+                              specs={QURAN_LESSON_TRANSLATION_SPECS}
+                            />
+                          </div>
+                        </td>
                         <td data-label="التاريخ الهجري">{lesson.hijri_date ?? '—'}</td>
                         <td data-label="تسميع اليوم (الحاضر)">
                           {lesson.recitation_today_surah ? (
@@ -639,6 +675,7 @@ export default function UserDetailPage() {
           lesson={lessonModal.lesson}
           studentId={studentId}
           studentName={student?.full_name}
+          studentPreferredLanguage={student?.preferred_language}
           onClose={() => setLessonModal({ open: false, lesson: null })}
           onSaved={handleLessonSaved}
         />

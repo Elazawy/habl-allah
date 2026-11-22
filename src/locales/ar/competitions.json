@@ -1,0 +1,127 @@
+{
+  "registrationState": {
+    "loading": "جارٍ التحقق...",
+    "subscribed": "مشترك بالفعل",
+    "pending": "تم إرسال طلب الاشتراك",
+    "rejected": "تم رفض طلب الاشتراك",
+    "error": "تعذر التحقق من الاشتراك",
+    "closed": "انتهى التسجيل",
+    "available": "سجّل الآن"
+  },
+  "list": {
+    "pageTitle": "المسابقات القرآنية - حبل الله",
+    "badge": "تنافس في الخيرات",
+    "title": "المسابقات القرآنية",
+    "subtitle": "تجمع المسابقات القرآنية بين شرف الحفظ، وجمال الصوت، وضبط الأحكام. شارك في المسابقات المفتوحة للفوز بجوائز قيمة ولقاء نخبة من قراء الأكاديمية.",
+    "loading": "جارٍ تحميل تفاصيل المسابقات...",
+    "errorHeading": "تعذر تحميل المسابقات",
+    "errors": {
+      "supabaseNotConfigured": "تعذر تحميل المسابقات حالياً لأن إعدادات قاعدة البيانات غير مكتملة.",
+      "generic": "تعذر تحميل المسابقات حالياً. يرجى المحاولة مرة أخرى لاحقاً."
+    },
+    "emptyHeading": "لا توجد مسابقات حالية",
+    "emptyDescription": "يرجى التحقق لاحقاً للمشاركة في مسابقاتنا القادمة.",
+    "statusActive": "نشطة",
+    "startDate": "تاريخ البدء: {{date}}",
+    "registrationEnds": "التسجيل ينتهي: {{date}}",
+    "actions": {
+      "trackProgress": "تابع تقدمك",
+      "details": "التفاصيل"
+    }
+  },
+  "details": {
+    "pageTitleDefault": "تفاصيل المسابقة - حبل الله",
+    "pageTitleWithName": "{{name}} - حبل الله",
+    "pageTitleError": "تعذر تحميل المسابقة - حبل الله",
+    "loading": "جارٍ تحميل تفاصيل المسابقة...",
+    "errorHeading": "تعذر تحميل المسابقة",
+    "errors": {
+      "supabaseNotConfigured": "تعذر تحميل تفاصيل المسابقة حالياً لأن إعدادات قاعدة البيانات غير مكتملة.",
+      "generic": "تعذر تحميل تفاصيل المسابقة حالياً. يرجى المحاولة مرة أخرى لاحقاً."
+    },
+    "notFoundHeading": "المسابقة غير موجودة",
+    "notFoundDescription": "المعذرة، لم نتمكن من العثور على المسابقة المطلوبة.",
+    "backToCompetitions": "العودة لصفحة المسابقات",
+    "backToAllCompetitions": "العودة لكل المسابقات",
+    "startDate": "تاريخ الانطلاق: {{date}}",
+    "registrationDeadline": "آخر موعد للتسجيل: {{date}}",
+    "progressAriaLabel": "تقدمك في المسابقة",
+    "aboutTitle": "نبذة عن المسابقة",
+    "levelsTitle": "المستويات المتاحة في المسابقة",
+    "awardsTitle": "الجوائز والتكريم",
+    "termsTitle": "شروط وأحكام المشاركة",
+    "readyToJoinTitle": "هل أنت مستعد للمشاركة؟",
+    "refreshStatus": "تحديث الحالة",
+    "registrationClosedHint": "انتهت فترة التسجيل لهذه المسابقة.",
+    "registrationLoadingHint": "جارٍ التحقق من حالة اشتراكك...",
+    "registrationPromptHint": "املأ النموذج لإرسال طلب الاشتراك في المسابقة",
+    "guestButton": {
+      "rejected": "تم رفض الطلب"
+    },
+    "guestStatus": {
+      "pendingTitle": "طلب الاشتراك قيد المراجعة",
+      "pendingHint": "تم استلام طلبك وهو بانتظار مراجعة الإدارة.",
+      "rejectedTitle": "تم رفض الطلب",
+      "rejectedHint": "تم رفض طلب الاشتراك لهذه المسابقة.",
+      "acceptedTitle": "أنت مشارك في المسابقة",
+      "acceptedHint": "تم قبولك في المسابقة.",
+      "currentStage": "المرحلة الحالية: {{stageName}}",
+      "failedTitle": "لم تجتز",
+      "failedStage": "لم تجتز {{stageName}}",
+      "failedHint": "لم تجتز هذه المرحلة.",
+      "failedDescription": "للأسف، لم تجتز هذه المرحلة، استعد جيدا للمسابقات القادمة",
+      "completedHint": "مبروك! لقد اجتزت المسابقة."
+    },
+    "celebrationFallbacks": {
+      "participant": "مشارك المسابقة",
+      "competition": "المسابقة القرآنية",
+      "level": "المستوى العام"
+    }
+  },
+  "registrationModal": {
+    "title": "طلب الاشتراك في المسابقة",
+    "closeAriaLabel": "إغلاق",
+    "errors": {
+      "nameMinLength": "الاسم يجب أن يتكون من حرفين على الأقل.",
+      "phoneLength": "رقم الهاتف يجب أن يتكون من 10 إلى 15 رقماً.",
+      "levelRequired": "يرجى تحديد أو كتابة المستوى المطلوب.",
+      "studentVerificationFailed": "تعذر التحقق من حساب الطالب الحالي. يرجى تسجيل الدخول مرة أخرى ثم إعادة المحاولة.",
+      "submitFailed": "حدث خطأ أثناء إرسال طلب الاشتراك. يرجى المحاولة مرة أخرى.",
+      "recoverFailed": "حدث خطأ أثناء استعادة حالة الاشتراك. يرجى المحاولة مرة أخرى."
+    },
+    "success": {
+      "heading": "تم إرسال الطلب بنجاح!",
+      "pending": "تم استلام طلب الاشتراك وهو بانتظار مراجعة الإدارة. يمكنك متابعة حالته باستخدام رقم هاتفك.",
+      "rejected": "تم رفض طلب الاشتراك لهذه المسابقة.",
+      "alreadySubscribed": "مشترك بالفعل. يمكنك الآن متابعة تقدمك في المسابقة.",
+      "okButton": "حسناً"
+    },
+    "recovery": {
+      "title": "استعادة حالة الاشتراك",
+      "subtitle": "أدخل رقم الهاتف الذي استخدمته في طلب الاشتراك.",
+      "notFound": "لم نجد طلب اشتراك بهذا الرقم لهذه المسابقة.",
+      "phoneLabel": "رقم الهاتف *",
+      "backButton": "رجوع لطلب جديد",
+      "searching": "جارٍ البحث...",
+      "submitButton": "استعادة"
+    },
+    "closedBanner": {
+      "label": "التسجيل مغلق:",
+      "message": "انتهت فترة التسجيل لهذه المسابقة."
+    },
+    "form": {
+      "fullNameLabel": "الاسم الكامل *",
+      "fullNamePlaceholder": "اكتب اسمك الكامل هنا...",
+      "phoneWithCodeLabel": "رقم الهاتف (مع رمز الدولة) *",
+      "phonePlaceholder": "مثال: 201012345678",
+      "levelLabel": "المستوى المراد الاشتراك فيه *",
+      "customLevelOption": "مستواي غير موجود (كتابة يدوية)",
+      "customLevelPlaceholder": "اكتب مستواك هنا بالتفصيل...",
+      "levelExamplesPlaceholder": "مثال: جزء عم، ثلاثة أجزاء، القرآن كاملاً...",
+      "alreadyRegisteredTitle": "استعادة حالة اشتراك سابق برقم الهاتف",
+      "cancelButton": "إلغاء",
+      "submitting": "جاري الإرسال...",
+      "submitButton": "إرسال الطلب"
+    }
+  }
+}
