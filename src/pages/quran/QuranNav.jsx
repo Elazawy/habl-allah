@@ -65,11 +65,11 @@ export default function QuranNav() {
         borderColor: 'var(--t-border)',
       }}
     >
-      <div className="max-w-6xl mx-auto px-5 md:px-6 h-16 md:h-20 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
         {/* Brand */}
-        <LocalizedLink to={brandPath} className="flex items-center gap-2.5">
-          <img src={logoGold} alt={t('brand.logoAlt')} className="w-10 h-10 object-contain" />
-          <span className="text-xl font-black" style={{ color: 'var(--t-primary)' }}>
+        <LocalizedLink to={brandPath} className="flex items-center gap-2 md:gap-2.5 min-w-0 shrink-0">
+          <img src={logoGold} alt={t('brand.logoAlt')} className="w-9 h-9 md:w-10 md:h-10 object-contain shrink-0" />
+          <span className="text-lg md:text-xl font-black whitespace-nowrap" style={{ color: 'var(--t-primary)' }}>
             {t('brand.shortName')}
           </span>
         </LocalizedLink>
@@ -89,10 +89,8 @@ export default function QuranNav() {
         </nav>
 
         {/* End actions: language switcher + dark mode toggle + auth status + mobile menu */}
-        <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <LanguageSwitcher />
-          </div>
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          <LanguageSwitcher onSelect={() => setMenuOpen(false)} />
           <DarkModeToggle />
 
           {/* Desktop Auth Section */}
@@ -206,10 +204,6 @@ export default function QuranNav() {
                 <span>{t('nav.studentLogin')}</span>
               </LocalizedLink>
             )}
-
-            <div className="flex justify-center pt-1">
-              <LanguageSwitcher variant="compact" onSelect={() => setMenuOpen(false)} />
-            </div>
           </div>
         </div>
       )}

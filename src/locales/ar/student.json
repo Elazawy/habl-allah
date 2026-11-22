@@ -120,7 +120,14 @@
     "teacherNotesLabel": "📌 ملاحظات المعلم العامة:",
     "homeworkHeading": "📌 الواجبات والتحضير للمرة القادمة",
     "homeworkCurrentLabel": "واجب الحاضر:",
-    "homeworkPastLabel": "واجب الماضي:"
+    "homeworkPastLabel": "واجب الماضي:",
+    "levels": {
+      "excellent": "ممتاز",
+      "veryGood": "جيد جداً",
+      "good": "جيد",
+      "acceptable": "مقبول",
+      "weak": "ضعيف"
+    }
   },
   "profile": {
     "eyebrow": "ملفي الشخصي",

@@ -4,6 +4,8 @@ import { isValidStudentPhone, normalizeStudentPhone, signUpStudent } from '../..
 import { getCountryOptions } from '../../data/countries';
 import { useAuth } from '../../context/AuthContext';
 import { LocalizedLink, useLocalizedNavigate, useLanguage } from '../../i18n';
+import DarkModeToggle from '../../components/DarkModeToggle';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 import logoGold from '../../assets/logo-gold.png';
 
 function calcAgeInYears(dateString) {
@@ -119,7 +121,13 @@ export default function StudentSignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-12 px-6" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20 pb-12 px-6" style={{ backgroundColor: 'var(--t-bg-page)' }}>
+      {/* Floating controls */}
+      <div className="fixed top-5 end-5 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
+        <DarkModeToggle />
+      </div>
+
       {/* Background Orbs */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-10%] end-[-10%] w-[350px] h-[350px] rounded-full blur-[80px] opacity-20" style={{ background: 'radial-gradient(circle, var(--t-primary), transparent)' }} />

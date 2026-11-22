@@ -120,7 +120,14 @@
     "teacherNotesLabel": "📌 Öğretmenin Genel Notları:",
     "homeworkHeading": "📌 Bir Sonraki Ders İçin Ödev ve Hazırlık",
     "homeworkCurrentLabel": "Yeni Ezber Ödevi:",
-    "homeworkPastLabel": "Tekrar Ödevi:"
+    "homeworkPastLabel": "Tekrar Ödevi:",
+    "levels": {
+      "excellent": "Mükemmel",
+      "veryGood": "Çok İyi",
+      "good": "İyi",
+      "acceptable": "Orta",
+      "weak": "Zayıf"
+    }
   },
   "profile": {
     "eyebrow": "Profilim",

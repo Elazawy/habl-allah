@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import logoGold from '../../../assets/logo-gold.png';
 import DarkModeToggle from '../../../components/DarkModeToggle';
+import LanguageSwitcher from '../../../components/LanguageSwitcher';
 import { fetchLectureQuestions, submitQuestion, updateQuestion, replyToQuestion, deleteQuestion } from '../../../services/lectureQuestionsService';
 import { useAuth } from '../../../context/AuthContext';
 import { DirectionalIcon, LocalizedLink, useFormatters, useLocalizedContent } from '../../../i18n';
@@ -362,12 +363,12 @@ export default function WatchFocusLayout({
         )}
 
         {/* MAIN WORKSPACE (Video Player & Tabs) */}
-        <section className={`transition-all duration-300 ${showSidebar ? 'lg:col-span-9' : 'lg:col-span-12'} flex flex-col min-h-screen`}>
+        <section className={`transition-all duration-300 ${showSidebar ? 'lg:col-span-9' : 'lg:col-span-12'} flex flex-col min-h-screen min-w-0`}>
           
           {/* Header Block (Compact layout next to return button) */}
-          <div className="px-4 md:px-8 py-3.5 flex items-center justify-between gap-4 border-b" style={{ borderColor: 'var(--t-border)' }}>
+          <div className="px-3 md:px-8 py-3.5 flex items-center justify-between gap-2 md:gap-4 border-b" style={{ borderColor: 'var(--t-border)' }}>
             {/* Inline Start: Back Arrow + Course Title */}
-            <div className="flex items-center gap-4 min-w-0">
+            <div className="flex items-center gap-2 md:gap-4 min-w-0">
               <LocalizedLink
                 to={`/quran/courses/${course.slug}`}
                 className="inline-flex items-center justify-center transition-all shrink-0 bg-[var(--t-bg-card)] border border-[var(--t-border)] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)] w-9 h-9 rounded-xl shadow-sm text-[var(--t-text-muted)] hover:shadow-md hover:scale-[1.05]"
@@ -383,8 +384,9 @@ export default function WatchFocusLayout({
               </h1>
             </div>
 
-            {/* Inline End: Logo only (+ DarkModeToggle) */}
-            <div className="flex items-center gap-3 shrink-0">
+            {/* Inline End: LanguageSwitcher + DarkModeToggle + Logo */}
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              <LanguageSwitcher />
               <DarkModeToggle />
               <LocalizedLink to={brandPath} className="flex items-center hover:opacity-90 transition-opacity shrink-0">
                 <img src={logoGold} alt={t('layout.brandLogoAlt')} className="w-[34px] h-[34px] object-contain" />

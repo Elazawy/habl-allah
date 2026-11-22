@@ -7,6 +7,7 @@ import { fetchPublishedCourses } from '../../services/coursesService';
 import { fetchPublishedCompetitions } from '../../services/competitionsService';
 import QuranNav from '../quran/QuranNav';
 import QuranFooter from '../quran/QuranFooter';
+import QuranLessonCard from './QuranLessonCard';
 import { BookOpen, Trophy, Calendar, User, ArrowLeft } from 'lucide-react';
 import { useVisibleRefresh } from '../../hooks/useVisibleRefresh';
 import {
@@ -21,7 +22,7 @@ export default function StudentDashboard() {
   const { studentProfile, signOut } = useAuth();
   const navigate = useLocalizedNavigate();
   const { t } = useTranslation(['student', 'common']);
-  const { formatDate, formatNumber } = useFormatters();
+  const { formatNumber } = useFormatters();
   const { field, text, latinName } = useLocalizedContent();
 
   const [myCourses, setMyCourses] = useState([]);
@@ -173,146 +174,10 @@ export default function StudentDashboard() {
                         <p className="text-xs">{t('dashboard.latestLesson.empty')}</p>
                       </div>
                     ) : (
-                      /* Quran Lesson Sheet format */
-                      <div className="border rounded-3xl p-6 md:p-8 shadow-sm space-y-6 relative" style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}>
-                        {/* Hijri Date and Gregorian Date */}
-                        <div className="flex justify-between items-start border-b pb-4 flex-wrap gap-2" style={{ borderColor: 'var(--t-border)' }}>
-                          <div>
-                            <span className="text-[10px] font-bold block mb-0.5" style={{ color: 'var(--t-primary)' }}>{t('lessons.todayEvalDate')}</span>
-                            <span className="text-sm font-bold" style={{ color: 'var(--t-text)' }}>
-                              {formatDate(latestLesson.lesson_date, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                            </span>
-                          </div>
-                          {latestLesson.hijri_date && (
-                            <div className="text-end sm:text-start px-3 py-1.5 rounded-xl border" style={{ backgroundColor: 'var(--t-primary-light)', borderColor: 'var(--t-border)' }}>
-                              <span dir="auto" className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>📜 {latestLesson.hijri_date}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Quran performance grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Start Column: Recitation */}
-                          <div className="space-y-4">
-                            <h3 className="text-xs font-black border-b pb-1" style={{ color: 'var(--t-primary)', borderColor: 'var(--t-border)' }}>{t('lessons.recitationTodayHeading')}</h3>
-                            
-                            {latestLesson.recitation_today_surah ? (
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-sm gap-2">
-                                  <span className="font-semibold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.currentLabel')}</span>
-                                  <span dir="auto" className="font-bold text-end" style={{ color: 'var(--t-text)' }}>
-                                    {t('lessons.surahRange', {
-                                      surah: latestLesson.recitation_today_surah,
-                                      from: latestLesson.recitation_today_from || formatNumber(1),
-                                      to: latestLesson.recitation_today_to || t('lessons.toEnd'),
-                                    })}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between text-sm gap-2">
-                                  <span className="font-semibold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.memorizationLevelLabel')}</span>
-                                  <span dir="auto" className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.recitation_today_level}</span>
-                                </div>
-                              </div>
-                            ) : (
-                              <p className="text-xs" style={{ color: 'var(--t-text-subtle)' }}>{t('lessons.noRecitationToday')}</p>
-                            )}
-
-                            {latestLesson.recitation_past_surah && (
-                              <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--t-border)' }}>
-                                <div className="flex justify-between text-sm gap-2">
-                                  <span className="font-semibold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.pastReviewLabel')}</span>
-                                  <span dir="auto" className="font-bold text-end" style={{ color: 'var(--t-text)' }}>
-                                    {t('lessons.surahOnly', { surah: latestLesson.recitation_past_surah })}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between text-sm gap-2">
-                                  <span className="font-semibold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.pastLevelLabel')}</span>
-                                  <span dir="auto" className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.recitation_past_level}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* End Column: Reading & Tajweed */}
-                          <div className="space-y-4">
-                            <h3 className="text-xs font-black border-b pb-1" style={{ color: 'var(--t-primary)', borderColor: 'var(--t-border)' }}>{t('lessons.readingAndTajweedHeading')}</h3>
-                            
-                            {latestLesson.reading_surah ? (
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-sm gap-2">
-                                  <span className="font-semibold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.readingLabel')}</span>
-                                  <span dir="auto" className="font-bold text-end" style={{ color: 'var(--t-text)' }}>
-                                    {t('lessons.surahRange', {
-                                      surah: latestLesson.reading_surah,
-                                      from: latestLesson.reading_from || formatNumber(1),
-                                      to: latestLesson.reading_to || t('lessons.toEnd'),
-                                    })}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between text-sm gap-2">
-                                  <span className="font-semibold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.readingLevelLabel')}</span>
-                                  <span dir="auto" className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.reading_level}</span>
-                                </div>
-                              </div>
-                            ) : (
-                              <p className="text-xs" style={{ color: 'var(--t-text-subtle)' }}>{t('lessons.noReadingToday')}</p>
-                            )}
-
-                            {latestLesson.tajweed_lesson && (
-                              <div className="flex justify-between text-sm gap-2 pt-2 border-t" style={{ borderColor: 'var(--t-border)' }}>
-                                <span className="font-semibold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.tajweedLabel')}</span>
-                                <span dir="auto" className="font-bold text-end" style={{ color: 'var(--t-text)' }}>{latestLesson.tajweed_lesson}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* General details: notes and interaction */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border rounded-2xl p-4" style={{ backgroundColor: 'var(--t-bg-surface-low)', borderColor: 'var(--t-border)' }}>
-                          {latestLesson.interaction_level && (
-                            <div className="flex justify-between text-xs sm:text-sm gap-2">
-                              <span className="font-bold shrink-0" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.interactionLabel')}</span>
-                              <span dir="auto" className="font-black" style={{ color: 'var(--t-primary)' }}>{latestLesson.interaction_level}</span>
-                            </div>
-                          )}
-                          {latestLesson.general_notes && (
-                            <div className="text-xs leading-relaxed col-span-2 mt-2 pt-2 border-t" style={{ borderColor: 'var(--t-border)', color: 'var(--t-text)' }}>
-                              <span className="font-bold block mb-0.5" style={{ color: 'var(--t-primary)' }}>{t('lessons.teacherNotesLabel')}</span>
-                              <p dir="auto" className="italic">"{latestLesson.general_notes}"</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Homework section */}
-                        {(latestLesson.homework_today_surah || latestLesson.homework_past_surah) && (
-                          <div className="border-t pt-4 space-y-3" style={{ borderColor: 'var(--t-border)' }}>
-                            <h3 className="text-xs font-black" style={{ color: 'var(--t-primary)' }}>{t('lessons.homeworkHeading')}</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              {latestLesson.homework_today_surah && (
-                                <div className="text-xs">
-                                  <span className="font-bold" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.homeworkCurrentLabel')}</span>
-                                  <p dir="auto" className="font-bold mt-0.5" style={{ color: 'var(--t-text)' }}>
-                                    {t('lessons.surahRange', {
-                                      surah: latestLesson.homework_today_surah,
-                                      from: latestLesson.homework_today_from || formatNumber(1),
-                                      to: latestLesson.homework_today_to || t('lessons.toEnd'),
-                                    })}
-                                  </p>
-                                </div>
-                              )}
-                              {latestLesson.homework_past_surah && (
-                                <div className="text-xs">
-                                  <span className="font-bold" style={{ color: 'var(--t-text-muted)' }}>{t('lessons.homeworkPastLabel')}</span>
-                                  <p dir="auto" className="font-bold mt-0.5" style={{ color: 'var(--t-text)' }}>
-                                    {t('lessons.surahOnly', { surah: latestLesson.homework_past_surah })}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                      </div>
+                      <QuranLessonCard
+                        lesson={latestLesson}
+                        evalDateLabelKey="lessons.todayEvalDate"
+                      />
                     )}
                   </div>
                 )}

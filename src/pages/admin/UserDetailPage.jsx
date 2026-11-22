@@ -15,6 +15,8 @@ import { fetchAllCourses } from '../../services/coursesService';
 import { fetchAllCompetitions } from '../../services/competitionsService';
 import { fetchStudentLessons, deleteQuranLesson } from '../../services/quranLessonsService';
 import QuranLessonFormModal from './QuranLessonFormModal';
+import TranslationStatusBadge from './components/TranslationStatusBadge';
+import { QURAN_LESSON_TRANSLATION_SPECS } from '../../i18n/content.js';
 import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
 import { User, BookOpen, Trophy, Calendar, Pencil, Trash2, Plus, ArrowRight, Loader, KeyRound, RefreshCw } from 'lucide-react';
 
@@ -610,7 +612,15 @@ export default function UserDetailPage() {
                   <tbody>
                     {lessons.map((lesson) => (
                       <tr key={lesson.id} id={`lesson-row-${lesson.id}`}>
-                        <td data-label="التاريخ الميلادي">{new Date(lesson.lesson_date).toLocaleDateString('ar-EG')}</td>
+                        <td data-label="التاريخ الميلادي">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span>{new Date(lesson.lesson_date).toLocaleDateString('ar-EG')}</span>
+                            <TranslationStatusBadge
+                              record={lesson}
+                              specs={QURAN_LESSON_TRANSLATION_SPECS}
+                            />
+                          </div>
+                        </td>
                         <td data-label="التاريخ الهجري">{lesson.hijri_date ?? '—'}</td>
                         <td data-label="تسميع اليوم (الحاضر)">
                           {lesson.recitation_today_surah ? (
@@ -665,6 +675,7 @@ export default function UserDetailPage() {
           lesson={lessonModal.lesson}
           studentId={studentId}
           studentName={student?.full_name}
+          studentPreferredLanguage={student?.preferred_language}
           onClose={() => setLessonModal({ open: false, lesson: null })}
           onSaved={handleLessonSaved}
         />

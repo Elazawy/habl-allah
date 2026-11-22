@@ -1,4 +1,5 @@
 import { DEFAULT_LANGUAGE } from './config.js';
+import { isKnownArabicSurah } from './quranLessons.js';
 import { normalizeLanguage } from './routing.js';
 
 function hasNonEmptyText(value) {
@@ -359,4 +360,35 @@ export const FAQ_TRANSLATION_SPECS = [
 export const PAGE_TRANSLATION_SPECS = [
   { field: 'title', type: 'text', required: true },
   { field: 'content', type: 'text', required: true },
+];
+
+export const QURAN_LESSON_TRANSLATION_SPECS = [
+  { field: 'hijri_date', type: 'text' },
+  {
+    field: 'recitation_today_surah',
+    type: 'text',
+    when: (record) => !isKnownArabicSurah(record?.recitation_today_surah),
+  },
+  {
+    field: 'recitation_past_surah',
+    type: 'text',
+    when: (record) => !isKnownArabicSurah(record?.recitation_past_surah),
+  },
+  {
+    field: 'reading_surah',
+    type: 'text',
+    when: (record) => !isKnownArabicSurah(record?.reading_surah),
+  },
+  { field: 'tajweed_lesson', type: 'text' },
+  { field: 'general_notes', type: 'text' },
+  {
+    field: 'homework_today_surah',
+    type: 'text',
+    when: (record) => !isKnownArabicSurah(record?.homework_today_surah),
+  },
+  {
+    field: 'homework_past_surah',
+    type: 'text',
+    when: (record) => !isKnownArabicSurah(record?.homework_past_surah),
+  },
 ];

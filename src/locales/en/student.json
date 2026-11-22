@@ -120,7 +120,14 @@
     "teacherNotesLabel": "📌 Teacher's General Notes:",
     "homeworkHeading": "📌 Homework & Preparation for Next Session",
     "homeworkCurrentLabel": "New Memorization Homework:",
-    "homeworkPastLabel": "Revision Homework:"
+    "homeworkPastLabel": "Revision Homework:",
+    "levels": {
+      "excellent": "Excellent",
+      "veryGood": "Very Good",
+      "good": "Good",
+      "acceptable": "Acceptable",
+      "weak": "Weak"
+    }
   },
   "profile": {
     "eyebrow": "My Profile",
