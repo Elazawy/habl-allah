@@ -1,0 +1,36 @@
+# Habl Allah Quranic Academy (أكاديمية حبل الله القرآنية)
+
+> An integrated online Quranic learning platform for adults and children, connecting students with Ijazah-certified teachers for live one-on-one sessions, structured recorded courses, Quranic competitions, and internationally recognized certificates.
+
+## Overview
+
+Habl Allah Quranic Academy (أكاديمية حبل الله القرآنية) operates two dedicated learning portals:
+
+- **Habl Allah Platform (منصة حبل الله):** Quran memorization (Hifz), recitation, and Tajweed for adults and children with certified male and female teachers, live one-on-one sessions, structured courses, periodic competitions, and progress tracking.
+- **Usus Habl Allah Platform (منصة أسس حبل الله):** Interactive foundational Islamic education for children covering simplified Fiqh, Aqeedah, Seerah, and Quranic games.
+
+## Supported Languages
+
+The website is available in three languages:
+- **Arabic (العربية — default):** Root paths (`/`, `/quran`, ...)
+- **English:** Prefixed with `/en` (`/en`, `/en/quran`, ...)
+- **Turkish (Türkçe):** Prefixed with `/tr` (`/tr`, `/tr/quran`, ...)
+
+## Public Pages
+
+### Main Academy
+- [Home (Arabic)](/): Academy overview, portals, vision, and mission.
+- [Home (English)](/en): English academy overview.
+- [Home (Turkish)](/tr): Turkish academy overview.
+- [FAQ](/faq): Frequently asked questions about Habl Allah Academy (also `/en/faq`, `/tr/faq`).
+- [Privacy Policy](/privacy-policy): How Habl Allah Academy protects personal data (also `/en/privacy-policy`, `/tr/privacy-policy`).
+- [Terms of Use](/terms): Terms and conditions for using the academy's platforms (also `/en/terms`, `/tr/terms`).
+
+### Quran Memorization Platform
+- [Quran Platform Home](/quran): Overview of live one-on-one Quran lessons, how it works, featured courses, and testimonials (also `/en/quran`, `/tr/quran`).
+- [Choose Your Teacher](/quran/teachers): Browse certified male and female Quran teachers (also `/en/quran/teachers`, `/tr/quran/teachers`).
+- [Male Quran Teachers](/quran/teachers/male): Profiles of certified male teachers (also `/en/quran/teachers/male`, `/tr/quran/teachers/male`).
+- [Female Quran Teachers](/quran/teachers/female): Profiles of certified female teachers (also `/en/quran/teachers/female`, `/tr/quran/teachers/female`).
+- [Quranic Courses](/quran/courses): Structured courses in Tajweed, recitation, and Islamic studies (also `/en/quran/courses`, `/tr/quran/courses`).
+- [Quranic Competitions](/quran/competitions): Periodic Quran memorization and recitation competitions (also `/en/quran/competitions`, `/tr/quran/competitions`).
+- [Quran Platform FAQ](/quran/faq): FAQ for memorization circles, teachers, and courses (also `/en/quran/faq`, `/tr/quran/faq`).
