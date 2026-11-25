@@ -660,7 +660,7 @@ uiTest('create success reuses the returned account and requested teacher', async
 
     // Country defaults to Egypt, birth date is optional, and gender follows
     // the requested teacher's section until the admin changes it.
-    assert.equal(await page.locator('#new-request-student-country').inputValue(), 'EG');
+    assert.equal(await page.locator('#new-request-student-country').getAttribute('data-value'), 'EG');
     assert.equal(await page.locator('#new-request-student-birthdate').inputValue(), '');
     assert.equal(await page.locator('#new-request-student-gender').inputValue(), 'male');
     assert.equal(
@@ -672,7 +672,9 @@ uiTest('create success reuses the returned account and requested teacher', async
       'أ. أحمد'
     );
 
-    await page.locator('#new-request-student-country').selectOption('SA');
+    await page.locator('#new-request-student-country').click();
+    await page.locator('#new-request-student-country-search').fill('السعودية');
+    await page.locator('#new-request-student-country-listbox [role="option"][data-value="SA"]').click();
     await page.locator('#new-request-student-birthdate').fill('2010-05-01');
     await page.locator('#new-request-student-gender').selectOption('female');
 
@@ -756,7 +758,7 @@ for (const status of [409, 400, 503]) {
       await page.getByRole('button', { name: 'إنشاء حساب جديد بهذا الرقم' }).click();
       const password = await page.locator('#new-request-student-password').inputValue();
       assert.ok(password.length >= 8);
-      assert.equal(await page.locator('#new-request-student-country').inputValue(), 'EG');
+      assert.equal(await page.locator('#new-request-student-country').getAttribute('data-value'), 'EG');
       assert.equal(await page.locator('#new-request-student-gender').inputValue(), 'female');
       assert.equal(await page.locator('#new-request-student-teacher').inputValue(), '');
 

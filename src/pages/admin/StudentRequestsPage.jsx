@@ -27,6 +27,7 @@ import { adminCreateStudent } from '../../services/studentsService';
 import { buildWhatsAppUrl } from '../../lib/whatsapp';
 import { isValidStudentPhone, normalizeStudentPhone } from '../../lib/studentPhone';
 import { COUNTRY_OPTIONS, isValidCountryCode } from '../../data/countries';
+import CountrySelect from '../../components/CountrySelect';
 import {
   REQUEST_STATUSES,
   REQUEST_STATUS_LABELS,
@@ -1800,23 +1801,22 @@ export default function StudentRequestsPage() {
                                 <label htmlFor="new-request-student-country" className="admin-label">
                                   الدولة (اختياري)
                                 </label>
-                                <select
+                                <CountrySelect
                                   id="new-request-student-country"
-                                  className="admin-input admin-select"
                                   value={createForm.country}
-                                  onChange={(event) => setCreateForm((previous) => ({
+                                  onChange={(nextCountry) => setCreateForm((previous) => ({
                                     ...previous,
-                                    country: event.target.value,
+                                    country: nextCountry,
                                   }))}
+                                  options={COUNTRY_OPTIONS}
                                   disabled={creating || isPending}
-                                >
-                                  <option value="">— غير محددة —</option>
-                                  {COUNTRY_OPTIONS.map((country) => (
-                                    <option key={country.code} value={country.code}>
-                                      {country.nameAr}
-                                    </option>
-                                  ))}
-                                </select>
+                                  variant="admin"
+                                  ariaLabel="الدولة"
+                                  placeholder="— غير محددة —"
+                                  searchPlaceholder="ابحث باسم الدولة أو الرمز..."
+                                  emptyText="لا توجد دولة مطابقة للبحث"
+                                  clearLabel="غير محددة (مسح)"
+                                />
                               </div>
 
                               <div className="admin-field-group">

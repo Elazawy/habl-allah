@@ -39,8 +39,13 @@
     "nextLecture": "Sonraki ders",
     "invalidYoutubeUrl": "Bu dersin YouTube bağlantısı şu anda geçersiz.",
     "loadingVideo": "Video oynatıcı yükleniyor...",
+    "loadingAudio": "Ses dosyası yükleniyor...",
     "playbackFallbackError": "Bu ders oynatılamadı.",
     "retry": "Tekrar Dene",
+    "takeQuiz": "Ders Testini Aç",
+    "quizBadge": "Test",
+    "audioLectureBadge": "Sesli Ders",
+    "videoLectureBadge": "Video Ders",
     "tabs": {
       "lectures": "Dersler",
       "notes": "Notlar",
@@ -55,6 +60,18 @@
     "outOfTotal_other": "toplam {{formattedCount}} dersten",
     "completedBadge": "Tamamlandı ✓",
     "markWatched": "✓ İzlendi Olarak İşaretle"
+  },
+  "audioPlayer": {
+    "badge": "Sesli Ders",
+    "play": "Oynat",
+    "pause": "Duraklat",
+    "rewind15": "15 saniye geri al",
+    "forward15": "15 saniye ileri al",
+    "speed": "Oynatma hızı",
+    "mute": "Sesi kapat",
+    "unmute": "Sesi aç",
+    "seek": "Oynatma konumu",
+    "playbackError": "Bu ses dosyası şu anda oynatılamıyor."
   },
   "notes": {
     "title": "Ders Notlarınız",

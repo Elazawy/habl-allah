@@ -1,11 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllCourses, deleteCourse, updateCourse, deleteCourseImage } from '../../services/coursesService';
-import { fetchCourseLecturesAdmin, deleteCourseLectureVideoAssets } from '../../services/courseLecturesService';
+import {
+  R2_STORAGE_QUOTA_BYTES,
+  R2_UPLOAD_BLOCK_THRESHOLD_BYTES,
+  deleteCourseLectureVideoAssets,
+  fetchCourseLecturesAdmin,
+  fetchR2StorageUsage,
+  formatBytesDecimalGb,
+} from '../../services/courseLecturesService';
 import CourseFormModal from './CourseFormModal';
 import TranslationStatusBadge from './components/TranslationStatusBadge';
 import { COURSE_TRANSLATION_SPECS } from '../../i18n/content.js';
-import { Plus, Pencil, Trash2, Search, BookOpen, Eye, EyeOff, PlayCircle, RefreshCcw, ChevronDown } from 'lucide-react';
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  BookOpen,
+  Eye,
+  EyeOff,
+  PlayCircle,
+  RefreshCcw,
+  ChevronDown,
+  Users,
+  HardDrive,
+  AlertTriangle,
+} from 'lucide-react';
 
 function getLoadErrorMessage(error) {
   if (error?.message?.includes('Supabase is not configured')) {
@@ -25,6 +46,9 @@ export default function CoursesManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [expandedIds, setExpandedIds] = useState(() => new Set());
+  const [r2Usage, setR2Usage] = useState(null);
+  const [r2UsageLoading, setR2UsageLoading] = useState(true);
+  const [r2UsageError, setR2UsageError] = useState('');
 
   const toggleExpand = (id) => {
     setExpandedIds((prev) => {
@@ -34,6 +58,25 @@ export default function CoursesManagementPage() {
       return next;
     });
   };
+
+  const loadR2Usage = useCallback(async (activeRef) => {
+    setR2UsageLoading(true);
+    setR2UsageError('');
+    try {
+      const usage = await fetchR2StorageUsage();
+      if (activeRef?.current === false) return;
+      setR2Usage(usage);
+    } catch (err) {
+      console.error('[r2 storage usage fetch failed]', err);
+      if (activeRef?.current === false) return;
+      setR2Usage(null);
+      setR2UsageError(err?.message ?? 'تعذر قراءة مساحة Cloudflare R2 حالياً.');
+    } finally {
+      if (activeRef?.current !== false) {
+        setR2UsageLoading(false);
+      }
+    }
+  }, []);
 
   const loadCourses = useCallback(async (activeRef) => {
     setLoading(true);
@@ -57,10 +100,11 @@ export default function CoursesManagementPage() {
   useEffect(() => {
     const active = { current: true };
     loadCourses(active);
+    loadR2Usage(active);
     return () => {
       active.current = false;
     };
-  }, [loadCourses]);
+  }, [loadCourses, loadR2Usage]);
 
   const handleSaved = (saved) => {
     setCourses((prev) => {
@@ -103,16 +147,15 @@ export default function CoursesManagementPage() {
         await deleteCourseImage(deleteTarget.image_path);
       }
 
-      // 2. Delete paid lecture assets from Cloudflare R2 before the course row cascades lectures.
-      if (!deleteTarget.is_free) {
-        const lectures = await fetchCourseLecturesAdmin(deleteTarget.id);
-        await deleteCourseLectureVideoAssets(lectures);
-      }
+      // 2. Delete any lecture R2 assets (free or paid) before the course row cascades lectures.
+      const lectures = await fetchCourseLecturesAdmin(deleteTarget.id);
+      await deleteCourseLectureVideoAssets(lectures);
 
       // 3. Delete row from DB
       await deleteCourse(deleteTarget.id);
       setCourses((prev) => prev.filter((c) => c.id !== deleteTarget.id));
       setDeleteTarget(null);
+      loadR2Usage();
     } catch (err) {
       console.error(err);
       alert('فشل الحذف: ' + err.message);
@@ -137,6 +180,16 @@ export default function CoursesManagementPage() {
   const openEdit = (course) => setModalState({ open: true, course });
   const closeModal = () => setModalState({ open: false, course: null });
 
+  const quotaGb = formatBytesDecimalGb(r2Usage?.quotaBytes ?? R2_STORAGE_QUOTA_BYTES);
+  const usedGb = r2Usage ? formatBytesDecimalGb(r2Usage.usedBytes) : '0.00';
+  const usedPercent = r2Usage?.usedPercent ?? 0;
+  const uploadsBlocked = Boolean(r2Usage?.uploadsBlocked);
+  const barColor = uploadsBlocked
+    ? 'var(--admin-danger)'
+    : usedPercent >= 75
+      ? '#f59e0b'
+      : 'var(--admin-accent)';
+
   return (
     <div className="admin-page">
       {/* Header */}
@@ -153,6 +206,106 @@ export default function CoursesManagementPage() {
           <Plus size={18} />
           إضافة دورة
         </button>
+      </div>
+
+      {/* Cloudflare R2 Storage Usage Card */}
+      <div
+        id="r2-storage-usage-card"
+        className="rounded-2xl mb-6"
+        style={{
+          border: `1px solid ${uploadsBlocked ? 'rgba(248, 81, 73, 0.35)' : 'var(--admin-border)'}`,
+          backgroundColor: 'var(--admin-surface)',
+          padding: '1rem 1.15rem',
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <HardDrive size={18} style={{ color: barColor }} />
+            <div>
+              <div style={{ fontWeight: 800, color: 'var(--admin-text)', fontSize: '0.95rem' }}>
+                مساحة تخزين Cloudflare R2 للمحاضرات
+              </div>
+              <div className="admin-field-hint" style={{ marginTop: '0.15rem' }}>
+                الحد المسموح {quotaGb} GB — يتوقف رفع الفيديوهات والصوتيات تلقائياً عند بلوغ {formatBytesDecimalGb(R2_UPLOAD_BLOCK_THRESHOLD_BYTES)} GB فأكثر.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            {r2UsageLoading ? (
+              <span className="admin-badge admin-badge--neutral">جارٍ قياس المساحة…</span>
+            ) : r2Usage ? (
+              <>
+                <span
+                  className="admin-badge"
+                  style={{
+                    background: uploadsBlocked
+                      ? 'rgba(248, 81, 73, 0.14)'
+                      : usedPercent >= 75
+                        ? 'rgba(245, 158, 11, 0.14)'
+                        : 'rgba(78, 173, 136, 0.14)',
+                    color: barColor,
+                    fontWeight: 800,
+                  }}
+                >
+                  {usedPercent.toFixed(1)}% مستخدم
+                </span>
+                <span className="admin-muted" style={{ fontSize: '0.82rem', fontFamily: 'monospace' }} dir="ltr">
+                  {usedGb} / {quotaGb} GB ({r2Usage.objectCount} files)
+                </span>
+              </>
+            ) : null}
+
+            <button
+              type="button"
+              id="refresh-r2-usage-btn"
+              className="admin-btn admin-btn--ghost"
+              style={{ padding: '0.35rem 0.65rem', fontSize: '0.78rem' }}
+              onClick={() => loadR2Usage()}
+              disabled={r2UsageLoading}
+            >
+              <RefreshCcw size={14} className={r2UsageLoading ? 'admin-spin' : ''} />
+              تحديث
+            </button>
+          </div>
+        </div>
+
+        {r2Usage && (
+          <div
+            aria-label="نسبة استخدام تخزين R2"
+            style={{
+              width: '100%',
+              height: '9px',
+              borderRadius: '999px',
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${usedPercent}%`,
+                height: '100%',
+                backgroundColor: barColor,
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
+        )}
+
+        {uploadsBlocked && (
+          <div className="admin-error-banner" role="alert" style={{ marginTop: '0.75rem' }}>
+            <AlertTriangle size={16} />
+            <span>
+              تم بلوغ الحد الأقصى المسموح للرفع ({usedGb} GB من {quotaGb} GB). لن يتمكن المشرف من رفع أي فيديوهات أو ملفات صوتية جديدة حتى يتم حذف ملفات قديمة.
+            </span>
+          </div>
+        )}
+
+        {r2UsageError && !r2Usage && (
+          <p className="admin-field-hint" style={{ color: '#f5b942', marginTop: '0.45rem' }}>
+            ⚠️ {r2UsageError}
+          </p>
+        )}
       </div>
 
       {/* Filters */}
@@ -294,6 +447,15 @@ export default function CoursesManagementPage() {
                   <td data-label="الإجراءات">
                     <div className="admin-row-actions">
                       <button
+                        id={`course-students-progress-${c.id}`}
+                        className="admin-icon-btn admin-icon-btn--lesson"
+                        onClick={() => navigate(`/admin/quran/courses/${c.id}/students`)}
+                        aria-label={`تقدم الطلاب في ${c.name}`}
+                        title="متابعة تقدم الطلاب"
+                      >
+                        <Users size={15} />
+                      </button>
+                      <button
                         id={`manage-course-lectures-${c.id}`}
                         className="admin-icon-btn admin-icon-btn--neutral"
                         onClick={() => navigate(`/admin/quran/courses/${c.id}/lectures`)}
@@ -353,7 +515,7 @@ export default function CoursesManagementPage() {
             <p className="admin-confirm-text">
               هل أنت متأكد من حذف دورة <strong>{deleteTarget.name}</strong>؟
               <br />
-              سيتم حذف الصور المرفقة وقاعدة البيانات الخاصة بها نهائياً.
+              سيتم حذف الصور والملفات المرفقة وقاعدة البيانات الخاصة بها نهائياً.
             </p>
             <div className="admin-modal-actions">
               <button

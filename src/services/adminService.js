@@ -179,7 +179,7 @@ export async function uploadTeacherPhoto(file, teacherId) {
   if (uploadError) throw uploadError;
 
   const { data } = supabase.storage.from(TEACHER_PHOTO_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return `${data.publicUrl}?v=${Date.now()}`;
 }
 
 /** Delete a photo from storage by its public URL */

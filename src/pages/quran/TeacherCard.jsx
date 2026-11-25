@@ -73,8 +73,35 @@ export function MalePhoto({ photoUrl, name, size = 'md' }) {
 }
 
 /**
+ * Shared avatar renderer for both male and female teachers.
+ * Displays the uploaded photo when available and falls back to a gender-matched monogram.
+ */
+export function TeacherAvatar({ photoUrl, name, gender, size = 'md' }) {
+  const sizeClass = size === 'lg'
+    ? 'w-28 h-28 text-4xl'
+    : 'w-20 h-20 text-3xl';
+
+  if (photoUrl) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        className={`${sizeClass} rounded-full object-cover flex-shrink-0`}
+        style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}
+      />
+    );
+  }
+
+  if (gender === 'female') {
+    return <FemaleMonogram name={name} size={size} />;
+  }
+
+  return <MalePhoto photoUrl={null} name={name} size={size} />;
+}
+
+/**
  * TeacherCard — used in the teacher list grid.
- * Shows photo (male) or monogram (female) + name only.
+ * Shows photo when uploaded or monogram fallback + name only.
  * NOTE: No reveal-scale here — cards are loaded async so we animate
  * them with a staggered CSS animation applied from the parent grid.
  */
@@ -110,11 +137,12 @@ export default function TeacherCard({ teacher, index = 0 }) {
 
       {/* Avatar */}
       <div className="mb-4 transition-transform duration-300 group-hover:scale-105 relative z-10">
-        {gender === 'female' ? (
-          <FemaleMonogram name={teacherName.text} size="md" />
-        ) : (
-          <MalePhoto photoUrl={teacher.photo_url} name={teacherName.text} size="md" />
-        )}
+        <TeacherAvatar
+          photoUrl={teacher.photo_url}
+          name={teacherName.text}
+          gender={gender}
+          size="md"
+        />
       </div>
 
       {/* Name only */}

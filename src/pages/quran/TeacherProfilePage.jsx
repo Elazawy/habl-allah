@@ -13,7 +13,7 @@ import {
 import { fetchTeacherById } from '../../services/teachersService';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
-import { FemaleMonogram, MalePhoto } from './TeacherCard';
+import { TeacherAvatar } from './TeacherCard';
 import SubscribeModal from './SubscribeModal';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
@@ -346,11 +346,13 @@ export default function TeacherProfilePage() {
         {/* Hero Content */}
         <div className="relative z-10 w-full max-w-5xl mx-auto px-5 md:px-8 flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-start" style={anim(0.1)}>
           <div className="relative">
-            {isMale
-              ? <MalePhoto photoUrl={teacher.photo_url} name={teacherName.text} size="lg" />
-              : <FemaleMonogram name={teacherName.text} size="lg" />
-            }
-            <div className="absolute inset-0 rounded-full border-4 border-black/20" />
+            <TeacherAvatar
+              photoUrl={teacher.photo_url}
+              name={teacherName.text}
+              gender={gender}
+              size="lg"
+            />
+            <div className="absolute inset-0 rounded-full border-4 border-black/20 pointer-events-none" />
           </div>
           <div className="flex-1 text-white">
             <p className="text-sm md:text-base font-semibold text-white/80 mb-2">

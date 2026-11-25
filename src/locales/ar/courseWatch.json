@@ -39,8 +39,13 @@
     "nextLecture": "المحاضرة التالية",
     "invalidYoutubeUrl": "رابط يوتيوب لهذه المحاضرة غير صالح حالياً.",
     "loadingVideo": "جاري تحميل تشغيل الفيديو...",
+    "loadingAudio": "جاري تحميل الملف الصوتي...",
     "playbackFallbackError": "تعذر تشغيل هذه المحاضرة.",
     "retry": "إعادة المحاولة",
+    "takeQuiz": "اختبار المحاضرة",
+    "quizBadge": "اختبار",
+    "audioLectureBadge": "محاضرة صوتية",
+    "videoLectureBadge": "محاضرة مرئية",
     "tabs": {
       "lectures": "المحاضرات",
       "notes": "الملاحظات",
@@ -63,6 +68,18 @@
     "outOfTotal_other": "من أصل {{formattedCount}} محاضرة",
     "completedBadge": "مكتملة ✓",
     "markWatched": "✓ تمت المشاهدة"
+  },
+  "audioPlayer": {
+    "badge": "محاضرة صوتية",
+    "play": "تشغيل",
+    "pause": "إيقاف مؤقت",
+    "rewind15": "تراجع 15 ثانية",
+    "forward15": "تقديم 15 ثانية",
+    "speed": "سرعة التشغيل",
+    "mute": "كتم الصوت",
+    "unmute": "تشغيل الصوت",
+    "seek": "موضع التشغيل",
+    "playbackError": "تعذر تشغيل الملف الصوتي حالياً."
   },
   "notes": {
     "title": "ملاحظاتك الدراسية",

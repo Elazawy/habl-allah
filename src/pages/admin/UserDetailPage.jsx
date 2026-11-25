@@ -12,12 +12,14 @@ import {
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
 import { fetchAllCourses } from '../../services/coursesService';
+import { fetchStudentCourseProgressAdmin } from '../../services/courseLecturesService';
 import { fetchAllCompetitions } from '../../services/competitionsService';
 import { fetchStudentLessons, deleteQuranLesson } from '../../services/quranLessonsService';
 import QuranLessonFormModal from './QuranLessonFormModal';
 import TranslationStatusBadge from './components/TranslationStatusBadge';
 import { QURAN_LESSON_TRANSLATION_SPECS } from '../../i18n/content.js';
 import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
+import CountrySelect from '../../components/CountrySelect';
 import { User, BookOpen, Trophy, Calendar, Pencil, Trash2, Plus, ArrowRight, Loader, KeyRound, RefreshCw } from 'lucide-react';
 
 const PREFERRED_LANGUAGE_LABELS = {
@@ -33,6 +35,7 @@ export default function UserDetailPage() {
   const [student, setStudent] = useState(null);
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [courseProgressById, setCourseProgressById] = useState({});
   const [competitions, setCompetitions] = useState([]);
   const [lessons, setLessons] = useState([]);
 
@@ -76,13 +79,15 @@ export default function UserDetailPage() {
       const teachersData = await fetchAllTeachers();
       setTeachers(teachersData);
 
-      const coursesData = await fetchAllCourses();
+      const [coursesData, progressData, competitionsData, lessonsData] = await Promise.all([
+        fetchAllCourses(),
+        fetchStudentCourseProgressAdmin(studentId),
+        fetchAllCompetitions(),
+        fetchStudentLessons(studentId),
+      ]);
       setCourses(coursesData);
-
-      const competitionsData = await fetchAllCompetitions();
+      setCourseProgressById(progressData);
       setCompetitions(competitionsData);
-
-      const lessonsData = await fetchStudentLessons(studentId);
       setLessons(lessonsData);
     } catch (err) {
       console.error(err);
@@ -343,17 +348,18 @@ export default function UserDetailPage() {
 
             <div className="admin-field-group">
               <label htmlFor="edit-student-country" className="admin-label">الدولة</label>
-              <select
+              <CountrySelect
                 id="edit-student-country"
-                className="admin-input admin-select"
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-              >
-                <option value="">--غير محددة</option>
-                {COUNTRY_OPTIONS.map((c) => (
-                  <option key={c.code} value={c.code}>{c.nameAr}</option>
-                ))}
-              </select>
+                onChange={setCountry}
+                options={COUNTRY_OPTIONS}
+                variant="admin"
+                ariaLabel="الدولة"
+                placeholder="— غير محددة —"
+                searchPlaceholder="ابحث باسم الدولة أو الرمز..."
+                emptyText="لا توجد دولة مطابقة للبحث"
+                clearLabel="غير محددة (مسح)"
+              />
               {student.country && !COUNTRY_OPTIONS.some((c) => c.code === student.country) && (
                 <p style={{ fontSize: '0.75rem', color: 'var(--admin-muted)', marginTop: '0.2rem' }}>
                   القيمة الحالية المخزنة: {getCountryName(student.country)}
@@ -472,12 +478,18 @@ export default function UserDetailPage() {
                     <th>اسم الدورة</th>
                     <th>نوع الدورة</th>
                     <th>حالة الوصول</th>
+                    <th>التقدم</th>
                     <th>التحكم</th>
                   </tr>
                 </thead>
                 <tbody>
                   {courses.map((course) => {
                     const hasAccess = Boolean(activeCourseSubs[course.id]);
+                    const progress = courseProgressById[course.id] ?? {
+                      completedCount: 0,
+                      totalPublished: 0,
+                      percent: 0,
+                    };
                     return (
                       <tr key={course.id}>
                         <td data-label="اسم الدورة" className="admin-card-primary-cell" style={{ fontWeight: 600 }}>{course.name}</td>
@@ -499,6 +511,40 @@ export default function UserDetailPage() {
                             <span className="admin-badge admin-badge--female" style={{ color: 'var(--admin-danger)', background: 'rgba(248,81,73,0.1)' }}>
                               مغلق ⛔
                             </span>
+                          )}
+                        </td>
+                        <td data-label="التقدم">
+                          {progress.totalPublished > 0 ? (
+                            <div style={{ minWidth: '140px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.78rem' }}>
+                                <span style={{ fontWeight: 800, color: progress.percent === 100 ? 'var(--admin-accent)' : 'var(--admin-text)' }}>
+                                  {progress.percent}%
+                                </span>
+                                <span className="admin-muted" dir="ltr">
+                                  ({progress.completedCount}/{progress.totalPublished})
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  width: '100%',
+                                  height: '6px',
+                                  borderRadius: '999px',
+                                  backgroundColor: 'rgba(255,255,255,0.08)',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: `${progress.percent}%`,
+                                    height: '100%',
+                                    backgroundColor: progress.percent === 100 ? 'var(--admin-accent)' : 'var(--admin-gold)',
+                                    transition: 'width 0.3s ease',
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="admin-muted" style={{ fontSize: '0.8rem' }}>لا توجد محاضرات منشورة</span>
                           )}
                         </td>
                         <td data-label="التحكم">

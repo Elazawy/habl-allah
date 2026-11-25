@@ -7,8 +7,10 @@ import {
 import QuranNav from './QuranNav';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import {
+  LECTURE_MEDIA_TYPES,
   fetchCourseWatchPageBySlug,
   fetchMyCompletedCourseLectureIds,
+  inferLectureMediaType,
   markCourseLectureCompleted,
   markCourseLectureIncomplete,
   requestCourseLecturePlaybackUrl,
@@ -143,12 +145,19 @@ export default function CourseWatchPage() {
     return lectures.findIndex((lecture) => lecture.id === selectedLecture.id);
   }, [lectures, selectedLecture]);
 
-  const youtubeEmbedUrl = useMemo(() => {
-    if (!course?.is_free || !selectedLecture) return null;
-    return getYouTubeEmbedUrl(selectedLecture.youtube_url);
-  }, [course?.is_free, selectedLecture]);
+  const selectedMediaType = useMemo(
+    () => inferLectureMediaType(selectedLecture),
+    [selectedLecture],
+  );
 
-  const isFreeCourse = Boolean(course?.is_free);
+  const youtubeEmbedUrl = useMemo(() => {
+    if (!selectedLecture || selectedMediaType !== LECTURE_MEDIA_TYPES.YOUTUBE) return null;
+    return getYouTubeEmbedUrl(selectedLecture.youtube_url);
+  }, [selectedLecture, selectedMediaType]);
+
+  const isR2Lecture =
+    selectedMediaType === LECTURE_MEDIA_TYPES.R2_VIDEO ||
+    selectedMediaType === LECTURE_MEDIA_TYPES.R2_AUDIO;
   const selectedLectureId = selectedLecture?.id ?? null;
   const courseLectureIds = useMemo(
     () => lectures.map((lecture) => lecture.id).filter(Boolean),
@@ -344,12 +353,12 @@ export default function CourseWatchPage() {
     navigate(canonicalPath, { replace: true });
   }, [course, lectureSlug, localizedPath, location.pathname, navigate, searchParams, selectedLecture]);
 
-  // Load Playback URL for secure MP4 files
+  // Load Playback URL for secure R2 video & audio files
   useEffect(() => {
     let active = true;
 
     const loadPlaybackUrl = async () => {
-      if (!course || isFreeCourse || !selectedLectureId || !hasAccess) {
+      if (!course || !selectedLectureId || !isR2Lecture || !hasAccess) {
         if (!active) return;
         setPlaybackState({ loading: false, url: '', error: '', expiresAt: null });
         return;
@@ -385,7 +394,7 @@ export default function CourseWatchPage() {
     return () => {
       active = false;
     };
-  }, [course, isFreeCourse, selectedLectureId, playbackRefreshKey, hasAccess, t]);
+  }, [course, selectedLectureId, isR2Lecture, playbackRefreshKey, hasAccess, t]);
 
   // Event handlers
   const handleSelectLecture = (nextLectureSlug) => {

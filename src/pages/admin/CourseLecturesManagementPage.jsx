@@ -13,11 +13,17 @@ import {
   Trash2,
   HelpCircle,
   ChevronDown,
+  Headphones,
+  Film,
+  ClipboardCheck,
+  Users,
 } from 'lucide-react';
 import { fetchCourseAdminById } from '../../services/coursesService';
 import {
+  LECTURE_MEDIA_TYPES,
   deleteCourseLecture,
   fetchCourseLecturesAdmin,
+  inferLectureMediaType,
   maybeDeleteCourseLectureVideoAsset,
   sortCourseLectures,
   updateCourseLecture,
@@ -41,8 +47,10 @@ function getLoadErrorMessage(error) {
   return 'تعذر تحميل محاضرات الدورة حالياً. حاول مرة أخرى بعد قليل.';
 }
 
-function getLectureSourceSummary(lecture, isFreeCourse) {
-  if (isFreeCourse) {
+function getLectureSourceSummary(lecture) {
+  const mediaType = inferLectureMediaType(lecture);
+
+  if (mediaType === LECTURE_MEDIA_TYPES.YOUTUBE) {
     return lecture.youtube_url || 'رابط يوتيوب غير مضاف بعد';
   }
 
@@ -51,10 +59,40 @@ function getLectureSourceSummary(lecture, isFreeCourse) {
   }
 
   if (lecture.r2_object_key) {
-    return 'تم رفع فيديو MP4 لهذه المحاضرة.';
+    return mediaType === LECTURE_MEDIA_TYPES.R2_AUDIO
+      ? 'تم رفع ملف الصوت لهذه المحاضرة.'
+      : 'تم رفع فيديو MP4 لهذه المحاضرة.';
   }
 
-  return 'لم يتم رفع ملف MP4 بعد';
+  return mediaType === LECTURE_MEDIA_TYPES.R2_AUDIO
+    ? 'لم يتم رفع الملف الصوتي بعد'
+    : 'لم يتم رفع ملف MP4 بعد';
+}
+
+function getMediaBadgeInfo(lecture) {
+  const mediaType = inferLectureMediaType(lecture);
+
+  if (mediaType === LECTURE_MEDIA_TYPES.YOUTUBE) {
+    return {
+      label: 'يوتيوب',
+      status: lecture.youtube_url ? 'رابط يوتيوب' : 'ينتظر رابط يوتيوب',
+      Icon: PlayCircle,
+    };
+  }
+
+  if (mediaType === LECTURE_MEDIA_TYPES.R2_AUDIO) {
+    return {
+      label: 'صوت / R2',
+      status: lecture.r2_object_key ? 'جاهز للاستماع' : 'ينتظر رفع الصوت',
+      Icon: Headphones,
+    };
+  }
+
+  return {
+    label: 'فيديو MP4 / R2',
+    status: lecture.r2_object_key ? 'جاهز للمشاهدة' : 'ينتظر رفع الفيديو',
+    Icon: Film,
+  };
 }
 
 export default function CourseLecturesManagementPage() {
@@ -158,6 +196,7 @@ export default function CourseLecturesManagementPage() {
         lecture.youtube_url,
         lecture.original_file_name,
         lecture.r2_object_key,
+        lecture.test_url,
       ]
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(query));
@@ -195,7 +234,7 @@ export default function CourseLecturesManagementPage() {
     setDeleting(true);
 
     try {
-      if (!course?.is_free) {
+      if (deleteTarget.r2_object_key) {
         await maybeDeleteCourseLectureVideoAsset(deleteTarget);
       }
 
@@ -236,7 +275,7 @@ export default function CourseLecturesManagementPage() {
           <h1 className="admin-page-title">إدارة المحاضرات</h1>
           <p className="admin-page-desc">
             {course
-              ? `${course.name} — ${lectures.length} محاضرة ${course.is_free ? 'مجانية عبر يوتيوب' : 'مدفوعة عبر MP4'}`
+              ? `${course.name} — ${lectures.length} محاضرة (${course.is_free ? 'دورة مجانية' : 'دورة مدفوعة'})`
               : 'إضافة وتعديل وترتيب محاضرات الدورة'}
           </p>
         </div>
@@ -260,16 +299,21 @@ export default function CourseLecturesManagementPage() {
             <div>
               <div style={{ fontWeight: 800, color: 'var(--admin-text)' }}>{course.name}</div>
               <div className="admin-field-hint" style={{ marginTop: '0.25rem', lineHeight: 1.8 }}>
-                {course.is_free
-                  ? 'هذه الدورة مجانية، لذلك كل محاضرة تتوقع رابط يوتيوب صالحاً.'
-                  : 'هذه الدورة مدفوعة، لذلك كل محاضرة تتوقع رفع ملف MP4 عبر خدمة الفيديو الخلفية.'}
+                يمكنك المزج في نفس الدورة بين محاضرات يوتيوب، وفيديوهات MP4، والمحاضرات الصوتية عبر Cloudflare R2، مع إرفاق رابط اختبار اختياري لكل محاضرة.
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span className="admin-badge admin-badge--neutral">
-                {course.is_free ? 'مجانية / YouTube' : 'مدفوعة / MP4 + R2'}
+                {course.is_free ? 'مجانية' : 'مدفوعة'}
               </span>
+              <Link
+                to={`/admin/quran/courses/${course.id}/students`}
+                className="admin-btn admin-btn--ghost"
+              >
+                <Users size={16} />
+                تقدم الطلاب
+              </Link>
               <Link
                 to={watchPageHref}
                 target="_blank"
@@ -291,7 +335,7 @@ export default function CourseLecturesManagementPage() {
             id="admin-course-lectures-search"
             type="text"
             className="admin-input admin-search-input"
-            placeholder="بحث بعنوان المحاضرة أو الوصف أو مصدر الفيديو…"
+            placeholder="بحث بعنوان المحاضرة أو الوصف أو مصدر الوسائط…"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -353,6 +397,9 @@ export default function CourseLecturesManagementPage() {
             <tbody>
               {filtered.map((lecture) => {
                 const isExpanded = expandedIds.has(lecture.id);
+                const mediaBadge = getMediaBadgeInfo(lecture);
+                const MediaIcon = mediaBadge.Icon;
+
                 return (
                 <tr
                   key={lecture.id}
@@ -368,9 +415,18 @@ export default function CourseLecturesManagementPage() {
                             record={lecture}
                             specs={LECTURE_TRANSLATION_SPECS}
                           />
+                          {lecture.test_url && (
+                            <span
+                              className="admin-badge"
+                              style={{ background: 'rgba(207, 167, 103, 0.16)', color: 'var(--admin-gold)' }}
+                            >
+                              <ClipboardCheck size={12} />
+                              اختبار
+                            </span>
+                          )}
                         </div>
                         <div className="admin-teacher-bio-preview admin-card-detail-only" style={{ lineHeight: 1.7 }}>
-                          {lecture.description || getLectureSourceSummary(lecture, course.is_free)}
+                          {lecture.description || getLectureSourceSummary(lecture)}
                         </div>
                       </div>
                       <button
@@ -386,11 +442,12 @@ export default function CourseLecturesManagementPage() {
                   </td>
                   <td data-label="النوع">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                      <span className="admin-badge admin-badge--neutral">
-                        {course.is_free ? 'يوتيوب' : 'MP4 / R2'}
+                      <span className="admin-badge admin-badge--neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', width: 'fit-content' }}>
+                        <MediaIcon size={12} />
+                        {mediaBadge.label}
                       </span>
                       <span className="admin-muted" style={{ fontSize: '0.75rem' }}>
-                        {course.is_free ? 'رابط عام' : lecture.r2_object_key ? 'جاهز للمشاهدة' : 'ينتظر رفع الفيديو'}
+                        {mediaBadge.status}
                       </span>
                     </div>
                   </td>
@@ -469,7 +526,7 @@ export default function CourseLecturesManagementPage() {
             <p className="admin-confirm-text">
               هل أنت متأكد من حذف محاضرة <strong>{deleteTarget.title}</strong>؟
               <br />
-              سيتم حذف السجل من لوحة الإدارة، وأي تنظيف لملف الفيديو سيتم بشكل خلفي إن كانت الخدمة متاحة.
+              سيتم حذف السجل من لوحة الإدارة، وحذف أي ملف مرفوع على R2 إن وُجد.
             </p>
             <div className="admin-modal-actions">
               <button className="admin-btn admin-btn--ghost" onClick={() => setDeleteTarget(null)} disabled={deleting}>

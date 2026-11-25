@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { updateMyProfile } from '../../services/studentsService';
 import { getCountryOptions, getCountryName } from '../../data/countries';
+import CountrySelect from '../../components/CountrySelect';
 import QuranNav from '../quran/QuranNav';
 import QuranFooter from '../quran/QuranFooter';
 import { User, Calendar, MapPin, Phone, GraduationCap, Loader, Save, ArrowRight } from 'lucide-react';
@@ -162,24 +163,18 @@ export default function StudentProfilePage() {
               <label htmlFor="profile-country" className="text-xs font-bold" style={{ color: 'var(--t-primary)' }}>
                 {t('fields.country')}
               </label>
-              <select
+              <CountrySelect
                 id="profile-country"
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full py-2.5 px-4 rounded-xl border text-sm font-semibold outline-none transition-colors"
-                style={{
-                  backgroundColor: 'var(--t-bg-page)',
-                  borderColor: 'var(--t-border)',
-                  color: 'var(--t-text)',
-                }}
-              >
-                <option value="">{t('profile.countryUnsetOption')}</option>
-                {countryOptions.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setCountry}
+                options={countryOptions}
+                variant="profile"
+                ariaLabel={t('fields.country')}
+                placeholder={t('profile.countryUnsetOption')}
+                searchPlaceholder={t('fields.countrySearchPlaceholder')}
+                emptyText={t('fields.countryNoResults')}
+                clearLabel={t('fields.countryClear')}
+              />
             </div>
 
             {/* Editable: birth date */}
