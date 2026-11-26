@@ -14,11 +14,21 @@ import {
   Edit2,
   MessageSquare,
   Loader,
-  Trash2
+  Trash2,
+  Headphones,
+  PlayCircle,
+  ClipboardCheck,
+  ExternalLink,
 } from 'lucide-react';
 import logoGold from '../../../assets/logo-gold.png';
 import DarkModeToggle from '../../../components/DarkModeToggle';
 import LanguageSwitcher from '../../../components/LanguageSwitcher';
+import LectureAudioPlayer from './LectureAudioPlayer';
+import {
+  LECTURE_MEDIA_TYPES,
+  inferLectureMediaType,
+  isValidHttpUrl,
+} from '../../../services/courseLecturesService';
 import { fetchLectureQuestions, submitQuestion, updateQuestion, replyToQuestion, deleteQuestion } from '../../../services/lectureQuestionsService';
 import { useAuth } from '../../../context/AuthContext';
 import { DirectionalIcon, LocalizedLink, useFormatters, useLocalizedContent } from '../../../i18n';
@@ -243,6 +253,13 @@ export default function WatchFocusLayout({
     return Math.round((completedCount / lectures.length) * 100);
   }, [lectures, completedCount]);
 
+  const selectedMediaType = inferLectureMediaType(selectedLecture);
+  const isAudioLecture = selectedMediaType === LECTURE_MEDIA_TYPES.R2_AUDIO;
+  const selectedTestUrl =
+    selectedLecture?.test_url && isValidHttpUrl(selectedLecture.test_url)
+      ? selectedLecture.test_url.trim()
+      : '';
+
 
   return (
     <main className="flex-1 relative transition-all duration-300">
@@ -314,6 +331,8 @@ export default function WatchFocusLayout({
                   const isActive = selectedLecture?.id === lecture.id;
                   const isDone = completedLectures.has(lecture.id);
                   const lectureTitle = field(lecture, 'title');
+                  const itemMediaType = inferLectureMediaType(lecture);
+                  const hasQuiz = Boolean(lecture.test_url && isValidHttpUrl(lecture.test_url));
 
                   return (
                     <div 
@@ -330,8 +349,19 @@ export default function WatchFocusLayout({
                         onClick={() => handleSelectLecture(lecture.slug)}
                         className="flex-1 text-start min-w-0 cursor-pointer group"
                       >
-                        <span className="text-[9px] font-bold text-[var(--t-secondary)] block mb-0.5">
-                          {t('layout.lectureLabel', { number: formatNumber(idx + 1) })}
+                        <span className="text-[9px] font-bold text-[var(--t-secondary)] flex items-center gap-1.5 mb-0.5">
+                          {itemMediaType === LECTURE_MEDIA_TYPES.R2_AUDIO ? (
+                            <Headphones size={10} />
+                          ) : (
+                            <PlayCircle size={10} />
+                          )}
+                          <span>{t('layout.lectureLabel', { number: formatNumber(idx + 1) })}</span>
+                          {hasQuiz && (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 dark:text-amber-300">
+                              <ClipboardCheck size={9} />
+                              <span>{t('layout.quizBadge')}</span>
+                            </span>
+                          )}
                         </span>
                         <span 
                           dir={lectureTitle.dir}
@@ -394,14 +424,20 @@ export default function WatchFocusLayout({
             </div>
           </div>
 
-          {/* Video Player - Full edge-to-edge width, 75% height on large screens, no black side bars */}
-          <div className="w-full bg-black relative group flex items-center justify-center lg:h-[75vh] aspect-video lg:aspect-auto">
+          {/* Media Player - YouTube, R2 Video, or R2 Audio */}
+          <div
+            className={
+              selectedLecture && isAudioLecture
+                ? 'w-full relative group flex items-center justify-center py-8 sm:py-12 px-14 md:px-20 bg-gradient-to-br from-emerald-950 via-[#0d1f18] to-slate-950'
+                : 'w-full bg-black relative group flex items-center justify-center lg:h-[75vh] aspect-video lg:aspect-auto'
+            }
+          >
             
             {/* Prev Arrow Overlay */}
             {selectedLectureIndex > 0 && (
               <button
                 onClick={handlePrevLecture}
-                className="absolute start-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center bg-black/60 hover:bg-emerald-600/90 text-white transition-all cursor-pointer z-20 hover:scale-105 shadow-md border border-white/10"
+                className="absolute start-3 md:start-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center bg-black/60 hover:bg-emerald-600/90 text-white transition-all cursor-pointer z-20 hover:scale-105 shadow-md border border-white/10"
                 title={t('layout.prevLecture')}
               >
                 <DirectionalIcon icon={ChevronRight} flipIn="ltr" size={20} />
@@ -412,7 +448,7 @@ export default function WatchFocusLayout({
             {selectedLectureIndex < lectures.length - 1 && (
               <button
                 onClick={handleNextLecture}
-                className="absolute end-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center bg-black/60 hover:bg-emerald-600/90 text-white transition-all cursor-pointer z-20 hover:scale-105 shadow-md border border-white/10"
+                className="absolute end-3 md:end-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center bg-black/60 hover:bg-emerald-600/90 text-white transition-all cursor-pointer z-20 hover:scale-105 shadow-md border border-white/10"
                 title={t('layout.nextLecture')}
               >
                 <DirectionalIcon icon={ChevronLeft} flipIn="ltr" size={20} />
@@ -425,7 +461,7 @@ export default function WatchFocusLayout({
                   <BookOpen className="w-10 h-10 mx-auto mb-2 text-white/30" />
                   <p className="text-xs text-white/70">{t('layout.noPublishedLectures')}</p>
                 </div>
-              ) : course.is_free ? (
+              ) : selectedMediaType === LECTURE_MEDIA_TYPES.YOUTUBE ? (
                 youtubeEmbedUrl ? (
                   <iframe
                     src={youtubeEmbedUrl}
@@ -442,6 +478,18 @@ export default function WatchFocusLayout({
                     <p className="text-xs text-white/70">{t('layout.invalidYoutubeUrl')}</p>
                   </div>
                 )
+              ) : isAudioLecture ? (
+                <LectureAudioPlayer
+                  src={playbackState.url}
+                  title={selectedLectureTitle?.text}
+                  titleDir={selectedLectureTitle?.dir}
+                  courseName={courseName?.text}
+                  courseNameDir={courseName?.dir}
+                  courseImageUrl={course?.image_url}
+                  loading={playbackState.loading}
+                  error={playbackState.error}
+                  onRetry={() => setPlaybackRefreshKey((current) => current + 1)}
+                />
               ) : playbackState.loading ? (
                 <div className="flex flex-col items-center justify-center gap-3 text-white bg-slate-950">
                   <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -474,6 +522,60 @@ export default function WatchFocusLayout({
               )}
             </div>
           </div>
+
+          {/* Persistent Lecture Action Bar (visible on mobile & desktop regardless of active tab) */}
+          {selectedLecture && (
+            <div
+              className="px-4 md:px-8 py-3.5 border-b flex flex-wrap items-center justify-between gap-3"
+              style={{ backgroundColor: 'var(--t-bg-card)', borderColor: 'var(--t-border)' }}
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                  <span className="text-[11px] font-bold text-[var(--t-secondary)]">
+                    {t('layout.lectureOfTotal', {
+                      current: formatNumber(selectedLectureIndex + 1),
+                      total: formatNumber(lectures.length),
+                    })}
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--t-primary-light)] text-[var(--t-primary)]">
+                    {isAudioLecture ? <Headphones size={11} /> : <PlayCircle size={11} />}
+                    <span>{isAudioLecture ? t('layout.audioLectureBadge') : t('layout.videoLectureBadge')}</span>
+                  </span>
+                </div>
+                <h2 dir={selectedLectureTitle.dir} className="text-sm sm:text-base font-black text-[var(--t-primary)] truncate">
+                  {selectedLectureTitle.text}
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                {selectedTestUrl && (
+                  <a
+                    href={selectedTestUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    id="lecture-test-link-btn"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-emerald-950 bg-amber-400 hover:bg-amber-300 transition-all shadow-sm"
+                  >
+                    <ClipboardCheck size={15} />
+                    <span>{t('layout.takeQuiz')}</span>
+                    <ExternalLink size={13} />
+                  </a>
+                )}
+
+                <button
+                  onClick={() => toggleCompleteLecture(selectedLecture.id)}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-200 cursor-pointer shrink-0 ${
+                    completedLectures.has(selectedLecture.id)
+                      ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-500/20'
+                      : 'bg-[var(--t-bg-card)] text-[var(--t-text)] border-[var(--t-border)] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)]'
+                  }`}
+                >
+                  {completedLectures.has(selectedLecture.id) ? <Check size={16} strokeWidth={3} /> : <CheckSquare size={16} />}
+                  <span>{completedLectures.has(selectedLecture.id) ? t('layout.completedBadge') : t('layout.markWatched')}</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Workspace Tabs Dashboard - DIRECTLY on the background with NO container box/borders */}
           <div className="w-full flex-1 flex flex-col py-6">
@@ -581,6 +683,8 @@ export default function WatchFocusLayout({
                         const isActive = selectedLecture?.id === lecture.id;
                         const isDone = completedLectures.has(lecture.id);
                         const lectureTitle = field(lecture, 'title');
+                        const itemMediaType = inferLectureMediaType(lecture);
+                        const hasQuiz = Boolean(lecture.test_url && isValidHttpUrl(lecture.test_url));
 
                         return (
                           <div 
@@ -601,8 +705,19 @@ export default function WatchFocusLayout({
                               }}
                               className="flex-1 text-start min-w-0 cursor-pointer group"
                             >
-                              <span className="text-[10px] font-bold text-[var(--t-secondary)] block mb-0.5">
-                                {t('layout.lectureLabel', { number: formatNumber(idx + 1) })}
+                              <span className="text-[10px] font-bold text-[var(--t-secondary)] flex items-center gap-1.5 mb-0.5">
+                                {itemMediaType === LECTURE_MEDIA_TYPES.R2_AUDIO ? (
+                                  <Headphones size={11} />
+                                ) : (
+                                  <PlayCircle size={11} />
+                                )}
+                                <span>{t('layout.lectureLabel', { number: formatNumber(idx + 1) })}</span>
+                                {hasQuiz && (
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 dark:text-amber-300">
+                                    <ClipboardCheck size={10} />
+                                    <span>{t('layout.quizBadge')}</span>
+                                  </span>
+                                )}
                               </span>
                               <span 
                                 dir={lectureTitle.dir}
@@ -636,40 +751,14 @@ export default function WatchFocusLayout({
                 {/* 2. Notes Tab */}
                 {activeTab === 'notes' && selectedLecture && (
                   <div className="space-y-5">
-                    {/* Lecture Info Card */}
-                    <div className="bg-[var(--t-bg-card)] p-5 rounded-2xl border border-[var(--t-border)] shadow-sm space-y-3">
-                      <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
-                        <div>
-                          <span className="text-[10px] sm:text-xs font-bold text-[var(--t-secondary)] block mb-1">
-                            {t('layout.lectureOfTotal', {
-                              current: formatNumber(selectedLectureIndex + 1),
-                              total: formatNumber(lectures.length),
-                            })}
-                          </span>
-                          <h2 dir={selectedLectureTitle.dir} className="text-base sm:text-lg font-black text-[var(--t-primary)] leading-snug">{selectedLectureTitle.text}</h2>
-                        </div>
-                        
-                        <button
-                          onClick={() => toggleCompleteLecture(selectedLecture.id)}
-                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-200 cursor-pointer shrink-0 ${
-                            completedLectures.has(selectedLecture.id)
-                              ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-500/20'
-                              : 'bg-[var(--t-bg-card)] text-[var(--t-text)] border-[var(--t-border)] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)]'
-                          }`}
-                        >
-                          {completedLectures.has(selectedLecture.id) ? <Check size={16} strokeWidth={3} /> : <CheckSquare size={16} />}
-                          <span>{completedLectures.has(selectedLecture.id) ? t('layout.completedBadge') : t('layout.markWatched')}</span>
-                        </button>
+                    {/* Lecture Description (when available) */}
+                    {selectedLectureDescription.text && (
+                      <div className="bg-[var(--t-bg-card)] p-5 rounded-2xl border border-[var(--t-border)] shadow-sm">
+                        <p dir={selectedLectureDescription.dir} className="text-xs sm:text-sm text-[var(--t-text-muted)] leading-relaxed">
+                          {selectedLectureDescription.text}
+                        </p>
                       </div>
-
-                      {selectedLectureDescription.text && (
-                        <div className="pt-2 border-t border-[var(--t-border)]/50">
-                          <p dir={selectedLectureDescription.dir} className="text-xs sm:text-sm text-[var(--t-text-muted)] leading-relaxed">
-                            {selectedLectureDescription.text}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    )}
 
                     {/* Notepad without counters */}
                     <div className="pt-2 space-y-3">

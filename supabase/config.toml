@@ -428,3 +428,19 @@ verify_jwt = false
 # same authenticated worker handler and does not accept the old open payload.
 [functions.notify-preference-telegram]
 verify_jwt = false
+
+# Course lecture playback URLs allow unauthenticated guests for published free
+# courses while verifying user session + subscription inside the function for paid courses.
+[functions.course-lecture-playback-url]
+verify_jwt = false
+
+# Admin R2 operations verify bearer token + active admin_users inside each function
+# and return structured 401/403 responses.
+[functions.course-lecture-upload-url]
+verify_jwt = false
+
+[functions.course-lecture-delete-asset]
+verify_jwt = false
+
+[functions.r2-storage-usage]
+verify_jwt = false

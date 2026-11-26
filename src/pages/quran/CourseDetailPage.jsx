@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Award, CheckCircle, ChevronRight, MessageCircle, PlayCircle, List, Lock } from 'lucide-react';
+import { BookOpen, Award, CheckCircle, ChevronRight, MessageCircle, PlayCircle, List, Lock, Headphones } from 'lucide-react';
 import QuranNav from './QuranNav';
 import QuranFooter from './QuranFooter';
 import { fetchCourseBySlug } from '../../services/coursesService';
-import { fetchPublishedCourseLectures } from '../../services/courseLecturesService';
+import {
+  LECTURE_MEDIA_TYPES,
+  fetchPublishedCourseLectures,
+  inferLectureMediaType,
+} from '../../services/courseLecturesService';
 import { checkMyCourseAccess } from '../../services/studentsService';
 import { WHATSAPP_NUMBER } from '../../lib/constants';
 import { useAuth } from '../../context/AuthContext';
@@ -246,6 +250,8 @@ export default function CourseDetailPage() {
                   <ul className="divide-y" style={{ borderColor: 'var(--t-border)' }}>
                     {lectures.map((lecture, idx) => {
                       const lectureTitle = field(lecture, 'title');
+                      const mediaType = inferLectureMediaType(lecture);
+                      const isAudio = mediaType === LECTURE_MEDIA_TYPES.R2_AUDIO;
                       return (
                       <li
                         key={lecture.id}
@@ -256,7 +262,11 @@ export default function CourseDetailPage() {
                           {formatNumber(idx + 1)}
                         </span>
                         {(course.is_free || hasAccess) ? (
-                          <PlayCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                          isAudio ? (
+                            <Headphones className="w-4 h-4 text-emerald-600 shrink-0" />
+                          ) : (
+                            <PlayCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                          )
                         ) : (
                           <Lock className="w-4 h-4 shrink-0 opacity-40" />
                         )}

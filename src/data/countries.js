@@ -258,6 +258,8 @@ export const COUNTRIES = [
   { code: 'ZW', nameAr: 'زيمبابوي' },
 ];
 
+export const DEFAULT_COUNTRY = 'EG';
+
 // Sorted by Arabic name for dropdown display.
 export const COUNTRY_OPTIONS = [...COUNTRIES].sort((a, b) =>
   a.nameAr.localeCompare(b.nameAr, 'ar')
@@ -266,6 +268,138 @@ export const COUNTRY_OPTIONS = [...COUNTRIES].sort((a, b) =>
 const countryNameByCode = new Map(COUNTRIES.map((c) => [c.code, c.nameAr]));
 const displayNamesCache = new Map();
 const countryOptionsCache = new Map();
+
+const TIMEZONE_TO_COUNTRY = {
+  'Africa/Cairo': 'EG',
+  'Asia/Riyadh': 'SA',
+  'Asia/Dubai': 'AE',
+  'Asia/Kuwait': 'KW',
+  'Asia/Qatar': 'QA',
+  'Asia/Bahrain': 'BH',
+  'Asia/Muscat': 'OM',
+  'Asia/Amman': 'JO',
+  'Asia/Beirut': 'LB',
+  'Asia/Damascus': 'SY',
+  'Asia/Baghdad': 'IQ',
+  'Asia/Aden': 'YE',
+  'Asia/Gaza': 'PS',
+  'Asia/Hebron': 'PS',
+  'Africa/Tripoli': 'LY',
+  'Africa/Tunis': 'TN',
+  'Africa/Algiers': 'DZ',
+  'Africa/Casablanca': 'MA',
+  'Africa/El_Aaiun': 'MA',
+  'Africa/Khartoum': 'SD',
+  'Africa/Mogadishu': 'SO',
+  'Africa/Djibouti': 'DJ',
+  'Africa/Nouakchott': 'MR',
+  'Indian/Comoro': 'KM',
+  'Europe/Istanbul': 'TR',
+  'Asia/Istanbul': 'TR',
+  'Europe/London': 'GB',
+  'Europe/Berlin': 'DE',
+  'Europe/Busingen': 'DE',
+  'Europe/Paris': 'FR',
+  'Europe/Rome': 'IT',
+  'Europe/Madrid': 'ES',
+  'Atlantic/Canary': 'ES',
+  'Europe/Amsterdam': 'NL',
+  'Europe/Brussels': 'BE',
+  'Europe/Vienna': 'AT',
+  'Europe/Zurich': 'CH',
+  'Europe/Stockholm': 'SE',
+  'Europe/Oslo': 'NO',
+  'Europe/Copenhagen': 'DK',
+  'Europe/Dublin': 'IE',
+  'Europe/Athens': 'GR',
+  'Europe/Warsaw': 'PL',
+  'Europe/Bucharest': 'RO',
+  'Europe/Moscow': 'RU',
+  'America/New_York': 'US',
+  'America/Chicago': 'US',
+  'America/Denver': 'US',
+  'America/Los_Angeles': 'US',
+  'America/Phoenix': 'US',
+  'America/Anchorage': 'US',
+  'Pacific/Honolulu': 'US',
+  'America/Detroit': 'US',
+  'America/Toronto': 'CA',
+  'America/Vancouver': 'CA',
+  'America/Montreal': 'CA',
+  'America/Edmonton': 'CA',
+  'America/Winnipeg': 'CA',
+  'America/Halifax': 'CA',
+  'Asia/Karachi': 'PK',
+  'Asia/Dhaka': 'BD',
+  'Asia/Jakarta': 'ID',
+  'Asia/Makassar': 'ID',
+  'Asia/Jayapura': 'ID',
+  'Asia/Kuala_Lumpur': 'MY',
+  'Asia/Kuching': 'MY',
+  'Asia/Kolkata': 'IN',
+  'Asia/Calcutta': 'IN',
+  'Asia/Singapore': 'SG',
+  'Asia/Tokyo': 'JP',
+  'Asia/Seoul': 'KR',
+  'Australia/Sydney': 'AU',
+  'Australia/Melbourne': 'AU',
+  'Australia/Perth': 'AU',
+  'Australia/Brisbane': 'AU',
+  'Pacific/Auckland': 'NZ',
+};
+
+// Ordered longest-prefix-first so 3-digit codes win over shorter prefixes.
+const CALLING_PREFIX_TO_COUNTRY = [
+  ['966', 'SA'],
+  ['971', 'AE'],
+  ['965', 'KW'],
+  ['974', 'QA'],
+  ['973', 'BH'],
+  ['968', 'OM'],
+  ['962', 'JO'],
+  ['961', 'LB'],
+  ['963', 'SY'],
+  ['964', 'IQ'],
+  ['967', 'YE'],
+  ['970', 'PS'],
+  ['218', 'LY'],
+  ['216', 'TN'],
+  ['213', 'DZ'],
+  ['212', 'MA'],
+  ['249', 'SD'],
+  ['252', 'SO'],
+  ['253', 'DJ'],
+  ['222', 'MR'],
+  ['269', 'KM'],
+  ['353', 'IE'],
+  ['351', 'PT'],
+  ['20', 'EG'],
+  ['90', 'TR'],
+  ['44', 'GB'],
+  ['49', 'DE'],
+  ['33', 'FR'],
+  ['39', 'IT'],
+  ['34', 'ES'],
+  ['31', 'NL'],
+  ['32', 'BE'],
+  ['43', 'AT'],
+  ['41', 'CH'],
+  ['46', 'SE'],
+  ['47', 'NO'],
+  ['45', 'DK'],
+  ['30', 'GR'],
+  ['48', 'PL'],
+  ['40', 'RO'],
+  ['92', 'PK'],
+  ['62', 'ID'],
+  ['60', 'MY'],
+  ['91', 'IN'],
+  ['61', 'AU'],
+  ['65', 'SG'],
+  ['81', 'JP'],
+  ['82', 'KR'],
+  ['64', 'NZ'],
+];
 
 function getRegionDisplayNames(lang) {
   const normalized = normalizeLanguage(lang);
@@ -335,4 +469,121 @@ export function getCountryOptions(lang = DEFAULT_LANGUAGE) {
 /** True when the value is a known ISO 3166-1 alpha-2 code. */
 export function isValidCountryCode(code) {
   return typeof code === 'string' && countryNameByCode.has(code.toUpperCase());
+}
+
+export function normalizeCountrySearchText(value) {
+  return String(value ?? '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+export function filterCountryOptions(options = [], query = '') {
+  const normalizedQuery = normalizeCountrySearchText(query);
+  if (!normalizedQuery) {
+    return options;
+  }
+
+  return options.filter((option) => {
+    const code = String(option?.code ?? '');
+    const candidates = [
+      option?.name,
+      option?.nameAr,
+      code ? getCountryName(code, 'en') : '',
+      code,
+    ];
+
+    return candidates.some((candidate) =>
+      normalizeCountrySearchText(candidate).includes(normalizedQuery)
+    );
+  });
+}
+
+export function guessCountryFromTimezone(timeZone) {
+  let resolvedTimeZone = typeof timeZone === 'string' ? timeZone.trim() : '';
+
+  if (!resolvedTimeZone && typeof Intl !== 'undefined' && typeof Intl.DateTimeFormat === 'function') {
+    try {
+      resolvedTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    } catch {
+      resolvedTimeZone = '';
+    }
+  }
+
+  if (!resolvedTimeZone) {
+    return null;
+  }
+
+  const code = TIMEZONE_TO_COUNTRY[resolvedTimeZone] ?? null;
+  return code && isValidCountryCode(code) ? code : null;
+}
+
+export function guessCountryFromPhone(rawPhone) {
+  const normalizedDigitsInput = String(rawPhone ?? '')
+    .replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (digit) => {
+      const code = digit.charCodeAt(0);
+      return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
+    })
+    .trim();
+
+  if (!normalizedDigitsInput) {
+    return null;
+  }
+
+  const digits = normalizedDigitsInput.replace(/\D/g, '');
+  if (!digits) {
+    return null;
+  }
+
+  const hasPlus = normalizedDigitsInput.startsWith('+');
+  const hasDoubleZero = !hasPlus && digits.startsWith('00');
+
+  if (!hasPlus && !hasDoubleZero) {
+    return /^01[0125]/.test(digits) ? 'EG' : null;
+  }
+
+  const intlDigits = hasPlus ? digits : digits.slice(2);
+  if (!intlDigits) {
+    return null;
+  }
+
+  for (const [prefix, countryCode] of CALLING_PREFIX_TO_COUNTRY) {
+    if (intlDigits.startsWith(prefix) && isValidCountryCode(countryCode)) {
+      return countryCode;
+    }
+  }
+
+  return null;
+}
+
+export async function fetchCountryFromEdgeGeo({ signal } = {}) {
+  try {
+    const response = await fetch('/api/geo', {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return null;
+    }
+
+    const data = await response.json();
+    const code = typeof data?.country === 'string' ? data.country.trim().toUpperCase() : '';
+    return isValidCountryCode(code) ? code : null;
+  } catch {
+    return null;
+  }
 }

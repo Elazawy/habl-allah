@@ -39,8 +39,13 @@
     "nextLecture": "Next lecture",
     "invalidYoutubeUrl": "The YouTube link for this lecture is currently invalid.",
     "loadingVideo": "Loading video playback...",
+    "loadingAudio": "Loading audio playback...",
     "playbackFallbackError": "Unable to play this lecture.",
     "retry": "Retry",
+    "takeQuiz": "Take Quiz",
+    "quizBadge": "Quiz",
+    "audioLectureBadge": "Audio Lecture",
+    "videoLectureBadge": "Video Lecture",
     "tabs": {
       "lectures": "Lectures",
       "notes": "Notes",
@@ -55,6 +60,18 @@
     "outOfTotal_other": "out of {{formattedCount}} lectures",
     "completedBadge": "Completed ✓",
     "markWatched": "✓ Mark as Watched"
+  },
+  "audioPlayer": {
+    "badge": "Audio Lecture",
+    "play": "Play",
+    "pause": "Pause",
+    "rewind15": "Rewind 15 seconds",
+    "forward15": "Forward 15 seconds",
+    "speed": "Playback speed",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "seek": "Seek position",
+    "playbackError": "Unable to play this audio file right now."
   },
   "notes": {
     "title": "Your Study Notes",

@@ -2439,3 +2439,285 @@ body {
     padding: 0.45rem 0.85rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SEARCHABLE COUNTRY COMBOBOX
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.country-select {
+  position: relative;
+  width: 100%;
+}
+
+.country-select-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.country-select-trigger {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  text-align: start;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.country-select-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.country-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-select-chevron {
+  flex-shrink: 0;
+  opacity: 0.65;
+  transition: transform 0.2s ease;
+}
+
+.country-select-chevron--rotated {
+  transform: rotate(180deg);
+}
+
+.country-select--clearable .country-select-trigger {
+  padding-inline-end: 3.75rem;
+}
+
+.country-select-clear-btn {
+  position: absolute;
+  inset-inline-end: 2.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: inherit;
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.country-select-clear-btn:hover {
+  opacity: 1;
+  background: rgba(128, 128, 128, 0.14);
+}
+
+.country-select--signup .country-select-trigger {
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(5, 150, 105, 0.12);
+  background-color: rgba(236, 253, 245, 0.35);
+  color: #022c22;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.dark .country-select--signup .country-select-trigger {
+  border-color: rgba(52, 211, 153, 0.14);
+  background-color: rgba(2, 44, 34, 0.4);
+  color: #d1fae5;
+}
+
+.country-select--signup .country-select-trigger:focus,
+.country-select--signup.country-select--open .country-select-trigger {
+  border-color: #059669;
+}
+
+.dark .country-select--signup .country-select-trigger:focus,
+.dark .country-select--signup.country-select--open .country-select-trigger {
+  border-color: #34d399;
+}
+
+.country-select--profile .country-select-trigger {
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--t-border);
+  background-color: var(--t-bg-page);
+  color: var(--t-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.country-select--profile .country-select-trigger:focus,
+.country-select--profile.country-select--open .country-select-trigger {
+  border-color: var(--t-primary);
+}
+
+.country-select--admin .country-select-trigger {
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface2);
+  color: var(--admin-text);
+  font-size: 0.9rem;
+  font-family: 'Cairo', sans-serif;
+}
+
+.country-select--admin .country-select-trigger:focus,
+.country-select--admin.country-select--open .country-select-trigger {
+  border-color: var(--admin-accent);
+}
+
+.country-select-value--placeholder {
+  opacity: 0.6;
+}
+
+.country-select-popover {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  inset-inline: 0;
+  z-index: 80;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.country-select-popover--upward {
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+}
+
+.country-select--signup .country-select-popover,
+.country-select--profile .country-select-popover {
+  background-color: var(--t-bg-card, #ffffff);
+  border: 1px solid var(--t-border, rgba(5, 150, 105, 0.2));
+  color: var(--t-text, #022c22);
+}
+
+.country-select--admin .country-select-popover {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text);
+}
+
+.country-select-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.16);
+}
+
+.country-select-search-icon {
+  position: absolute;
+  inset-inline-start: 1.15rem;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.country-select-search-input {
+  width: 100%;
+  min-height: 38px;
+  padding-block: 0.35rem;
+  padding-inline-start: 2rem;
+  padding-inline-end: 0.75rem;
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
+  outline: none;
+  border: 1px solid rgba(128, 128, 128, 0.22);
+  background: transparent;
+  color: inherit;
+}
+
+.country-select--admin .country-select-search-input {
+  background: var(--admin-surface2);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+.country-select-search-input:focus {
+  border-color: var(--t-primary, var(--admin-accent));
+}
+
+.country-select-listbox {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  max-height: 230px;
+  overflow-y: auto;
+}
+
+.country-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.country-select-option--clear {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  border-bottom: 1px dashed rgba(128, 128, 128, 0.16);
+  margin-bottom: 0.25rem;
+  border-radius: 0.45rem;
+}
+
+.country-select-option--highlighted {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.country-select--admin .country-select-option--highlighted {
+  background: rgba(78, 173, 136, 0.15);
+}
+
+.country-select-option--selected {
+  color: var(--t-primary, var(--admin-accent));
+  font-weight: 700;
+}
+
+.country-select--admin .country-select-option--selected {
+  color: var(--admin-accent);
+}
+
+.country-select-option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-select-option-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.country-select-option-code {
+  font-size: 0.72rem;
+  font-family: monospace;
+  opacity: 0.55;
+}
+
+.country-select-empty {
+  padding: 0.9rem 0.75rem;
+  text-align: center;
+  font-size: 0.82rem;
+  opacity: 0.65;
+}

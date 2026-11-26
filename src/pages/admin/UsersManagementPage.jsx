@@ -8,7 +8,8 @@ import {
   normalizeStudentPhone,
 } from '../../services/studentsService';
 import { fetchAllTeachers } from '../../services/adminService';
-import { COUNTRY_OPTIONS, getCountryName } from '../../data/countries';
+import { COUNTRY_OPTIONS, DEFAULT_COUNTRY, getCountryName } from '../../data/countries';
+import CountrySelect from '../../components/CountrySelect';
 import { Plus, Search, User, Loader, ChevronLeft, Trash2, BookOpen, X, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import QuranLessonFormModal from './QuranLessonFormModal';
@@ -45,7 +46,7 @@ export default function UsersManagementPage() {
   const [password, setPassword] = useState('');
   const [teacherId, setTeacherId] = useState('');
   const [gender, setGender] = useState('');
-  const [country, setCountry] = useState('');
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [birthDate, setBirthDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -162,7 +163,7 @@ export default function UsersManagementPage() {
       setPassword('');
       setTeacherId('');
       setGender('');
-      setCountry('');
+      setCountry(DEFAULT_COUNTRY);
       setBirthDate('');
       setModalOpen(false);
 
@@ -206,7 +207,11 @@ export default function UsersManagementPage() {
         <button
           id="admin-add-student-btn"
           className="admin-btn admin-btn--primary"
-          onClick={() => setModalOpen(true)}
+          onClick={() => {
+            setError('');
+            setCountry(DEFAULT_COUNTRY);
+            setModalOpen(true);
+          }}
         >
           <Plus size={18} />
           إضافة طالب جديد
@@ -543,19 +548,18 @@ export default function UsersManagementPage() {
 
               <div className="admin-field-group">
                 <label htmlFor="student-country" className="admin-label">الدولة (اختياري)</label>
-                <select
+                <CountrySelect
                   id="student-country"
                   value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="admin-input admin-select"
-                >
-                  <option value="">--غير محددة</option>
-                  {COUNTRY_OPTIONS.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.nameAr}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setCountry}
+                  options={COUNTRY_OPTIONS}
+                  variant="admin"
+                  ariaLabel="الدولة"
+                  placeholder="— غير محددة —"
+                  searchPlaceholder="ابحث باسم الدولة أو الرمز..."
+                  emptyText="لا توجد دولة مطابقة للبحث"
+                  clearLabel="غير محددة (مسح)"
+                />
               </div>
 
               <div className="admin-field-group">

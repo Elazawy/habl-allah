@@ -1,9 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isValidStudentPhone, normalizeStudentPhone, signUpStudent } from '../../services/studentsService';
-import { getCountryOptions } from '../../data/countries';
+import {
+  DEFAULT_COUNTRY,
+  fetchCountryFromEdgeGeo,
+  getCountryOptions,
+  guessCountryFromPhone,
+  guessCountryFromTimezone,
+} from '../../data/countries';
 import { useAuth } from '../../context/AuthContext';
 import { LocalizedLink, useLocalizedNavigate, useLanguage } from '../../i18n';
+import CountrySelect from '../../components/CountrySelect';
 import DarkModeToggle from '../../components/DarkModeToggle';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import logoGold from '../../assets/logo-gold.png';
@@ -29,14 +36,57 @@ export default function StudentSignupPage() {
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [country, setCountry] = useState('');
+  const [country, setCountry] = useState(() => guessCountryFromTimezone() || DEFAULT_COUNTRY);
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const countryManuallySelectedRef = useRef(false);
+  const phoneMatchedCountryRef = useRef(false);
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
+    fetchCountryFromEdgeGeo({ signal: controller.signal }).then((geoCountry) => {
+      if (
+        !active ||
+        !geoCountry ||
+        countryManuallySelectedRef.current ||
+        phoneMatchedCountryRef.current
+      ) {
+        return;
+      }
+      setCountry(geoCountry);
+    });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, []);
+
+  const handlePhoneChange = (e) => {
+    const nextPhone = e.target.value;
+    setPhone(nextPhone);
+
+    if (!countryManuallySelectedRef.current) {
+      const guessed = guessCountryFromPhone(nextPhone);
+      if (guessed) {
+        phoneMatchedCountryRef.current = true;
+        setCountry(guessed);
+      }
+    }
+  };
+
+  const handleCountryChange = (nextCountry) => {
+    countryManuallySelectedRef.current = true;
+    setCountry(nextCountry);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -175,7 +225,7 @@ export default function StudentSignupPage() {
               id="phone-signup-input"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={handlePhoneChange}
               placeholder={t('signup.phonePlaceholder')}
               required
               className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 placeholder-emerald-800/40 dark:placeholder-emerald-200/40 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
@@ -187,20 +237,19 @@ export default function StudentSignupPage() {
             <label htmlFor="country-signup-input" className="text-xs font-bold text-emerald-900 dark:text-emerald-400">
               {t('fields.country')}
             </label>
-            <select
+            <CountrySelect
               id="country-signup-input"
               value={country}
-              onChange={(e) => setCountry(e.target.value)}
+              onChange={handleCountryChange}
+              options={countryOptions}
               required
-              className="w-full py-2.5 px-4 rounded-xl border border-emerald-600/10 dark:border-emerald-400/10 bg-emerald-50/30 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 text-sm font-semibold outline-none focus:border-emerald-600 dark:focus:border-emerald-400 transition-colors"
-            >
-              <option value="">{t('signup.countryPlaceholder')}</option>
-              {countryOptions.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              variant="signup"
+              ariaLabel={t('fields.country')}
+              placeholder={t('signup.countryPlaceholder')}
+              searchPlaceholder={t('fields.countrySearchPlaceholder')}
+              emptyText={t('fields.countryNoResults')}
+              clearLabel={t('fields.countryClear')}
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">

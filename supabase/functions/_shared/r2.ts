@@ -1,5 +1,8 @@
 import { AwsClient } from 'npm:aws4fetch@1.0.20';
 
+export const R2_STORAGE_QUOTA_BYTES = 9_500_000_000;
+export const R2_UPLOAD_BLOCK_THRESHOLD_BYTES = 9_000_000_000;
+
 type PresignOptions = {
   method: 'GET' | 'PUT';
   objectKey: string;
@@ -20,6 +23,16 @@ type R2Config = {
   accessKeyId: string;
   secretAccessKey: string;
   sessionToken?: string;
+};
+
+export type R2BucketUsage = {
+  usedBytes: number;
+  objectCount: number;
+  quotaBytes: number;
+  blockThresholdBytes: number;
+  usedPercent: number;
+  rawUsedPercent: number;
+  uploadsBlocked: boolean;
 };
 
 function firstEnv(names: string[]) {
@@ -96,11 +109,13 @@ export function buildPaidCoursePrefix(courseSlug: string) {
   return `courses/${normalizePathSegment(courseSlug)}/`;
 }
 
-export function buildPaidLectureObjectKey(courseSlug: string, lectureSlug: string, objectName = 'source.mp4') {
+export function buildLectureObjectKey(courseSlug: string, lectureSlug: string, objectName = 'source.mp4') {
   const normalizedObjectName = normalizePathSegment(objectName) || 'source.mp4';
 
   return `${buildPaidCoursePrefix(courseSlug)}${normalizePathSegment(lectureSlug)}/${normalizedObjectName}`;
 }
+
+export const buildPaidLectureObjectKey = buildLectureObjectKey;
 
 export async function createPresignedR2Url(options: PresignOptions): Promise<PresignResult> {
   const config = getR2Config();
@@ -204,4 +219,63 @@ export async function listR2ObjectKeys(prefix: string) {
   }
 
   return objectKeys;
+}
+
+export async function getR2BucketUsage(): Promise<R2BucketUsage> {
+  const config = getR2Config();
+  const aws = createAwsR2Client(config);
+  let usedBytes = 0;
+  let objectCount = 0;
+  let continuationToken = '';
+
+  while (true) {
+    const url = buildBucketUrl(config);
+    url.searchParams.set('list-type', '2');
+
+    if (continuationToken) {
+      url.searchParams.set('continuation-token', continuationToken);
+    }
+
+    const response = await aws.fetch(url.toString(), { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`Failed to inspect R2 bucket usage (HTTP ${response.status})`);
+    }
+
+    const body = await response.text();
+    const contentBlocks = body.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g);
+
+    for (const block of contentBlocks) {
+      const entry = block[1] ?? '';
+      const sizeMatch = entry.match(/<Size>(\d+)<\/Size>/);
+      if (sizeMatch?.[1]) {
+        const size = Number(sizeMatch[1]);
+        if (Number.isFinite(size) && size >= 0) {
+          usedBytes += size;
+          objectCount += 1;
+        }
+      }
+    }
+
+    const isTruncatedMatch = body.match(/<IsTruncated>(true|false)<\/IsTruncated>/i);
+    const isTruncated = isTruncatedMatch?.[1]?.toLowerCase() === 'true';
+    const nextTokenMatch = body.match(/<NextContinuationToken>([\s\S]*?)<\/NextContinuationToken>/);
+    continuationToken = xmlUnescape(nextTokenMatch?.[1] ?? '').trim();
+
+    if (!isTruncated || !continuationToken) {
+      break;
+    }
+  }
+
+  const rawUsedPercent = Math.round((usedBytes / R2_STORAGE_QUOTA_BYTES) * 1000) / 10;
+  const usedPercent = Math.min(100, rawUsedPercent);
+
+  return {
+    usedBytes,
+    objectCount,
+    quotaBytes: R2_STORAGE_QUOTA_BYTES,
+    blockThresholdBytes: R2_UPLOAD_BLOCK_THRESHOLD_BYTES,
+    usedPercent,
+    rawUsedPercent,
+    uploadsBlocked: usedBytes >= R2_UPLOAD_BLOCK_THRESHOLD_BYTES,
+  };
 }

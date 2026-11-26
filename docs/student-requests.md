@@ -161,7 +161,7 @@ deployments.
 
    ```bash
    chmod 600 "$PRIVATE_ENV_FILE"
-   npx --yes supabase@2.115.0 secrets set \
+   npx --yes supabase@3.2.0 secrets set \
      --env-file "$PRIVATE_ENV_FILE" \
      --project-ref bmliuvnxfsayjmufavma
    ```
@@ -173,7 +173,7 @@ deployments.
    `student_requests_worker_secret` unchanged. The URL is not a secret:
 
    ```bash
-   npx --yes supabase@3.0.0 db query --remote=bmliuvnxfsayjmufavma --yes \
+   npx --yes supabase@3.2.0 db query --remote=bmliuvnxfsayjmufavma --yes \
      "select vault.create_secret('https://bmliuvnxfsayjmufavma.supabase.co/functions/v1/student-request-notifications', 'student_requests_worker_url', 'Student request worker endpoint') where not exists (select 1 from vault.secrets where name = 'student_requests_worker_url')"
    ```
 
@@ -197,7 +197,7 @@ Then deploy only the tested routes, using the API bundler because Docker is not
 available:
 
 ```bash
-npx --yes supabase@2.115.0 functions deploy \
+npx --yes supabase@3.2.0 functions deploy \
   student-request-notifications notify-preference-telegram \
   --project-ref bmliuvnxfsayjmufavma \
   --use-api

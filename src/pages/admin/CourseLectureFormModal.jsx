@@ -1,12 +1,31 @@
-import { useEffect, useRef, useState } from 'react';
-import { X, Upload, Loader } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  X,
+  Upload,
+  Loader,
+  PlayCircle,
+  Video,
+  Headphones,
+  ClipboardCheck,
+  AlertTriangle,
+  RefreshCcw,
+} from 'lucide-react';
+import {
+  ACCEPTED_AUDIO_EXTENSIONS,
+  LECTURE_MEDIA_TYPES,
+  R2_STORAGE_QUOTA_BYTES,
+  R2_UPLOAD_BLOCK_THRESHOLD_BYTES,
   createCourseLecture,
+  fetchR2StorageUsage,
+  formatBytesDecimalGb,
   hasLectureUploadedVideo,
+  inferLectureMediaType,
   isCourseLectureSlugTaken,
+  isValidHttpUrl,
   maybeDeleteCourseLectureVideoAsset,
   updateCourseLecture,
-  uploadCourseLectureVideo,
+  uploadCourseLectureMedia,
+  validateLectureMediaFile,
 } from '../../services/courseLecturesService';
 import { getYouTubeEmbedUrl } from '../../lib/youtube';
 import { normalizeSlug, SLUG_REGEX } from '../../lib/slug';
@@ -24,7 +43,9 @@ const EMPTY_FORM = {
   description: '',
   description_en: '',
   description_tr: '',
+  media_type: LECTURE_MEDIA_TYPES.YOUTUBE,
   youtube_url: '',
+  test_url: '',
   sort_order: 0,
   is_published: true,
 };
@@ -35,13 +56,19 @@ const DUPLICATE_LECTURE_SLUG_ERROR =
 function formatFileSize(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) return 'غير معروف';
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 export default function CourseLectureFormModal({ course, lecture, onClose, onSaved }) {
   const isEdit = Boolean(lecture);
-  const isFreeCourse = Boolean(course?.is_free);
-  const videoInputRef = useRef(null);
+  const defaultMediaType = lecture
+    ? inferLectureMediaType(lecture)
+    : course?.is_free
+      ? LECTURE_MEDIA_TYPES.YOUTUBE
+      : LECTURE_MEDIA_TYPES.R2_VIDEO;
+
+  const mediaInputRef = useRef(null);
 
   const [form, setForm] = useState(
     lecture
@@ -53,30 +80,72 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
           description: lecture.description ?? '',
           description_en: lecture.description_en ?? '',
           description_tr: lecture.description_tr ?? '',
+          media_type: inferLectureMediaType(lecture),
           youtube_url: lecture.youtube_url ?? '',
+          test_url: lecture.test_url ?? '',
           sort_order: lecture.sort_order ?? 0,
           is_published: lecture.is_published ?? true,
         }
-      : { ...EMPTY_FORM }
+      : { ...EMPTY_FORM, media_type: defaultMediaType }
   );
   const [activeLang, setActiveLang] = useState('ar');
-  const [videoFile, setVideoFile] = useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState('');
-  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(lecture));
+  const [r2Usage, setR2Usage] = useState(null);
+  const [r2UsageLoading, setR2UsageLoading] = useState(false);
+  const [r2UsageError, setR2UsageError] = useState('');
 
   useEffect(() => {
     setActiveLang('ar');
   }, [lecture?.id]);
 
+  const loadR2Usage = useCallback(async () => {
+    setR2UsageLoading(true);
+    setR2UsageError('');
+    try {
+      const usage = await fetchR2StorageUsage();
+      setR2Usage(usage);
+      return usage;
+    } catch (err) {
+      console.error('[modal r2 usage fetch failed]', err);
+      setR2UsageError(err?.message ?? 'تعذر التحقق من مساحة التخزين على Cloudflare R2.');
+      return null;
+    } finally {
+      setR2UsageLoading(false);
+    }
+  }, []);
+
+  const isR2Mode =
+    form.media_type === LECTURE_MEDIA_TYPES.R2_VIDEO ||
+    form.media_type === LECTURE_MEDIA_TYPES.R2_AUDIO;
+  const isAudioMode = form.media_type === LECTURE_MEDIA_TYPES.R2_AUDIO;
+
+  useEffect(() => {
+    if (isR2Mode && !r2Usage && !r2UsageLoading && !r2UsageError) {
+      loadR2Usage();
+    }
+  }, [isR2Mode, r2Usage, r2UsageLoading, r2UsageError, loadR2Usage]);
+
   const { missingEn, missingTr } = getMissingTranslations(form, LECTURE_TRANSLATION_SPECS);
 
-  const youtubePreview = isFreeCourse ? getYouTubeEmbedUrl(form.youtube_url) : null;
-  const hasExistingVideo = hasLectureUploadedVideo(lecture);
-  const existingVideoName = lecture?.original_file_name || lecture?.r2_object_key || '';
+  const youtubePreview =
+    form.media_type === LECTURE_MEDIA_TYPES.YOUTUBE
+      ? getYouTubeEmbedUrl(form.youtube_url)
+      : null;
+
+  const existingMediaType = lecture ? inferLectureMediaType(lecture) : null;
+  const hasExistingSameTypeR2 = Boolean(
+    isEdit &&
+    hasLectureUploadedVideo(lecture) &&
+    existingMediaType === form.media_type
+  );
+  const existingMediaName = lecture?.original_file_name || lecture?.r2_object_key || '';
+  const uploadsBlocked = Boolean(r2Usage?.uploadsBlocked);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -89,6 +158,19 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
 
   const handleField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleMediaTypeChange = (nextMediaType) => {
+    if (nextMediaType === form.media_type) return;
+
+    setForm((prev) => ({ ...prev, media_type: nextMediaType }));
+    setMediaFile(null);
+    setUploadProgress(0);
+    setUploadMessage('');
+    setError('');
+    if (mediaInputRef.current) {
+      mediaInputRef.current.value = '';
+    }
   };
 
   const handleTitleChange = (event) => {
@@ -106,30 +188,58 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
     handleField('slug', normalizeSlug(event.target.value));
   };
 
-  const handleVideoChange = (event) => {
+  const handleMediaFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const isMp4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4');
-    if (!isMp4) {
-      setError('صيغة الفيديو المعتمدة حالياً هي MP4 فقط.');
+    if (uploadsBlocked) {
+      setError(
+        `تم إيقاف رفع الملفات لأن المساحة المستخدمة في Cloudflare R2 بلغت ${formatBytesDecimalGb(r2Usage.usedBytes)} GB من أصل ${formatBytesDecimalGb(R2_STORAGE_QUOTA_BYTES)} GB.`
+      );
+      event.target.value = '';
+      return;
+    }
+
+    const validation = validateLectureMediaFile(file, form.media_type);
+    if (!validation.valid) {
+      setError(
+        isAudioMode
+          ? `صيغ الصوت المعتمدة هي: ${ACCEPTED_AUDIO_EXTENSIONS.join(', ').toUpperCase()}`
+          : 'صيغة الفيديو المعتمدة حالياً هي MP4 فقط.'
+      );
+      event.target.value = '';
+      return;
+    }
+
+    if (r2Usage && r2Usage.usedBytes + file.size > (r2Usage.quotaBytes ?? R2_STORAGE_QUOTA_BYTES)) {
+      setError(
+        `حجم الملف (${formatFileSize(file.size)}) سيتجاوز الحد الأقصى المسموح للتخزين (${formatBytesDecimalGb(R2_STORAGE_QUOTA_BYTES)} GB).`
+      );
       event.target.value = '';
       return;
     }
 
     setError('');
-    setVideoFile(file);
+    setMediaFile(file);
     setUploadProgress(0);
-    setUploadMessage('سيتم رفع ملف الفيديو عند حفظ المحاضرة.');
+    setUploadMessage(
+      isAudioMode
+        ? 'سيتم رفع الملف الصوتي عند حفظ المحاضرة.'
+        : 'سيتم رفع ملف الفيديو عند حفظ المحاضرة.'
+    );
   };
 
-  const clearSelectedVideo = () => {
-    setVideoFile(null);
+  const clearSelectedMedia = () => {
+    setMediaFile(null);
     setUploadProgress(0);
-    setUploadMessage(hasExistingVideo ? 'سيبقى الفيديو الحالي كما هو حتى ترفع ملفاً جديداً.' : '');
+    setUploadMessage(
+      hasExistingSameTypeR2
+        ? 'سيبقى الملف الحالي كما هو حتى ترفع ملفاً جديداً.'
+        : ''
+    );
 
-    if (videoInputRef.current) {
-      videoInputRef.current.value = '';
+    if (mediaInputRef.current) {
+      mediaInputRef.current.value = '';
     }
   };
 
@@ -143,9 +253,15 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
       return;
     }
 
+    const trimmedTestUrl = form.test_url.trim();
+    if (trimmedTestUrl && !isValidHttpUrl(trimmedTestUrl)) {
+      setError('رابط الاختبار يجب أن يبدأ بـ http:// أو https:// وأن يكون رابطاً صحيحاً.');
+      return;
+    }
+
     setSaving(true);
 
-    let uploadedVideo = null;
+    let uploadedMedia = null;
 
     try {
       const payload = {
@@ -157,6 +273,8 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         description: form.description.trim() || null,
         description_en: form.description_en.trim() || null,
         description_tr: form.description_tr.trim() || null,
+        media_type: form.media_type,
+        test_url: trimmedTestUrl || null,
         sort_order: Number(form.sort_order) || 0,
         is_published: Boolean(form.is_published),
       };
@@ -165,14 +283,40 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         throw new Error('الرابط المختصر للمحاضرة يجب أن يحتوي على حروف إنجليزية صغيرة وأرقام وواصلات فقط (مثال: lesson-one).');
       }
 
-      if (isFreeCourse) {
+      if (form.media_type === LECTURE_MEDIA_TYPES.YOUTUBE) {
         if (!youtubePreview) {
-          throw new Error('يرجى إدخال رابط يوتيوب صحيح للمحاضرة المجانية.');
+          throw new Error('يرجى إدخال رابط يوتيوب صحيح للمحاضرة.');
         }
 
         payload.youtube_url = form.youtube_url.trim();
-      } else if (!videoFile && !hasExistingVideo) {
-        throw new Error('يرجى اختيار ملف MP4 قبل حفظ المحاضرة المدفوعة.');
+        payload.r2_object_key = null;
+        payload.original_file_name = null;
+        payload.r2_content_type = null;
+      } else {
+        if (!mediaFile && !hasExistingSameTypeR2) {
+          throw new Error(
+            isAudioMode
+              ? 'يرجى اختيار ملف صوتي قبل حفظ المحاضرة الصوتية.'
+              : 'يرجى اختيار ملف MP4 قبل حفظ محاضرة الفيديو.'
+          );
+        }
+
+        if (mediaFile) {
+          const latestUsage = r2Usage ?? (await loadR2Usage());
+          if (latestUsage?.uploadsBlocked) {
+            throw new Error(
+              `تم إيقاف الرفع لأن مساحة Cloudflare R2 المستخدمة بلغت ${formatBytesDecimalGb(latestUsage.usedBytes)} GB (الحد الأقصى قبل الإيقاف ${formatBytesDecimalGb(R2_UPLOAD_BLOCK_THRESHOLD_BYTES)} GB).`
+            );
+          }
+          if (
+            latestUsage &&
+            latestUsage.usedBytes + mediaFile.size > (latestUsage.quotaBytes ?? R2_STORAGE_QUOTA_BYTES)
+          ) {
+            throw new Error(
+              `لا توجد مساحة كافية على R2 لرفع هذا الملف (الحد الأقصى ${formatBytesDecimalGb(R2_STORAGE_QUOTA_BYTES)} GB).`
+            );
+          }
+        }
       }
 
       const slugTaken = await isCourseLectureSlugTaken(course.id, payload.slug, {
@@ -183,25 +327,34 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         throw new Error(DUPLICATE_LECTURE_SLUG_ERROR);
       }
 
-      if (!isFreeCourse && videoFile) {
-        setUploadingVideo(true);
+      if (isR2Mode && mediaFile) {
+        setUploadingMedia(true);
         setUploadProgress(0);
-        setUploadMessage('جارٍ رفع ملف الفيديو...');
+        setUploadMessage(isAudioMode ? 'جارٍ رفع الملف الصوتي...' : 'جارٍ رفع ملف الفيديو...');
 
-        uploadedVideo = await uploadCourseLectureVideo({
+        uploadedMedia = await uploadCourseLectureMedia({
           courseId: course.id,
           lectureId: lecture?.id,
           lectureSlug: payload.slug,
-          file: videoFile,
+          mediaType: form.media_type,
+          file: mediaFile,
           onProgress: (progress) => {
             setUploadProgress(progress);
-            setUploadMessage(`جارٍ رفع ملف الفيديو... ${progress}%`);
+            setUploadMessage(
+              `${isAudioMode ? 'جارٍ رفع الملف الصوتي' : 'جارٍ رفع ملف الفيديو'}... ${progress}%`
+            );
           },
         });
 
-        Object.assign(payload, uploadedVideo);
+        Object.assign(payload, uploadedMedia);
         setUploadProgress(100);
-        setUploadMessage('تم رفع ملف الفيديو وسيتم الآن حفظ بيانات المحاضرة.');
+        setUploadMessage(
+          isAudioMode
+            ? 'تم رفع الملف الصوتي وسيتم الآن حفظ بيانات المحاضرة.'
+            : 'تم رفع ملف الفيديو وسيتم الآن حفظ بيانات المحاضرة.'
+        );
+      } else if (isR2Mode && hasExistingSameTypeR2) {
+        payload.youtube_url = null;
       }
 
       const saved = isEdit
@@ -211,25 +364,23 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
       onSaved(saved);
 
       if (
-        !isFreeCourse &&
         isEdit &&
-        uploadedVideo?.r2_object_key &&
         lecture?.r2_object_key &&
-        uploadedVideo.r2_object_key !== lecture.r2_object_key
+        saved?.r2_object_key !== lecture.r2_object_key
       ) {
         maybeDeleteCourseLectureVideoAsset(lecture).catch((cleanupError) => {
-          console.error('[cleanup old course lecture video failed]', cleanupError);
+          console.error('[cleanup old course lecture asset failed]', cleanupError);
         });
       }
 
       onClose();
     } catch (saveError) {
       if (
-        uploadedVideo?.r2_object_key &&
-        uploadedVideo.r2_object_key !== lecture?.r2_object_key
+        uploadedMedia?.r2_object_key &&
+        uploadedMedia.r2_object_key !== lecture?.r2_object_key
       ) {
-        maybeDeleteCourseLectureVideoAsset(uploadedVideo).catch((cleanupError) => {
-          console.error('[cleanup new course lecture video failed]', cleanupError);
+        maybeDeleteCourseLectureVideoAsset(uploadedMedia).catch((cleanupError) => {
+          console.error('[cleanup new course lecture asset failed]', cleanupError);
         });
       }
 
@@ -248,13 +399,16 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
         setError(saveError.message ?? 'حدث خطأ أثناء حفظ المحاضرة.');
       }
     } finally {
-      setUploadingVideo(false);
+      setUploadingMedia(false);
       setSaving(false);
     }
   };
 
   const langSuffix = activeLang === 'ar' ? '' : `_${activeLang}`;
   const langLabel = activeLang === 'en' ? 'English' : 'Türkçe';
+  const r2Accept = isAudioMode
+    ? `${ACCEPTED_AUDIO_EXTENSIONS.join(',')},audio/*`
+    : 'video/mp4,.mp4';
 
   return (
     <div
@@ -363,7 +517,58 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
             </p>
           </div>
 
-          {isFreeCourse ? (
+          {/* 3-way Media Type Selector */}
+          <div className="admin-field-group" style={{ gap: '0.6rem' }}>
+            <label className="admin-label">نوع محتوى المحاضرة *</label>
+            <div
+              role="radiogroup"
+              aria-label="نوع محتوى المحاضرة"
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.55rem' }}
+            >
+              {[
+                { value: LECTURE_MEDIA_TYPES.YOUTUBE, label: 'رابط يوتيوب', Icon: PlayCircle },
+                { value: LECTURE_MEDIA_TYPES.R2_VIDEO, label: 'فيديو MP4 (R2)', Icon: Video },
+                { value: LECTURE_MEDIA_TYPES.R2_AUDIO, label: 'محاضرة صوتية (R2)', Icon: Headphones },
+              ].map(({ value, label, Icon }) => {
+                const selected = form.media_type === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    id={`lecture-media-type-${value}`}
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => handleMediaTypeChange(value)}
+                    disabled={saving}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.45rem',
+                      padding: '0.65rem 0.75rem',
+                      borderRadius: '10px',
+                      border: `1px solid ${selected ? 'var(--admin-accent)' : 'var(--admin-border)'}`,
+                      background: selected ? 'rgba(78, 173, 136, 0.14)' : 'var(--admin-surface2)',
+                      color: selected ? 'var(--admin-accent)' : 'var(--admin-text)',
+                      fontWeight: selected ? 800 : 600,
+                      fontSize: '0.85rem',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    <Icon size={16} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {isEdit && lecture?.r2_object_key && form.media_type !== existingMediaType && (
+              <p className="admin-field-hint" style={{ color: 'var(--admin-gold)' }}>
+                سيتم حذف الملف القديم من Cloudflare R2 تلقائياً بعد حفظ التعديل بالنوع الجديد.
+              </p>
+            )}
+          </div>
+
+          {form.media_type === LECTURE_MEDIA_TYPES.YOUTUBE ? (
             <div className="admin-field-group" style={{ gap: '0.75rem' }}>
               <label htmlFor="course-lecture-youtube" className="admin-label">رابط يوتيوب *</label>
               <input
@@ -399,44 +604,102 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
             </div>
           ) : (
             <div className="admin-field-group" style={{ gap: '0.85rem' }}>
-              <label className="admin-label">ملف الفيديو MP4 *</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                <label className="admin-label" style={{ margin: 0 }}>
+                  {isAudioMode ? 'الملف الصوتي للمحاضرة *' : 'ملف الفيديو MP4 *'}
+                </label>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {r2UsageLoading ? (
+                    <span className="admin-muted" style={{ fontSize: '0.75rem' }}>جارٍ فحص مساحة R2…</span>
+                  ) : r2Usage ? (
+                    <span
+                      className="admin-badge"
+                      style={{
+                        fontSize: '0.74rem',
+                        background: uploadsBlocked ? 'rgba(248, 81, 73, 0.14)' : 'rgba(78, 173, 136, 0.12)',
+                        color: uploadsBlocked ? 'var(--admin-danger)' : 'var(--admin-accent)',
+                      }}
+                    >
+                      R2: {r2Usage.usedPercent.toFixed(1)}% ({formatBytesDecimalGb(r2Usage.usedBytes)} / {formatBytesDecimalGb(r2Usage.quotaBytes)} GB)
+                    </span>
+                  ) : null}
+
+                  <button
+                    type="button"
+                    className="admin-icon-btn admin-icon-btn--neutral"
+                    onClick={loadR2Usage}
+                    disabled={r2UsageLoading}
+                    title="تحديث مساحة التخزين"
+                    aria-label="تحديث مساحة التخزين"
+                  >
+                    <RefreshCcw size={13} className={r2UsageLoading ? 'admin-spin' : ''} />
+                  </button>
+                </div>
+              </div>
+
+              {uploadsBlocked && (
+                <div className="admin-error-banner" role="alert">
+                  <AlertTriangle size={16} />
+                  <span>
+                    تم إيقاف رفع الملفات لأن مساحة R2 وصلت إلى {formatBytesDecimalGb(r2Usage.usedBytes)} GB (≥ {formatBytesDecimalGb(R2_UPLOAD_BLOCK_THRESHOLD_BYTES)} GB). احذف ملفات قديمة أولاً لتتمكن من رفع ملفات جديدة.
+                  </span>
+                </div>
+              )}
+
+              {r2UsageError && !r2Usage && (
+                <p className="admin-field-hint" style={{ color: '#f5b942' }}>
+                  ⚠️ {r2UsageError}
+                </p>
+              )}
 
               <div
                 role="button"
-                tabIndex={0}
-                onClick={() => videoInputRef.current?.click()}
+                tabIndex={uploadsBlocked ? -1 : 0}
+                aria-disabled={uploadsBlocked}
+                onClick={() => {
+                  if (!uploadsBlocked && !saving) mediaInputRef.current?.click();
+                }}
                 onKeyDown={(event) => {
-                  if (event.key === 'Enter') videoInputRef.current?.click();
+                  if (event.key === 'Enter' && !uploadsBlocked && !saving) {
+                    mediaInputRef.current?.click();
+                  }
                 }}
                 className="rounded-2xl border border-dashed p-5 text-center"
                 style={{
                   borderColor: 'var(--admin-border)',
                   backgroundColor: 'var(--admin-surface2)',
-                  cursor: 'pointer',
+                  cursor: uploadsBlocked || saving ? 'not-allowed' : 'pointer',
+                  opacity: uploadsBlocked ? 0.5 : 1,
                 }}
-                aria-label="رفع فيديو المحاضرة"
+                aria-label={isAudioMode ? 'رفع صوت المحاضرة' : 'رفع فيديو المحاضرة'}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.65rem', color: 'var(--admin-muted)' }}>
                   <Upload size={28} />
                   <div>
-                    <div style={{ fontWeight: 700, color: 'var(--admin-text)' }}>اختر ملف MP4 للمحاضرة</div>
+                    <div style={{ fontWeight: 700, color: 'var(--admin-text)' }}>
+                      {isAudioMode ? 'اختر ملفاً صوتياً للمحاضرة' : 'اختر ملف MP4 للمحاضرة'}
+                    </div>
                     <div style={{ fontSize: '0.8rem', marginTop: '0.2rem' }}>
-                      سيتم طلب رابط رفع مؤقت من خدمة الفيديو الخلفية ثم رفع الملف مباشرة.
+                      {isAudioMode
+                        ? 'الصيغ المدعومة: MP3, M4A, AAC, WAV, OGG, WEBM — يتم الرفع مباشرة إلى Cloudflare R2.'
+                        : 'سيتم طلب رابط رفع مؤقت من خدمة التخزين الخلفية ثم رفع الملف مباشرة إلى Cloudflare R2.'}
                     </div>
                   </div>
                 </div>
               </div>
 
               <input
-                ref={videoInputRef}
+                ref={mediaInputRef}
                 type="file"
-                accept="video/mp4,.mp4"
-                onChange={handleVideoChange}
+                accept={r2Accept}
+                onChange={handleMediaFileChange}
                 className="admin-hidden-input"
-                id="course-lecture-video"
+                id="course-lecture-media-input"
+                disabled={uploadsBlocked || saving}
               />
 
-              {(videoFile || hasExistingVideo) && (
+              {(mediaFile || hasExistingSameTypeR2) && (
                 <div
                   className="rounded-xl"
                   style={{
@@ -445,23 +708,23 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
                     padding: '0.85rem 1rem',
                   }}
                 >
-                  {videoFile ? (
+                  {mediaFile ? (
                     <>
-                      <div style={{ fontWeight: 700, color: 'var(--admin-text)' }}>{videoFile.name}</div>
-                      <div className="admin-field-hint">الحجم: {formatFileSize(videoFile.size)}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--admin-text)' }}>{mediaFile.name}</div>
+                      <div className="admin-field-hint">الحجم: {formatFileSize(mediaFile.size)}</div>
                     </>
                   ) : (
                     <>
-                      <div style={{ fontWeight: 700, color: 'var(--admin-text)' }}>{existingVideoName}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--admin-text)' }}>{existingMediaName}</div>
                       <div className="admin-field-hint">هذا هو الملف المرتبط بالمحاضرة حالياً.</div>
                     </>
                   )}
 
-                  {videoFile && (
+                  {mediaFile && (
                     <button
                       type="button"
                       className="admin-photo-clear"
-                      onClick={clearSelectedVideo}
+                      onClick={clearSelectedMedia}
                       style={{ marginTop: '0.5rem' }}
                     >
                       إزالة الملف المختار
@@ -470,10 +733,10 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
                 </div>
               )}
 
-              {(uploadingVideo || uploadProgress > 0 || uploadMessage) && (
+              {(uploadingMedia || uploadProgress > 0 || uploadMessage) && (
                 <div className="admin-field-group" style={{ gap: '0.45rem' }}>
                   <div className="admin-field-hint" style={{ lineHeight: 1.8 }}>{uploadMessage}</div>
-                  {(uploadingVideo || uploadProgress > 0) && (
+                  {(uploadingMedia || uploadProgress > 0) && (
                     <div
                       aria-hidden="true"
                       style={{
@@ -498,6 +761,26 @@ export default function CourseLectureFormModal({ course, lecture, onClose, onSav
               )}
             </div>
           )}
+
+          {/* Optional Lecture Quiz / Test Link */}
+          <div className="admin-field-group">
+            <label htmlFor="course-lecture-test-url" className="admin-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <ClipboardCheck size={15} style={{ color: 'var(--admin-gold)' }} />
+              <span>رابط اختبار المحاضرة (اختياري)</span>
+            </label>
+            <input
+              id="course-lecture-test-url"
+              type="url"
+              className="admin-input"
+              value={form.test_url}
+              onChange={(event) => handleField('test_url', event.target.value)}
+              placeholder="https://forms.gle/..."
+              dir="ltr"
+            />
+            <p className="admin-field-hint">
+              يظهر للطالب كزر اختبار مباشر أسفل مشغل المحاضرة (يفتح في نافذة جديدة).
+            </p>
+          </div>
 
           <div className="admin-field-row">
             <div className="admin-field-group" style={{ flex: 1 }}>
